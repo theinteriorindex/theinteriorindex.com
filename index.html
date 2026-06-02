@@ -1,1 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Interior Index — A Material-Based Design Concierge</title>
+<meta name="description" content="Minimalist home decor curated by material. Find your style profile and get AI-powered design recommendations for your space.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cream: #F5F0E8; --warm-white: #FAF7F2; --sand: #E8DFD0;
+    --clay: #C4A882; --terracotta: #A0714F; --walnut: #5C3D2E;
+    --bark: #3A2518; --sage: #8A9B7E; --stone: #9B9189;
+    --linen: #D4C9B8; --text-dark: #2A1F15; --text-mid: #6B5A4E; --text-light: #9B8E84;
+  }
+  body { font-family: 'Jost', sans-serif; background: var(--warm-white); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+  .site-header { padding: 2rem 3rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--linen); }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); }
+  .logo span { font-style: italic; color: var(--terracotta); }
+  .nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); font-weight: 300; }
+  .hero { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 80px); }
+  .hero-left { padding: 5rem 4rem; display: flex; flex-direction: column; justify-content: center; background: var(--cream); position: relative; overflow: hidden; }
+  .hero-left::after { content: ''; position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, var(--clay) 0%, transparent 70%); opacity: 0.15; border-radius: 50%; }
+  .hero-eyebrow { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 1.5rem; font-weight: 400; }
+  .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.5rem, 4vw, 4rem); font-weight: 300; line-height: 1.1; color: var(--bark); margin-bottom: 2rem; }
+  .hero-title em { font-style: italic; color: var(--terracotta); }
+  .hero-body { font-size: 0.9rem; line-height: 1.8; color: var(--text-mid); max-width: 380px; margin-bottom: 3rem; font-weight: 300; }
+  .hero-right { background: var(--bark); display: flex; flex-direction: column; justify-content: flex-end; padding: 4rem; position: relative; overflow: hidden; }
+  .hero-right::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, rgba(160,113,79,0.3) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(92,61,46,0.5) 0%, transparent 60%); }
+  .material-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.1); margin-bottom: 2rem; position: relative; z-index: 1; }
+  .material-chip { background: rgba(250,247,242,0.05); padding: 1.2rem 1.5rem; border: none; cursor: pointer; transition: background 0.3s; text-align: left; }
+  .material-chip:hover { background: rgba(250,247,242,0.12); }
+  .material-chip-name { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--cream); font-weight: 300; display: block; margin-bottom: 0.2rem; }
+  .material-chip-sub { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--clay); font-weight: 300; }
+  .hero-right-caption { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(250,247,242,0.4); position: relative; z-index: 1; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.75rem; background: var(--bark); color: var(--cream); border: none; padding: 1rem 2rem; font-family: 'Jost', sans-serif; font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; font-weight: 400; }
+  .btn-primary:hover { background: var(--terracotta); transform: translateY(-1px); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: var(--text-mid); border: 1px solid var(--linen); padding: 0.75rem 1.5rem; font-family: 'Jost', sans-serif; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; font-weight: 300; }
+  .btn-secondary:hover { border-color: var(--clay); color: var(--terracotta); }
+  .quiz-container { flex: 1; display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 80px); }
+  .quiz-sidebar { background: var(--cream); padding: 3rem 2rem; border-right: 1px solid var(--linen); display: flex; flex-direction: column; gap: 0.5rem; }
+  .quiz-sidebar-title { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); margin-bottom: 1.5rem; font-weight: 400; }
+  .quiz-step-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; opacity: 0.4; transition: opacity 0.3s; }
+  .quiz-step-item.active { opacity: 1; }
+  .quiz-step-item.done { opacity: 0.7; }
+  .quiz-step-num { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--linen); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--stone); flex-shrink: 0; }
+  .quiz-step-item.active .quiz-step-num { background: var(--bark); border-color: var(--bark); color: var(--cream); }
+  .quiz-step-item.done .quiz-step-num { background: var(--sage); border-color: var(--sage); color: white; }
+  .quiz-step-label { font-size: 0.75rem; color: var(--text-mid); font-weight: 300; }
+  .quiz-main { padding: 4rem 5rem; display: flex; flex-direction: column; justify-content: center; }
+  .quiz-q-num { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 1rem; font-weight: 400; }
+  .quiz-q-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--bark); margin-bottom: 0.75rem; line-height: 1.2; }
+  .quiz-q-sub { font-size: 0.85rem; color: var(--text-light); margin-bottom: 2.5rem; font-weight: 300; }
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 3rem; }
+  .quiz-option { border: 1px solid var(--linen); padding: 1.25rem 1.5rem; cursor: pointer; transition: all 0.2s; background: var(--warm-white); text-align: left; }
+  .quiz-option:hover { border-color: var(--clay); background: var(--cream); }
+  .quiz-option.selected { border-color: var(--terracotta); background: var(--cream); }
+  .quiz-option-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--bark); display: block; margin-bottom: 0.25rem; font-weight: 400; }
+  .quiz-option-desc { font-size: 0.72rem; color: var(--text-light); line-height: 1.5; font-weight: 300; }
+  .quiz-option.selected .quiz-option-title { color: var(--terracotta); }
+  .quiz-nav { display: flex; align-items: center; gap: 1rem; }
+  .quiz-progress { flex: 1; height: 2px; background: var(--linen); border-radius: 1px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--terracotta); transition: width 0.5s ease; }
+  .results-header { background: var(--bark); padding: 4rem; text-align: center; position: relative; overflow: hidden; }
+  .results-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(160,113,79,0.3) 0%, transparent 70%); }
+  .results-eyebrow { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--clay); margin-bottom: 1rem; position: relative; z-index: 1; }
+  .results-title { font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 300; color: var(--cream); margin-bottom: 0.5rem; position: relative; z-index: 1; }
+  .results-title em { font-style: italic; color: var(--clay); }
+  .results-sub { font-size: 0.85rem; color: rgba(250,247,242,0.5); font-weight: 300; position: relative; z-index: 1; }
+  .results-cards { padding: 3rem 4rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; background: var(--warm-white); }
+  .result-card { background: var(--cream); padding: 2rem; border: 1px solid var(--linen); }
+  .result-card-label { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 1rem; }
+  .result-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--bark); margin-bottom: 0.75rem; font-weight: 400; }
+  .result-card-body { font-size: 0.8rem; color: var(--text-mid); line-height: 1.7; font-weight: 300; }
+  .material-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .material-tag { background: var(--sand); padding: 0.3rem 0.75rem; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--walnut); font-weight: 400; }
+  .products-section { background: var(--cream); padding: 3rem 4rem; border-top: 1px solid var(--linen); }
+  .products-eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 0.5rem; }
+  .products-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--bark); margin-bottom: 0.5rem; }
+  .products-sub { font-size: 0.82rem; color: var(--text-light); margin-bottom: 2rem; font-weight: 300; }
+  .products-tabs { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 1px solid var(--linen); }
+  .products-tab { padding: 0.6rem 1.25rem; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-light); cursor: pointer; border: none; background: transparent; font-family: 'Jost', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; font-weight: 300; }
+  .products-tab.active { color: var(--terracotta); border-bottom-color: var(--terracotta); }
+  .products-tab:hover { color: var(--terracotta); }
+  .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .product-card { background: var(--warm-white); border: 1px solid var(--linen); overflow: hidden; transition: all 0.25s; }
+  .product-card:hover { border-color: var(--clay); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(58,37,24,0.08); }
+  .product-img { width: 100%; aspect-ratio: 1; overflow: hidden; background: var(--sand); }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+  .product-card:hover .product-img img { transform: scale(1.04); }
+  .product-info { padding: 1rem; }
+  .product-category { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 0.3rem; }
+  .product-name { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--bark); margin-bottom: 0.5rem; font-weight: 400; line-height: 1.3; }
+  .product-desc { font-size: 0.72rem; color: var(--text-light); line-height: 1.5; margin-bottom: 0.75rem; font-weight: 300; }
+  .product-footer { display: flex; align-items: center; justify-content: space-between; }
+  .product-price { font-size: 0.8rem; font-weight: 500; color: var(--walnut); }
+  .product-link { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--terracotta); text-decoration: none; font-weight: 400; transition: gap 0.2s; }
+  .product-link:hover { gap: 0.5rem; }
+  .affiliate-note { font-size: 0.68rem; color: var(--text-light); margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--linen); font-weight: 300; font-style: italic; }
+  .results-actions { padding: 2rem 4rem 3rem; background: var(--warm-white); display: flex; gap: 1rem; border-top: 1px solid var(--linen); }
+  .chat-container { flex: 1; display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 80px); }
+  .chat-sidebar { background: var(--cream); border-right: 1px solid var(--linen); padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .chat-profile { padding: 1.5rem; background: var(--bark); color: var(--cream); }
+  .chat-profile-label { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--clay); margin-bottom: 0.5rem; }
+  .chat-profile-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 300; margin-bottom: 0.25rem; }
+  .chat-profile-desc { font-size: 0.72rem; color: rgba(250,247,242,0.5); font-weight: 300; line-height: 1.5; }
+  .chat-sidebar-section { display: flex; flex-direction: column; gap: 0.5rem; }
+  .chat-sidebar-label { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); margin-bottom: 0.25rem; }
+  .chat-suggestion { padding: 0.75rem 1rem; background: var(--warm-white); border: 1px solid var(--linen); font-size: 0.75rem; color: var(--text-mid); cursor: pointer; transition: all 0.2s; text-align: left; font-weight: 300; line-height: 1.4; font-family: 'Jost', sans-serif; }
+  .chat-suggestion:hover { border-color: var(--clay); color: var(--terracotta); background: var(--cream); }
+  .chat-main { display: flex; flex-direction: column; height: calc(100vh - 80px); }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 2.5rem 3rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .chat-message { display: flex; gap: 1rem; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .chat-message.user { flex-direction: row-reverse; }
+  .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--bark); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; color: var(--cream); flex-shrink: 0; font-style: italic; }
+  .chat-message.user .chat-avatar { background: var(--terracotta); }
+  .chat-bubble { max-width: 65%; padding: 1rem 1.25rem; background: var(--cream); border: 1px solid var(--linen); font-size: 0.85rem; color: var(--text-dark); line-height: 1.7; font-weight: 300; }
+  .chat-message.user .chat-bubble { background: var(--bark); border-color: var(--bark); color: var(--cream); }
+  .chat-bubble strong { font-weight: 500; color: var(--terracotta); }
+  .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 0.5rem 0; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--clay); animation: typingBounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
+  .chat-input-area { border-top: 1px solid var(--linen); padding: 1.5rem 3rem; background: var(--warm-white); display: flex; gap: 1rem; align-items: flex-end; }
+  .chat-input { flex: 1; border: 1px solid var(--linen); background: var(--cream); padding: 0.9rem 1.25rem; font-family: 'Jost', sans-serif; font-size: 0.85rem; color: var(--text-dark); resize: none; outline: none; font-weight: 300; line-height: 1.5; min-height: 48px; max-height: 120px; transition: border-color 0.2s; }
+  .chat-input:focus { border-color: var(--clay); }
+  .chat-input::placeholder { color: var(--text-light); }
+  .chat-send { background: var(--bark); border: none; color: var(--cream); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .chat-send:hover { background: var(--terracotta); }
+  .chat-send svg { width: 18px; height: 18px; }
+  @media (max-width: 768px) {
+    .hero { grid-template-columns: 1fr; } .hero-right { display: none; }
+    .quiz-container { grid-template-columns: 1fr; } .quiz-sidebar { display: none; }
+    .quiz-main { padding: 2rem; } .quiz-options { grid-template-columns: 1fr; }
+    .results-cards { grid-template-columns: 1fr; padding: 2rem; }
+    .product-grid { grid-template-columns: 1fr 1fr; }
+    .products-section { padding: 2rem; }
+    .chat-container { grid-template-columns: 1fr; } .chat-sidebar { display: none; }
+    .site-header { padding: 1.5rem; } .hero-left { padding: 3rem 2rem; }
+    .results-actions { padding: 2rem; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
 
+<div class="screen active" id="screen-home">
+  <header class="site-header">
+    <div class="logo">The Interior <span>Index</span></div>
+    <div class="nav-tag">A material-based design concierge</div>
+  </header>
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Est. 2026 — New York</div>
+      <h1 class="hero-title">Your room,<br><em>indexed</em><br>by material.</h1>
+      <p class="hero-body">Tell us how you want your space to feel. We'll identify your material palette, curate the right pieces, and connect you with finds that fit your aesthetic — and your budget.</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="startQuiz()">Begin the style quiz <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        <button class="btn-secondary" onclick="goToChat()">Skip to AI chat</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="material-grid">
+        <div class="material-chip"><span class="material-chip-name">Walnut</span><span class="material-chip-sub">Warm & sculptural</span></div>
+        <div class="material-chip"><span class="material-chip-name">Oak</span><span class="material-chip-sub">Light & Scandinavian</span></div>
+        <div class="material-chip"><span class="material-chip-name">Marble</span><span class="material-chip-sub">Cool & refined</span></div>
+        <div class="material-chip"><span class="material-chip-name">Linen</span><span class="material-chip-sub">Soft & intentional</span></div>
+        <div class="material-chip"><span class="material-chip-name">Steel</span><span class="material-chip-sub">Raw & architectural</span></div>
+        <div class="material-chip"><span class="material-chip-name">Resin</span><span class="material-chip-sub">Organic & sculptural</span></div>
+      </div>
+      <div class="hero-right-caption">The material index — six edits, one aesthetic</div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-quiz">
+  <header class="site-header">
+    <div class="logo">The Interior <span>Index</span></div>
+    <button class="btn-secondary" onclick="showScreen('screen-home')" style="font-size:0.65rem;">← Back</button>
+  </header>
+  <div class="quiz-container">
+    <div class="quiz-sidebar">
+      <div class="quiz-sidebar-title">Your style profile</div>
+      <div class="quiz-step-item active" id="step-1"><div class="quiz-step-num">1</div><div class="quiz-step-label">Room focus</div></div>
+      <div class="quiz-step-item" id="step-2"><div class="quiz-step-num">2</div><div class="quiz-step-label">Aesthetic direction</div></div>
+      <div class="quiz-step-item" id="step-3"><div class="quiz-step-num">3</div><div class="quiz-step-label">Material palette</div></div>
+      <div class="quiz-step-item" id="step-4"><div class="quiz-step-num">4</div><div class="quiz-step-label">Budget range</div></div>
+      <div class="quiz-step-item" id="step-5"><div class="quiz-step-num">5</div><div class="quiz-step-label">Priority piece</div></div>
+    </div>
+    <div class="quiz-main" id="quiz-main"></div>
+  </div>
+</div>
+
+<div class="screen" id="screen-results">
+  <header class="site-header">
+    <div class="logo">The Interior <span>Index</span></div>
+    <button class="btn-secondary" onclick="showScreen('screen-home')" style="font-size:0.65rem;">Start over</button>
+  </header>
+  <div class="results-header">
+    <div class="results-eyebrow">Your material profile</div>
+    <div class="results-title" id="results-title">The <em>Warm Minimalist</em></div>
+    <div class="results-sub" id="results-sub">A considered interior anchored in warmth, texture, and restraint</div>
+  </div>
+  <div class="results-cards" id="results-cards"></div>
+  <div class="products-section">
+    <div class="products-eyebrow">The curated edit</div>
+    <div class="products-title" id="products-title">Your Walnut Living Room Edit</div>
+    <div class="products-sub">Curated finds based on your material profile.</div>
+    <div class="products-tabs" id="products-tabs"></div>
+    <div class="product-grid" id="product-grid"></div>
+    <div class="affiliate-note">This edit contains affiliate links. Purchasing through these links supports The Interior Index at no additional cost to you. Every piece is chosen for material quality, proportion, and value — never for commission alone.</div>
+  </div>
+  <div class="results-actions">
+    <button class="btn-primary" onclick="goToChat()">Continue with AI chat <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    <button class="btn-secondary" onclick="startQuiz()">Retake quiz</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-chat">
+  <header class="site-header">
+    <div class="logo">The Interior <span>Index</span></div>
+    <button class="btn-secondary" onclick="showScreen('screen-home')" style="font-size:0.65rem;">← Home</button>
+  </header>
+  <div class="chat-container">
+    <div class="chat-sidebar">
+      <div class="chat-profile">
+        <div class="chat-profile-label">Your design concierge</div>
+        <div class="chat-profile-name">The Index AI</div>
+        <div class="chat-profile-desc">Curating minimalist home decor by material since 2026. Ask me anything about your space.</div>
+      </div>
+      <div class="chat-sidebar-section">
+        <div class="chat-sidebar-label">Try asking</div>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">What walnut coffee tables work for a japandi living room?</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">How do I style a minimalist bedroom in oak and linen?</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">What's the difference between wabi-sabi and japandi?</button>
+        <button class="chat-suggestion" onclick="sendSuggestion(this)">Suggest a floor lamp for a neutral reading corner</button>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-message">
+          <div class="chat-avatar">I</div>
+          <div class="chat-bubble">Welcome to <strong>The Interior Index</strong>. I'm your material-based design concierge — here to help you find the right pieces for your space.<br><br>Tell me about your room. What material direction are you drawn to? What feeling do you want the space to have?</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chat-input" placeholder="Describe your space or ask a design question..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send" onclick="sendMessage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const catalog = {
+  walnut: {
+    'Coffee Tables': [
+      { name: '47" Rectangular Walnut Coffee Table', desc: 'Low silhouette, warm grain finish. The Amazon dupe that does the job.', price: '~$200', img: 'https://substackcdn.com/image/fetch/$s_!5-hE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4eaf3e62-1e91-4515-ac86-8aeab0cb5c9d_3052x1366.png', link: 'https://www.amazon.com/Rectangle-Wood-Coffee-Table-Living/dp/B0F2TFDCYB?linkCode=ll2&tag=theinterior0c-20&linkId=23ac4dba8a14fae8588d6e9c84a70a68&language=en_US&ref_=as_li_ss_tl' },
+      { name: 'Henn&Hart Pedestal Coffee Table', desc: 'Double pedestal base in satin walnut. Architectural without trying too hard.', price: 'Mid-range', img: 'https://substackcdn.com/image/fetch/$s_!wRPM!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2fde8aeb-2065-43eb-84c5-6e951ad0cc92_1303x788.png', link: 'https://www.amazon.com/dp/B0DQR4KKCK?linkCode=ll2&tag=theinterior0c-20&linkId=a3ddd7ec91fa45ce517dd02b109ca0c1&language=en_US&ref_=as_li_ss_tl' },
+      { name: 'Thick-Top Natural Wood Coffee Table', desc: '2-inch tabletop, visible grain. Looks boutique. Priced otherwise.', price: 'Mid-range', img: 'https://substackcdn.com/image/fetch/$s_!tTAE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb79cd64a-5a32-46d9-afac-800975d63865_2812x1524.png', link: 'https://www.amazon.com/dp/B0GDZFSSH6?linkCode=ll2&tag=theinterior0c-20&linkId=80f56447268091450eb20aaa683aeebe&language=en_US&ref_=as_li_ss_tl' },
+      { name: 'IBF Walnut + Black Metal Coffee Table', desc: 'Walnut top, black steel legs. Mid-century meets industrial.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!Ee16!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbdef85f0-18ed-4330-adef-6241918b590d_1404x764.png', link: 'https://www.amazon.com/IBF-Minimalist-Rectangle-Vintage-Cocktail/dp/B0CQYFCHKF?linkCode=ll2&tag=theinterior0c-20&linkId=e1c72f94850a9584edd34f200859672a&language=en_US&ref_=as_li_ss_tl' },
+    ],
+    'Side Tables': [
+      { name: 'Martini End Table', desc: 'Tall, slender, architectural. Vertical interest without visual noise.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!lt0D!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8a1e3246-9705-4496-af41-934aa4992bc6_1067x962.png', link: 'https://www.amazon.com/COZAYH-Farmhouse-Pedestal-Martini-Modern/dp/B0DJQD8SH4?linkCode=ll2&tag=theinterior0c-20&linkId=a802aeb046d21da54d6ed1415b25fd47&language=en_US&ref_=as_li_ss_tl' },
+      { name: 'Hexagonal Side Table', desc: 'Six sides, zero excess. Sculptural yet minimal.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!y6lm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc8c02d9c-2655-49e9-88b0-a018877b384b_899x993.png', link: 'https://www.amazon.com/COZAYH-Farmhouse-Hexagonal-Hourglass-Sculptural/dp/B0G51R72K4?linkCode=ll2&tag=theinterior0c-20&linkId=06327d7b852c5e57df6b199b549d0b9e&language=en_US&ref_=as_li_ss_tl' },
+      { name: 'Hourglass Side Table', desc: 'Carved from one piece of wood. Sculpture that holds your glass.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!Q0Fr!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F739003da-77ff-4186-9220-66640afb82c5_1014x1013.png', link: 'https://www.amazon.com/dp/B0DHKX5GZQ?linkCode=ll2&tag=theinterior0c-20&linkId=ee3b62d9071287cc9d10185b79f0c67f&language=en_US&ref_=as_li_ss_tl' },
+      { name: 'Rolling Side Table', desc: 'Side table, bar cart, bookshelf in one. The most versatile find.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!1b2l!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F47580dde-a127-46de-b63e-47604b0cc175_527x761.png', link: 'https://www.amazon.com/Wheels-Storage-Rolling-Bedside-Bedroom/dp/B0FKMZ9KT1?linkCode=ll2&tag=theinterior0c-20&linkId=dc39c9db1942e7f758e67fd60ad04572&language=en_US&ref_=as_li_ss_tl' },
+    ]
+  },
+  oak: {
+    'Coffee Tables': [
+      { name: '47" Rectangular Natural Wood Coffee Table', desc: 'Low, warm, minimal. Works beautifully in light oak interiors.', price: '~$200', img: 'https://substackcdn.com/image/fetch/$s_!5-hE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4eaf3e62-1e91-4515-ac86-8aeab0cb5c9d_3052x1366.png', link: 'https://www.amazon.com/Rectangle-Wood-Coffee-Table-Living/dp/B0F2TFDCYB?linkCode=ll2&tag=theinterior0c-20' },
+      { name: 'Thick-Top Natural Wood Coffee Table', desc: 'Natural grain, 2-inch top. Light wood energy for a Scandinavian room.', price: 'Mid-range', img: 'https://substackcdn.com/image/fetch/$s_!tTAE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb79cd64a-5a32-46d9-afac-800975d63865_2812x1524.png', link: 'https://www.amazon.com/dp/B0GDZFSSH6?linkCode=ll2&tag=theinterior0c-20' },
+    ],
+    'Side Tables': [
+      { name: 'Hexagonal Side Table', desc: 'Sculptural and minimal — works beautifully in light oak interiors.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!y6lm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc8c02d9c-2655-49e9-88b0-a018877b384b_899x993.png', link: 'https://www.amazon.com/COZAYH-Farmhouse-Hexagonal-Hourglass-Sculptural/dp/B0G51R72K4?linkCode=ll2&tag=theinterior0c-20' },
+      { name: 'Hourglass Side Table', desc: 'Organic carved form. A sculptural anchor for any considered corner.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!Q0Fr!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F739003da-77ff-4186-9220-66640afb82c5_1014x1013.png', link: 'https://www.amazon.com/dp/B0DHKX5GZQ?linkCode=ll2&tag=theinterior0c-20' },
+    ]
+  }
+};
+
+const quizAnswers = {};
+let currentQuestion = 0;
+let isLoading = false;
+let activeTab = null;
+let profileInjected = false;
+
+const questions = [
+  { id: 'room', num: 'Question 01', title: 'Which room are you focusing on?', sub: "We'll tailor your material edit to this space.", options: [{ title: 'Living Room', desc: 'Sofas, coffee tables, accent chairs, lighting' }, { title: 'Dining Room', desc: 'Tables, chairs, pendants, sideboards' }, { title: 'Bedroom', desc: 'Beds, nightstands, wardrobes, bedding' }, { title: 'Home Office', desc: 'Desks, shelving, task lighting, seating' }] },
+  { id: 'aesthetic', num: 'Question 02', title: 'What aesthetic direction feels right?', sub: 'Choose the one that speaks to how you want to live.', options: [{ title: 'Japandi', desc: 'Japanese-Scandinavian — minimal, functional, natural' }, { title: 'Wabi-Sabi', desc: 'Imperfect, organic, quietly beautiful' }, { title: 'Organic Modern', desc: 'Clean lines softened by natural texture' }, { title: 'Quiet Luxury', desc: 'Refined restraint, quality over quantity' }] },
+  { id: 'material', num: 'Question 03', title: 'Which material palette draws you in?', sub: 'Your primary material anchors the whole room.', options: [{ title: 'Walnut & Dark Wood', desc: 'Warm, rich, sculptural' }, { title: 'Oak & Light Wood', desc: 'Airy, Scandinavian, versatile' }, { title: 'Marble & Stone', desc: 'Cool, refined, timeless' }, { title: 'Linen & Natural Textiles', desc: 'Soft, tactile, calming' }] },
+  { id: 'budget', num: 'Question 04', title: "What's your budget for the hero piece?", sub: "We'll find options that deliver the look at the right price.", options: [{ title: 'Under $200', desc: 'Amazon finds that punch above their weight' }, { title: '$200 — $500', desc: 'Mid-range with real material quality' }, { title: '$500 — $1,000', desc: 'Investment pieces worth the price' }, { title: '$1,000+', desc: 'Heirloom quality, no compromise' }] },
+  { id: 'priority', num: 'Question 05', title: "What's the one piece you need most?", sub: "We'll lead with this in your curated edit.", options: [{ title: 'A statement table', desc: 'Coffee, dining, or side — the anchor piece' }, { title: 'The perfect chair', desc: 'Accent, dining, or reading — the character piece' }, { title: 'Lighting', desc: 'Floor lamp, pendant, or sconce — the mood piece' }, { title: 'Soft furnishings', desc: 'Bedding, throws, or cushions — the texture piece' }] }
+];
+
+const profileMap = {
+  'Japandi': { title: 'The Japandi Purist', sub: 'A considered interior where Japanese restraint meets Scandinavian warmth' },
+  'Wabi-Sabi': { title: 'The Wabi-Sabi Edit', sub: 'An interior that finds beauty in imperfection and the passage of time' },
+  'Organic Modern': { title: 'The Organic Modernist', sub: 'Clean architecture softened by natural material and honest texture' },
+  'Quiet Luxury': { title: 'The Quiet Luxurist', sub: 'A refined interior where quality speaks louder than decoration' }
+};
+
+const getMaterialProducts = (material) => {
+  if (material.toLowerCase().includes('walnut')) return catalog.walnut;
+  if (material.toLowerCase().includes('oak')) return catalog.oak;
+  return catalog.walnut;
+};
+
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+function startQuiz() { currentQuestion = 0; showScreen('screen-quiz'); renderQuestion(); }
+function goToChat() { showScreen('screen-chat'); if (Object.keys(quizAnswers).length > 0 && !profileInjected) injectProfileContext(); }
+
+function renderQuestion() {
+  const q = questions[currentQuestion];
+  const total = questions.length;
+  const progress = (currentQuestion / total) * 100;
+  document.querySelectorAll('.quiz-step-item').forEach((el, i) => { el.classList.remove('active','done'); if (i < currentQuestion) el.classList.add('done'); if (i === currentQuestion) el.classList.add('active'); });
+  document.getElementById('quiz-main').innerHTML = `
+    <div class="quiz-q-num">${q.num} of 0${total}</div>
+    <div class="quiz-q-title">${q.title}</div>
+    <div class="quiz-q-sub">${q.sub}</div>
+    <div class="quiz-options">${q.options.map(opt => `<button class="quiz-option ${quizAnswers[q.id]===opt.title?'selected':''}" onclick="selectOption('${q.id}','${opt.title}',this)"><span class="quiz-option-title">${opt.title}</span><span class="quiz-option-desc">${opt.desc}</span></button>`).join('')}</div>
+    <div class="quiz-nav">
+      ${currentQuestion > 0 ? `<button class="btn-secondary" onclick="prevQuestion()" style="font-size:0.65rem;">← Back</button>` : ''}
+      <div class="quiz-progress"><div class="quiz-progress-fill" style="width:${progress}%"></div></div>
+      <button class="btn-primary" onclick="nextQuestion()" ${!quizAnswers[q.id]?'disabled style="opacity:0.4;cursor:not-allowed;font-size:0.7rem;"':'style="font-size:0.7rem;"'}>${currentQuestion===total-1?'See your edit':'Next'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    </div>`;
+}
+
+function selectOption(id, value, el) {
+  quizAnswers[id] = value;
+  document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn = document.querySelector('.quiz-nav .btn-primary');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+}
+
+function nextQuestion() { if (!quizAnswers[questions[currentQuestion].id]) return; if (currentQuestion < questions.length-1) { currentQuestion++; renderQuestion(); } else { showResults(); } }
+function prevQuestion() { if (currentQuestion > 0) { currentQuestion--; renderQuestion(); } }
+
+function showResults() {
+  const aesthetic = quizAnswers.aesthetic || 'Organic Modern';
+  const profile = profileMap[aesthetic] || profileMap['Organic Modern'];
+  const material = quizAnswers.material || 'Walnut & Dark Wood';
+  const room = quizAnswers.room || 'Living Room';
+  const budget = quizAnswers.budget || 'Under $200';
+  const priority = quizAnswers.priority || 'A statement table';
+
+  document.getElementById('results-title').innerHTML = `The <em>${profile.title.replace('The ','')}</em>`;
+  document.getElementById('results-sub').textContent = profile.sub;
+  document.getElementById('results-cards').innerHTML = `
+    <div class="result-card"><div class="result-card-label">Your material palette</div><div class="result-card-title">${material}</div><div class="result-card-body">Your primary material anchors every decision — from the hero furniture piece to the smallest accent. Build outward from this foundation.</div><div class="material-tags"><span class="material-tag">${material.split(' ')[0]}</span><span class="material-tag">Linen</span><span class="material-tag">Ceramic</span></div></div>
+    <div class="result-card"><div class="result-card-label">Your room — ${room}</div><div class="result-card-title">The ${aesthetic} ${room}</div><div class="result-card-body">A ${aesthetic.toLowerCase()} ${room.toLowerCase()} prioritizes material honesty, intentional restraint, and pieces that earn their place. Less, but better.</div><div class="material-tags"><span class="material-tag">${aesthetic}</span><span class="material-tag">Intentional</span></div></div>
+    <div class="result-card"><div class="result-card-label">Start here — ${budget}</div><div class="result-card-title">${priority}</div><div class="result-card-body">We recommend beginning with ${priority.toLowerCase()} in the ${material.toLowerCase()} family. This anchors your ${room.toLowerCase()} and informs every subsequent purchase.</div><div class="material-tags"><span class="material-tag">${budget}</span><span class="material-tag">Hero piece</span></div></div>`;
+
+  const products = getMaterialProducts(material);
+  const materialName = material.split(' ')[0];
+  document.getElementById('products-title').textContent = `Your ${materialName} ${room} Edit`;
+
+  const tabs = Object.keys(products);
+  activeTab = priority.toLowerCase().includes('side') || priority.toLowerCase().includes('chair') ? (products['Side Tables'] ? 'Side Tables' : tabs[0]) : tabs[0];
+
+  document.getElementById('products-tabs').innerHTML = tabs.map(tab =>
+    `<button class="products-tab ${tab===activeTab?'active':''}" onclick="switchTab('${tab}')">${tab}</button>`
+  ).join('');
+
+  renderProducts(products[activeTab]);
+  showScreen('screen-results');
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  const products = getMaterialProducts(quizAnswers.material || 'Walnut & Dark Wood');
+  document.querySelectorAll('.products-tab').forEach(t => t.classList.toggle('active', t.textContent === tab));
+  renderProducts(products[tab]);
+}
+
+function renderProducts(items) {
+  if (!items || items.length === 0) {
+    document.getElementById('product-grid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-light);font-size:0.85rem;font-style:italic;">More products coming soon — browse our full edit on Pinterest.</div>`;
+    return;
+  }
+  document.getElementById('product-grid').innerHTML = items.map(p => `
+    <div class="product-card">
+      <a href="${p.link}" target="_blank" rel="noopener" style="text-decoration:none;">
+        <div class="product-img"><img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.parentElement.style.background='var(--sand)'"/></div>
+      </a>
+      <div class="product-info">
+        <div class="product-category">The Interior Index</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <span class="product-price">${p.price}</span>
+          <a href="${p.link}" target="_blank" rel="noopener" class="product-link">Shop on Amazon →</a>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function injectProfileContext() {
+  if (profileInjected) return;
+  profileInjected = true;
+  const context = `Based on my style quiz: Room — ${quizAnswers.room}, Aesthetic — ${quizAnswers.aesthetic}, Material — ${quizAnswers.material}, Budget — ${quizAnswers.budget}, Priority — ${quizAnswers.priority}.`;
+  addMessage('user', context);
+  getAIResponse(context);
+}
+
+function sendSuggestion(btn) { sendMessageText(btn.textContent.trim()); }
+function handleKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+function sendMessage() { const input=document.getElementById('chat-input'); const text=input.value.trim(); if (!text||isLoading) return; input.value=''; input.style.height='auto'; sendMessageText(text); }
+function sendMessageText(text) { addMessage('user',text); getAIResponse(text); }
+
+function addMessage(role, content) {
+  const messages=document.getElementById('chat-messages');
+  const div=document.createElement('div');
+  div.className=`chat-message ${role}`;
+  div.innerHTML=`<div class="chat-avatar">${role==='user'?'Y':'I'}</div><div class="chat-bubble">${content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`;
+  messages.appendChild(div); messages.scrollTop=messages.scrollHeight;
+}
+
+function showTyping() {
+  const messages=document.getElementById('chat-messages');
+  const div=document.createElement('div'); div.className='chat-message'; div.id='typing-indicator';
+  div.innerHTML=`<div class="chat-avatar">I</div><div class="chat-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  messages.appendChild(div); messages.scrollTop=messages.scrollHeight;
+}
+
+function hideTyping() { const el=document.getElementById('typing-indicator'); if(el) el.remove(); }
+
+async function getAIResponse(userMessage) {
+  if (isLoading) return;
+  isLoading=true; showTyping();
+  const profileContext = Object.keys(quizAnswers).length>0 ? `User profile from quiz: Room — ${quizAnswers.room||'not specified'}, Aesthetic — ${quizAnswers.aesthetic||'not specified'}, Material — ${quizAnswers.material||'not specified'}, Budget — ${quizAnswers.budget||'not specified'}, Priority — ${quizAnswers.priority||'not specified'}.` : '';
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        system: `You are The Interior Index AI — an editorial home decor design concierge with a minimalist, material-based curatorial philosophy. ${profileContext} Your personality: Warm but precise. Editorial but accessible. You speak like a knowledgeable friend who works in interior design. Focus on minimalist home decor organized by material — walnut, oak, marble, linen, steel, resin, ceramic, concrete. Always reference specific material choices, mention finds are available on Amazon via The Interior Index, use editorial language, keep responses concise — 3-5 carefully chosen recommendations, never 10. Never sound generic.`,
+        messages: [{ role: 'user', content: userMessage }]
+      })
+    });
+    const data=await response.json(); hideTyping();
+    addMessage('assistant', data.content?.[0]?.text||"I'm having trouble connecting. Please try again.");
+  } catch(err) { hideTyping(); addMessage('assistant',"I'm having trouble connecting right now. Please try again in a moment."); }
+  isLoading=false;
+}
+</script>
+</body>
+</html>
