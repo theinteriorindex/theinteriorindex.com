@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="fo-verify" content="0ceb7be8-d272-483c-b08b-fdbf2a046f65" />
 <meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Interior Index — A Material-Based Design Concierge</title>
 <meta name="description" content="Minimalist home decor curated by material. Find your style profile and get AI-powered design recommendations for your space.">
@@ -86,20 +88,27 @@
   .products-tab { padding: 0.6rem 1.25rem; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-light); cursor: pointer; border: none; background: transparent; font-family: 'Jost', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; font-weight: 300; }
   .products-tab.active { color: var(--terracotta); border-bottom-color: var(--terracotta); }
   .products-tab:hover { color: var(--terracotta); }
-  .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-  .product-card { background: var(--warm-white); border: 1px solid var(--linen); overflow: hidden; transition: all 0.25s; }
-  .product-card:hover { border-color: var(--clay); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(58,37,24,0.08); }
-  .product-img { width: 100%; aspect-ratio: 1; overflow: hidden; background: var(--sand); }
-  .product-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
-  .product-card:hover .product-img img { transform: scale(1.04); }
-  .product-info { padding: 1rem; }
-  .product-category { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 0.3rem; }
-  .product-name { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--bark); margin-bottom: 0.5rem; font-weight: 400; line-height: 1.3; }
-  .product-desc { font-size: 0.72rem; color: var(--text-light); line-height: 1.5; margin-bottom: 0.75rem; font-weight: 300; }
-  .product-footer { display: flex; align-items: center; justify-content: space-between; }
-  .product-price { font-size: 0.8rem; font-weight: 500; color: var(--walnut); }
-  .product-link { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--terracotta); text-decoration: none; font-weight: 400; transition: gap 0.2s; }
-  .product-link:hover { gap: 0.5rem; }
+  .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .product-card { position: relative; aspect-ratio: 3 / 4; overflow: hidden; background: var(--sand); cursor: pointer; }
+  .product-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); }
+  .product-card:hover img { transform: scale(1.04); }
+  .product-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(42,31,21,0.82) 0%, rgba(42,31,21,0.2) 52%, transparent 100%); opacity: 0; transition: opacity 0.35s ease; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.1rem 0.9rem; text-decoration: none; }
+  .product-card:hover .product-overlay { opacity: 1; }
+  .product-overlay-title { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 0.88rem; line-height: 1.35; color: var(--warm-white); margin-bottom: 0.5rem; transform: translateY(5px); transition: transform 0.35s ease; }
+  .product-card:hover .product-overlay-title { transform: translateY(0); }
+  .product-overlay-cta { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--warm-white); border-bottom: 0.5px solid rgba(250,247,242,0.45); padding-bottom: 1px; width: fit-content; transform: translateY(5px); transition: transform 0.4s ease 0.04s; }
+  .product-card:hover .product-overlay-cta { transform: translateY(0); }
+  .card-slides { position: absolute; inset: 0; }
+  .card-slides img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.45s ease; }
+  .card-dots { position: absolute; bottom: 44px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; z-index: 4; pointer-events: none; }
+  .product-card:hover .card-dots { pointer-events: all; }
+  .card-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(250,247,242,0.4); cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .card-dot.active { background: rgba(250,247,242,0.95); transform: scale(1.3); }
+  .card-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(42,31,21,0.35); backdrop-filter: blur(4px); border: none; color: rgba(250,247,242,0.9); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s, background 0.2s; z-index: 4; line-height: 1; }
+  .card-arrow:hover { background: rgba(42,31,21,0.6); }
+  .card-arrow.prev { left: 7px; }
+  .card-arrow.next { right: 7px; }
+  .product-card:hover .card-arrow { opacity: 1; }
   .affiliate-note { font-size: 0.68rem; color: var(--text-light); margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--linen); font-weight: 300; font-style: italic; }
   .results-actions { padding: 2rem 4rem 3rem; background: var(--warm-white); display: flex; gap: 1rem; border-top: 1px solid var(--linen); }
   .chat-container { flex: 1; display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 80px); }
@@ -260,27 +269,36 @@
 const catalog = {
   walnut: {
     'Coffee Tables': [
-      { name: '47" Rectangular Walnut Coffee Table', desc: 'Low silhouette, warm grain finish. The Amazon dupe that does the job.', price: '~$200', img: 'https://substackcdn.com/image/fetch/$s_!5-hE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4eaf3e62-1e91-4515-ac86-8aeab0cb5c9d_3052x1366.png', link: 'https://www.amazon.com/Rectangle-Wood-Coffee-Table-Living/dp/B0F2TFDCYB?linkCode=ll2&tag=theinterior0c-20&linkId=23ac4dba8a14fae8588d6e9c84a70a68&language=en_US&ref_=as_li_ss_tl' },
-      { name: 'Henn&Hart Pedestal Coffee Table', desc: 'Double pedestal base in satin walnut. Architectural without trying too hard.', price: 'Mid-range', img: 'https://substackcdn.com/image/fetch/$s_!wRPM!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2fde8aeb-2065-43eb-84c5-6e951ad0cc92_1303x788.png', link: 'https://www.amazon.com/dp/B0DQR4KKCK?linkCode=ll2&tag=theinterior0c-20&linkId=a3ddd7ec91fa45ce517dd02b109ca0c1&language=en_US&ref_=as_li_ss_tl' },
-      { name: 'Thick-Top Natural Wood Coffee Table', desc: '2-inch tabletop, visible grain. Looks boutique. Priced otherwise.', price: 'Mid-range', img: 'https://substackcdn.com/image/fetch/$s_!tTAE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb79cd64a-5a32-46d9-afac-800975d63865_2812x1524.png', link: 'https://www.amazon.com/dp/B0GDZFSSH6?linkCode=ll2&tag=theinterior0c-20&linkId=80f56447268091450eb20aaa683aeebe&language=en_US&ref_=as_li_ss_tl' },
-      { name: 'IBF Walnut + Black Metal Coffee Table', desc: 'Walnut top, black steel legs. Mid-century meets industrial.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!Ee16!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbdef85f0-18ed-4330-adef-6241918b590d_1404x764.png', link: 'https://www.amazon.com/IBF-Minimalist-Rectangle-Vintage-Cocktail/dp/B0CQYFCHKF?linkCode=ll2&tag=theinterior0c-20&linkId=e1c72f94850a9584edd34f200859672a&language=en_US&ref_=as_li_ss_tl' },
+      { name: '55" Rectangular Walnut Grain Coffee Table', link: 'https://amzn.to/4eJxApr', images: ['https://lh3.googleusercontent.com/d/1Kp4bHkvpvAfnAHaLp_rFGcn2R6qxFdNM','https://lh3.googleusercontent.com/d/1HWnGDPA9rkcaeixOovCMY5H-baiee2m7'] },
+      { name: 'Henn&Hart Pedestal Coffee Table in Satin Walnut', link: 'https://amzn.to/4oN1r4S', images: ['https://substackcdn.com/image/fetch/$s_!wRPM!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2fde8aeb-2065-43eb-84c5-6e951ad0cc92_1303x788.png'] },
+      { name: 'IBF Walnut Coffee Table with Black Metal Legs', link: 'https://amzn.to/4vwuHPL', images: ['https://lh3.googleusercontent.com/d/1NTZ2vlgb4cdgE4Hq9JyLat7cltiqScFO'] },
+      { name: 'Sculptural Coffee Table', link: 'https://amzn.to/4vtBfyN', images: ['https://lh3.googleusercontent.com/d/1LS0XiFv8tlPU4vuwOHwBE-qwtUAy1CFT','https://i.pinimg.com/736x/65/ca/65/65ca65543e3e9023014e2dd98882f77f.jpg'] },
+      { name: 'Solid Wood Rectangular Coffee Table', link: 'https://amzn.to/4w6QWf3', images: ['https://lh3.googleusercontent.com/d/1neBecqChJAvLnYm4i-nd5KFHFeHrUWpv','https://lh3.googleusercontent.com/d/1Utf-Ok9A7b2uKbGKjpC-av71l_QHf6Tu'] },
     ],
     'Side Tables': [
-      { name: 'Martini End Table', desc: 'Tall, slender, architectural. Vertical interest without visual noise.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!lt0D!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8a1e3246-9705-4496-af41-934aa4992bc6_1067x962.png', link: 'https://www.amazon.com/COZAYH-Farmhouse-Pedestal-Martini-Modern/dp/B0DJQD8SH4?linkCode=ll2&tag=theinterior0c-20&linkId=a802aeb046d21da54d6ed1415b25fd47&language=en_US&ref_=as_li_ss_tl' },
-      { name: 'Hexagonal Side Table', desc: 'Six sides, zero excess. Sculptural yet minimal.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!y6lm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc8c02d9c-2655-49e9-88b0-a018877b384b_899x993.png', link: 'https://www.amazon.com/COZAYH-Farmhouse-Hexagonal-Hourglass-Sculptural/dp/B0G51R72K4?linkCode=ll2&tag=theinterior0c-20&linkId=06327d7b852c5e57df6b199b549d0b9e&language=en_US&ref_=as_li_ss_tl' },
-      { name: 'Hourglass Side Table', desc: 'Carved from one piece of wood. Sculpture that holds your glass.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!Q0Fr!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F739003da-77ff-4186-9220-66640afb82c5_1014x1013.png', link: 'https://www.amazon.com/dp/B0DHKX5GZQ?linkCode=ll2&tag=theinterior0c-20&linkId=ee3b62d9071287cc9d10185b79f0c67f&language=en_US&ref_=as_li_ss_tl' },
-      { name: 'Rolling Side Table', desc: 'Side table, bar cart, bookshelf in one. The most versatile find.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!1b2l!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F47580dde-a127-46de-b63e-47604b0cc175_527x761.png', link: 'https://www.amazon.com/Wheels-Storage-Rolling-Bedside-Bedroom/dp/B0FKMZ9KT1?linkCode=ll2&tag=theinterior0c-20&linkId=dc39c9db1942e7f758e67fd60ad04572&language=en_US&ref_=as_li_ss_tl' },
-    ]
+      { name: 'Sculptural Hourglass Side Table', link: 'https://amzn.to/3QLccIq', images: ['https://i.pinimg.com/736x/d6/92/6f/d6926f954cf165c7414b94eb6dd51d1d.jpg','https://i.pinimg.com/736x/e2/b9/1e/e2b91e17afeec767489d103d322c4da3.jpg'] },
+      { name: 'Martini Side Table', link: 'https://www.amazon.com/dp/B0DJQD8SH4?tag=theinterio044-20', images: ['https://lh3.googleusercontent.com/d/1POvINt-JE5lpKhOlVac4t0bjKW8PCYsg','https://lh3.googleusercontent.com/d/1_nb76JIv0pKmIYqgK6E5TrkyHLcphHTG','https://lh3.googleusercontent.com/d/1rh8VkQsx2EQpfIfW3-unBzKmoJLivusF'] },
+      { name: 'Walnut Rolling Side Table', link: 'https://amzn.to/4gHMdMv', images: ['https://lh3.googleusercontent.com/d/1Hk7UkBTY2EM8TnKkfeXjzqRtaXZ-FX9m','https://lh3.googleusercontent.com/d/10WKCoieAJRqwPTHa5ml6X_5RPDxogfOz'] },
+      { name: 'Walnut Nesting Side Tables', link: 'https://amzn.to/4eQpHyF', images: ['https://lh3.googleusercontent.com/d/1APeTdchpLBalmJ_CR-md1NibOLzVypQz'] },
+      { name: 'Hexagonal Side Table', link: 'https://amzn.to/4eQDgOB', images: ['https://lh3.googleusercontent.com/d/1uQDuAhbIzBckv1SQAbtS2lYeMBGs0JPG'] },
+      { name: 'Bergamot Pedestal', link: 'https://amzn.to/4v9naWs', images: ['https://lh3.googleusercontent.com/d/13Ad_5S511fpVFZfbTPaNxtO1xwv4yXR1','https://lh3.googleusercontent.com/d/1_iu0fj7UfjB-kC6rcgXTdItV9JycHWQC'] },
+      { name: 'Spiral Side Table', link: 'https://amzn.to/4oUThro', images: ['https://lh3.googleusercontent.com/d/17wKqbSRV0wuqFNNohvXQzyY4vF0ZOBZ9','https://lh3.googleusercontent.com/d/1Y80A7FE_r4HH7fCoGTRifmSK7EBef1Xu'] },
+      { name: 'Creative Co-Op Paulownia Wood Round Table', link: 'https://amzn.to/4v1hrSn', images: ['https://lh3.googleusercontent.com/d/1v6LXPmMZcFYgGo7Z5yuzxpEzWLBQc6tU','https://lh3.googleusercontent.com/d/1plfpdLch9VqOn7vRLRcjV3SmQ_oNanIc'] },
+    ],
+    'Seating': [
+      { name: 'Mid Century Modern Walnut Rattan Chair', link: 'https://amzn.to/3SxiBYf', images: ['https://lh3.googleusercontent.com/d/1B6L-Mp0PrBAmFOzoKb6obvhfAbVgYFzC'] },
+      { name: 'Wooden Frame Accent Chair', link: 'https://amzn.to/4aml6mn', images: ['https://lh3.googleusercontent.com/d/19AidPGHUCM9R3T2GuYToX0CuxNmLXcDO','https://lh3.googleusercontent.com/d/1zTA_pKFJ_hblEsIHgYGd9XlPHZQlXaya','https://lh3.googleusercontent.com/d/1NCW0aeLXxFjk-R02u06s3-r3CRn07FHN'] },
+    ],
   },
-  oak: {
+    oak: {
     'Coffee Tables': [
-      { name: '47" Rectangular Natural Wood Coffee Table', desc: 'Low, warm, minimal. Works beautifully in light oak interiors.', price: '~$200', img: 'https://substackcdn.com/image/fetch/$s_!5-hE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4eaf3e62-1e91-4515-ac86-8aeab0cb5c9d_3052x1366.png', link: 'https://www.amazon.com/Rectangle-Wood-Coffee-Table-Living/dp/B0F2TFDCYB?linkCode=ll2&tag=theinterior0c-20' },
-      { name: 'Thick-Top Natural Wood Coffee Table', desc: 'Natural grain, 2-inch top. Light wood energy for a Scandinavian room.', price: 'Mid-range', img: 'https://substackcdn.com/image/fetch/$s_!tTAE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb79cd64a-5a32-46d9-afac-800975d63865_2812x1524.png', link: 'https://www.amazon.com/dp/B0GDZFSSH6?linkCode=ll2&tag=theinterior0c-20' },
+      { name: '47" Rectangular Natural Wood Coffee Table', img: 'https://substackcdn.com/image/fetch/$s_!5-hE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4eaf3e62-1e91-4515-ac86-8aeab0cb5c9d_3052x1366.png', link: 'https://www.amazon.com/Rectangle-Wood-Coffee-Table-Living/dp/B0F2TFDCYB?tag=theinterio044-20' },
+      { name: 'Thick-Top Natural Wood Coffee Table', img: 'https://substackcdn.com/image/fetch/$s_!tTAE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb79cd64a-5a32-46d9-afac-800975d63865_2812x1524.png', link: 'https://www.amazon.com/dp/B0GDZFSSH6?tag=theinterio044-20' },
     ],
     'Side Tables': [
-      { name: 'Hexagonal Side Table', desc: 'Sculptural and minimal — works beautifully in light oak interiors.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!y6lm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc8c02d9c-2655-49e9-88b0-a018877b384b_899x993.png', link: 'https://www.amazon.com/COZAYH-Farmhouse-Hexagonal-Hourglass-Sculptural/dp/B0G51R72K4?linkCode=ll2&tag=theinterior0c-20' },
-      { name: 'Hourglass Side Table', desc: 'Organic carved form. A sculptural anchor for any considered corner.', price: 'Under $200', img: 'https://substackcdn.com/image/fetch/$s_!Q0Fr!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F739003da-77ff-4186-9220-66640afb82c5_1014x1013.png', link: 'https://www.amazon.com/dp/B0DHKX5GZQ?linkCode=ll2&tag=theinterior0c-20' },
-    ]
+      { name: 'Hexagonal Side Table', img: 'https://substackcdn.com/image/fetch/$s_!y6lm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc8c02d9c-2655-49e9-88b0-a018877b384b_899x993.png', link: 'https://www.amazon.com/COZAYH-Farmhouse-Hexagonal-Hourglass-Sculptural/dp/B0G51R72K4?tag=theinterio044-20' },
+      { name: 'Hourglass Side Table', img: 'https://substackcdn.com/image/fetch/$s_!Q0Fr!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F739003da-77ff-4186-9220-66640afb82c5_1014x1013.png', link: 'https://www.amazon.com/dp/B0DHKX5GZQ?tag=theinterio044-20' },
+    ],
   }
 };
 
@@ -326,9 +344,7 @@ function renderQuestion() {
     <div class="quiz-q-sub">${q.sub}</div>
     <div class="quiz-options">${q.options.map(opt => `<button class="quiz-option ${quizAnswers[q.id]===opt.title?'selected':''}" onclick="selectOption('${q.id}','${opt.title}',this)"><span class="quiz-option-title">${opt.title}</span><span class="quiz-option-desc">${opt.desc}</span></button>`).join('')}</div>
     <div class="quiz-nav">
-      ${currentQuestion > 0 ? `<button class="btn-secondary" onclick="prevQuestion()" style="font-size:0.65rem;">← Back</button>` : ''}
       <div class="quiz-progress"><div class="quiz-progress-fill" style="width:${progress}%"></div></div>
-      <button class="btn-primary" onclick="nextQuestion()" ${!quizAnswers[q.id]?'disabled style="opacity:0.4;cursor:not-allowed;font-size:0.7rem;"':'style="font-size:0.7rem;"'}>${currentQuestion===total-1?'See your edit':'Next'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
     </div>`;
 }
 
@@ -338,6 +354,8 @@ function selectOption(id, value, el) {
   el.classList.add('selected');
   const btn = document.querySelector('.quiz-nav .btn-primary');
   if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+  // Auto-advance after a brief pause so the selection is visible
+  setTimeout(() => nextQuestion(), 180);
 }
 
 function nextQuestion() { if (!quizAnswers[questions[currentQuestion].id]) return; if (currentQuestion < questions.length-1) { currentQuestion++; renderQuestion(); } else { showResults(); } }
@@ -363,7 +381,9 @@ function showResults() {
   document.getElementById('products-title').textContent = `Your ${materialName} ${room} Edit`;
 
   const tabs = Object.keys(products);
-  activeTab = priority.toLowerCase().includes('side') || priority.toLowerCase().includes('chair') ? (products['Side Tables'] ? 'Side Tables' : tabs[0]) : tabs[0];
+  if (priority.toLowerCase().includes('chair')) activeTab = products['Seating'] ? 'Seating' : tabs[0];
+  else if (priority.toLowerCase().includes('side') || priority.toLowerCase().includes('table')) activeTab = products['Coffee Tables'] ? 'Coffee Tables' : tabs[0];
+  else activeTab = tabs[0];
 
   document.getElementById('products-tabs').innerHTML = tabs.map(tab =>
     `<button class="products-tab ${tab===activeTab?'active':''}" onclick="switchTab('${tab}')">${tab}</button>`
@@ -382,24 +402,44 @@ function switchTab(tab) {
 
 function renderProducts(items) {
   if (!items || items.length === 0) {
-    document.getElementById('product-grid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-light);font-size:0.85rem;font-style:italic;">More products coming soon — browse our full edit on Pinterest.</div>`;
+    document.getElementById('product-grid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-light);font-size:0.85rem;font-style:italic;">More products coming soon.</div>`;
     return;
   }
-  document.getElementById('product-grid').innerHTML = items.map(p => `
-    <div class="product-card">
-      <a href="${p.link}" target="_blank" rel="noopener" style="text-decoration:none;">
-        <div class="product-img"><img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.parentElement.style.background='var(--sand)'"/></div>
+  document.getElementById('product-grid').innerHTML = items.map((p, idx) => {
+    const id = 'pc-' + idx;
+    const multi = p.images.length > 1;
+    const slides = p.images.map((img, i) =>
+      `<img src="${img}" alt="${p.name}" referrerpolicy="no-referrer" loading="${i===0?'eager':'lazy'}" onerror="this.style.opacity='0'" style="opacity:${i===0?1:0};">`
+    ).join('');
+    const dots = multi ? `<div class="card-dots">${p.images.map((_,i) =>
+      `<div class="card-dot ${i===0?'active':''}" onclick="setSlide('${id}',${i},event)"></div>`
+    ).join('')}</div>` : '';
+    const arrows = multi ? `
+      <button class="card-arrow prev" onclick="shiftSlide('${id}',-1,${p.images.length},event)">&#8249;</button>
+      <button class="card-arrow next" onclick="shiftSlide('${id}',1,${p.images.length},event)">&#8250;</button>` : '';
+    return `<div class="product-card" id="${id}" data-idx="0">
+      <div class="card-slides">${slides}</div>
+      ${dots}${arrows}
+      <a href="${p.link}" target="_blank" rel="noopener" class="product-overlay">
+        <div class="product-overlay-title">${p.name}</div>
+        <span class="product-overlay-cta">Shop on Amazon →</span>
       </a>
-      <div class="product-info">
-        <div class="product-category">The Interior Index</div>
-        <div class="product-name">${p.name}</div>
-        <div class="product-desc">${p.desc}</div>
-        <div class="product-footer">
-          <span class="product-price">${p.price}</span>
-          <a href="${p.link}" target="_blank" rel="noopener" class="product-link">Shop on Amazon →</a>
-        </div>
-      </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+function setSlide(id, idx, e) {
+  e && e.preventDefault(); e && e.stopPropagation();
+  const card = document.getElementById(id);
+  card.querySelectorAll('.card-slides img').forEach((img, i) => img.style.opacity = i === idx ? '1' : '0');
+  card.querySelectorAll('.card-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  card.dataset.idx = idx;
+}
+
+function shiftSlide(id, dir, total, e) {
+  e && e.preventDefault(); e && e.stopPropagation();
+  const card = document.getElementById(id);
+  setSlide(id, (parseInt(card.dataset.idx) + dir + total) % total, null);
 }
 
 function injectProfileContext() {
