@@ -39,8 +39,8 @@
   .material-chip-name { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--cream); font-weight: 300; display: block; margin-bottom: 0.2rem; }
   .material-chip-sub { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--clay); font-weight: 300; }
   .hero-right-caption { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(250,247,242,0.4); position: relative; z-index: 1; }
-  .btn-primary { display: inline-flex; align-items: center; gap: 0.75rem; background: var(--bark); color: var(--cream); border: none; padding: 1rem 2rem; font-family: 'Jost', sans-serif; font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; font-weight: 400; }
-  .btn-primary:hover { background: var(--terracotta); transform: translateY(-1px); }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.75rem; background: var(--bark); color: var(--cream); border: none; padding: 1.1rem 2.4rem; font-family: 'Jost', sans-serif; font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.3s; font-weight: 400; position: relative; z-index: 2; }
+  .btn-primary:hover { background: var(--terracotta); }
   .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: var(--text-mid); border: 1px solid var(--linen); padding: 0.75rem 1.5rem; font-family: 'Jost', sans-serif; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; font-weight: 300; }
   .btn-secondary:hover { border-color: var(--clay); color: var(--terracotta); }
   .quiz-container { flex: 1; display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 80px); }
@@ -270,10 +270,13 @@ const catalog = {
   walnut: {
     'Coffee Tables': [
       { name: '55" Rectangular Walnut Grain Coffee Table', link: 'https://amzn.to/4eJxApr', images: ['https://lh3.googleusercontent.com/d/1Kp4bHkvpvAfnAHaLp_rFGcn2R6qxFdNM','https://lh3.googleusercontent.com/d/1HWnGDPA9rkcaeixOovCMY5H-baiee2m7'] },
-      { name: 'Henn&Hart Pedestal Coffee Table in Satin Walnut', link: 'https://amzn.to/4oN1r4S', images: ['https://substackcdn.com/image/fetch/$s_!wRPM!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2fde8aeb-2065-43eb-84c5-6e951ad0cc92_1303x788.png'] },
-      { name: 'IBF Walnut Coffee Table with Black Metal Legs', link: 'https://amzn.to/4vwuHPL', images: ['https://lh3.googleusercontent.com/d/1NTZ2vlgb4cdgE4Hq9JyLat7cltiqScFO'] },
+      { name: 'Henn&Hart Rectangular Pedestal Coffee Table in Satin Walnut', link: 'https://amzn.to/4oN1r4S', images: ['https://substackcdn.com/image/fetch/$s_!wRPM!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2fde8aeb-2065-43eb-84c5-6e951ad0cc92_1303x788.png','https://lh3.googleusercontent.com/d/1E1i8RXXSmo1w2fBUndFnbiNRBt1cWfsK','https://lh3.googleusercontent.com/d/1outd4B9X6aPEeEOXro1VdH7nUz5A_yci'] },
+      { name: 'IBF Walnut Coffee Table with Black Metal Legs', link: 'https://amzn.to/4vwuHPL', images: ['https://lh3.googleusercontent.com/d/1H-HwjmemXBifjg1ssHxOx9NHr6B90VFV','https://lh3.googleusercontent.com/d/1_TxoxKkwTuYYtPr3gBqv3doCMbYXXK9x'] },
       { name: 'Sculptural Coffee Table', link: 'https://amzn.to/4vtBfyN', images: ['https://lh3.googleusercontent.com/d/1LS0XiFv8tlPU4vuwOHwBE-qwtUAy1CFT','https://i.pinimg.com/736x/65/ca/65/65ca65543e3e9023014e2dd98882f77f.jpg'] },
       { name: 'Solid Wood Rectangular Coffee Table', link: 'https://amzn.to/4w6QWf3', images: ['https://lh3.googleusercontent.com/d/1neBecqChJAvLnYm4i-nd5KFHFeHrUWpv','https://lh3.googleusercontent.com/d/1Utf-Ok9A7b2uKbGKjpC-av71l_QHf6Tu'] },
+      { name: '2-Tier Tempered Glass Top Coffee Table', link: 'https://amzn.to/4eMy0ex', images: ['https://lh3.googleusercontent.com/d/1QE6yNrBgQa1Zzl5Ic4OXEKZAO7pzOGGY','https://lh3.googleusercontent.com/d/1T2CmWOwI2TaAgvNlIednSD0DdcPHVYjd'] },
+      { name: 'Mid Century Modern Triangle Coffee Table', link: 'https://amzn.to/442sT57', images: ['https://lh3.googleusercontent.com/d/1ukPgX8EE6wOkgNr5Wbuh3L3pfuGTtd26','https://lh3.googleusercontent.com/d/1DYZ5WEzvqlD7B8m-cqbAfG-G_1Y_YX00','https://lh3.googleusercontent.com/d/18gf5NZGtm3LKxvW7NR0VfYl9nfeC2FDD'] },
+      { name: 'Solid Wood Coffee Table with Cross Base Legs', link: 'https://amzn.to/4ggCZXz', images: ['https://lh3.googleusercontent.com/d/1259F7gprZXUR_3ybN_qVcQ1UqrsBX0hM','https://lh3.googleusercontent.com/d/1BjBcdu5TR5x-elD59lD1-o7_JGdI1690','https://lh3.googleusercontent.com/d/1wmqV4ioalHuJPcklss4EvLLIOEYVgxSI'] },
     ],
     'Side Tables': [
       { name: 'Sculptural Hourglass Side Table', link: 'https://amzn.to/3QLccIq', images: ['https://i.pinimg.com/736x/d6/92/6f/d6926f954cf165c7414b94eb6dd51d1d.jpg','https://i.pinimg.com/736x/e2/b9/1e/e2b91e17afeec767489d103d322c4da3.jpg'] },
