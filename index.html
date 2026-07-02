@@ -383,6 +383,35 @@ const getMaterialProducts = (material, room) => {
   return catalog.walnut;
 };
 
+// Returns a complementary design edit — hero piece in chosen material,
+// supporting pieces in contrasting tones so the room doesn't wash out.
+function getEditCatalog(material, room, priority) {
+  const isLighting = priority && priority.toLowerCase().includes('lighting');
+  const isDining   = room === 'Dining Room';
+  const isWalnut   = material && material.toLowerCase().includes('walnut');
+  const isOak      = material && material.toLowerCase().includes('oak');
+
+  if (isLighting) return catalog.light;
+  if (isDining)   return isWalnut ? catalog.walnutDining : catalog.oakDining;
+
+  // Living room complementary edit
+  if (isWalnut) return {
+    'Coffee Tables': catalog.walnut['Coffee Tables'],   // walnut anchor
+    'Side Tables':   catalog.oak['Side Tables'],        // oak contrast — lighter, airy
+    'Seating':       catalog.walnut['Seating'],         // walnut seating ties it together
+    'Table Lamps':   catalog.light['Table Lamps'],      // mood piece — always included
+  };
+
+  if (isOak) return {
+    'Coffee Tables': catalog.oak['Coffee Tables'],      // oak anchor
+    'Side Tables':   catalog.walnut['Side Tables'],     // walnut contrast — darker warmth
+    'Seating':       catalog.oak['Seating'],            // oak seating stays airy
+    'Table Lamps':   catalog.light['Table Lamps'],      // mood piece — always included
+  };
+
+  return getMaterialProducts(material, room);
+}
+
 function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
 function startQuiz() { currentQuestion = 0; showScreen('screen-quiz'); renderQuestion(); }
 function goToChat() { showScreen('screen-chat'); if (Object.keys(quizAnswers).length > 0 && !profileInjected) injectProfileContext(); }
@@ -438,28 +467,69 @@ function showResults() {
     <div class="result-card"><div class="result-card-label">Start here — ${budget}</div><div class="result-card-title">${priority}</div><div class="result-card-body">We recommend beginning with ${priority.toLowerCase()} in the ${material.toLowerCase()} family. This anchors your ${room.toLowerCase()} and informs every subsequent purchase.</div><div class="material-tags"><span class="material-tag">${budget}</span><span class="material-tag">Hero piece</span></div></div>`;
 
   const isLighting = priority.toLowerCase().includes('lighting');
-  const products = isLighting ? catalog.light : getMaterialProducts(material, room);
-  const editLabel = isLighting ? 'The Light Edit' : `Your ${material.split(' ')[0]} ${room} Edit`;
+  const products = getEditCatalog(material, room, priority);
+  const isDiningRoom = room === 'Dining Room';
+  const matName = material.split(' ')[0];
+  // Title stays clean — just the chosen material
+  const editLabel = isLighting ? 'The Light Edit' : `Your ${matName} ${room} Edit`;
   document.getElementById('products-title').textContent = editLabel;
+  // Subtitle describes the complementary curation
+  const subEl = document.querySelector('.products-sub');
+  if (subEl) {
+    if (isLighting) {
+      subEl.textContent = 'Table lamps and pendants — the mood pieces that finish a room.';
+    } else if (isDiningRoom) {
+      subEl.textContent = 'Chairs and tables curated for your dining room.';
+    } else if (material.toLowerCase().includes('walnut')) {
+      subEl.textContent = `${matName} anchors the space. Oak side tables and considered lighting bring contrast and balance.`;
+    } else if (material.toLowerCase().includes('oak')) {
+      subEl.textContent = `${matName} keeps it airy. Walnut side tables and considered lighting add warmth and depth.`;
+    } else {
+      subEl.textContent = 'Curated finds based on your material profile.';
+    }
+  }
 
   const tabs = Object.keys(products);
-  // Tab routing: priority beats room (chair = Seating regardless of room)
+  // Determine hero tab based on priority
   if (isLighting) {
     activeTab = 'Table Lamps';
   } else if (priority.toLowerCase().includes('chair')) {
-    // "The perfect chair" → Seating in ALL rooms
     activeTab = products['Dining Chairs'] ? 'Dining Chairs' : (products['Seating'] ? 'Seating' : tabs[0]);
   } else if (room === 'Dining Room' && products['Dining Tables']) {
-    // Dining Room + statement table/soft furnishings → Dining Tables
     activeTab = 'Dining Tables';
   } else if (priority.toLowerCase().includes('table') || priority.toLowerCase().includes('side')) {
-    // Living Room + statement table → Coffee Tables
     activeTab = products['Coffee Tables'] ? 'Coffee Tables' : tabs[0];
+  } else if (priority.toLowerCase().includes('soft') || priority.toLowerCase().includes('furnishing')) {
+    activeTab = products['Table Lamps'] ? 'Table Lamps' : tabs[0];
   } else {
     activeTab = tabs[0];
   }
 
-  document.getElementById('products-tabs').innerHTML = tabs.map(tab =>
+  // Natural room-building progression per priority
+  let orderedTabs;
+  if (isLighting) {
+    // Lighting edit
+    orderedTabs = ['Table Lamps', 'Pendants'];
+  } else if (room === 'Dining Room') {
+    // Dining room: table or chair first based on priority, other follows
+    if (activeTab === 'Dining Tables') orderedTabs = ['Dining Tables', 'Dining Chairs'];
+    else                               orderedTabs = ['Dining Chairs', 'Dining Tables'];
+  } else if (activeTab === 'Coffee Tables') {
+    // Natural room-building: anchor table → seating → side table → lighting
+    orderedTabs = ['Coffee Tables', 'Seating', 'Side Tables', 'Table Lamps'];
+  } else if (activeTab === 'Seating') {
+    // Chair first → table it sits around → side table → lighting
+    orderedTabs = ['Seating', 'Coffee Tables', 'Side Tables', 'Table Lamps'];
+  } else if (activeTab === 'Table Lamps') {
+    // Lighting first → then furniture
+    orderedTabs = ['Table Lamps', 'Coffee Tables', 'Side Tables', 'Seating'];
+  } else {
+    orderedTabs = [activeTab, ...tabs.filter(t => t !== activeTab)];
+  }
+  // Filter to only tabs that exist in this catalog
+  orderedTabs = orderedTabs.filter(t => products[t]);
+
+  document.getElementById('products-tabs').innerHTML = orderedTabs.map(tab =>
     `<button class="products-tab ${tab===activeTab?'active':''}" onclick="switchTab('${tab}')">${tab}</button>`
   ).join('');
 
@@ -470,7 +540,7 @@ function showResults() {
 function switchTab(tab) {
   activeTab = tab;
   const priority = quizAnswers.priority || '';
-  const products = priority.toLowerCase().includes('lighting') ? catalog.light : getMaterialProducts(quizAnswers.material || 'Walnut & Dark Wood', quizAnswers.room || 'Living Room');
+  const products = getEditCatalog(quizAnswers.material || 'Walnut & Dark Wood', quizAnswers.room || 'Living Room', quizAnswers.priority || 'A statement table');
   document.querySelectorAll('.products-tab').forEach(t => t.classList.toggle('active', t.textContent === tab));
   renderProducts(products[tab]);
 }
