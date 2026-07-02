@@ -53,6 +53,7 @@
   .quiz-step-item.active .quiz-step-num { background: var(--bark); border-color: var(--bark); color: var(--cream); }
   .quiz-step-item.done .quiz-step-num { background: var(--sage); border-color: var(--sage); color: white; }
   .quiz-step-label { font-size: 0.75rem; color: var(--text-mid); font-weight: 300; }
+  .quiz-step-answer { font-size: 0.65rem; color: var(--terracotta); font-weight: 300; margin-top: 0.15rem; letter-spacing: 0.02em; }
   .quiz-main { padding: 4rem 5rem; display: flex; flex-direction: column; justify-content: center; }
   .quiz-q-num { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 1rem; font-weight: 400; }
   .quiz-q-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--bark); margin-bottom: 0.75rem; line-height: 1.2; }
@@ -177,16 +178,16 @@
 <div class="screen" id="screen-quiz">
   <header class="site-header">
     <div class="logo">The Interior <span>Index</span></div>
-    <button class="btn-secondary" onclick="showScreen('screen-home')" style="font-size:0.65rem;">← Back</button>
+    <button class="btn-secondary" onclick="quizBack()" style="font-size:0.65rem;">← Back</button>
   </header>
   <div class="quiz-container">
     <div class="quiz-sidebar">
       <div class="quiz-sidebar-title">Your style profile</div>
-      <div class="quiz-step-item active" id="step-1"><div class="quiz-step-num">1</div><div class="quiz-step-label">Room focus</div></div>
-      <div class="quiz-step-item" id="step-2"><div class="quiz-step-num">2</div><div class="quiz-step-label">Aesthetic direction</div></div>
-      <div class="quiz-step-item" id="step-3"><div class="quiz-step-num">3</div><div class="quiz-step-label">Material palette</div></div>
-      <div class="quiz-step-item" id="step-4"><div class="quiz-step-num">4</div><div class="quiz-step-label">Budget range</div></div>
-      <div class="quiz-step-item" id="step-5"><div class="quiz-step-num">5</div><div class="quiz-step-label">Priority piece</div></div>
+      <div class="quiz-step-item active" id="step-1"><div class="quiz-step-num">1</div><div><div class="quiz-step-label">Room focus</div><div class="quiz-step-answer" id="ans-1"></div></div></div>
+      <div class="quiz-step-item" id="step-2"><div class="quiz-step-num">2</div><div><div class="quiz-step-label">Aesthetic direction</div><div class="quiz-step-answer" id="ans-2"></div></div></div>
+      <div class="quiz-step-item" id="step-3"><div class="quiz-step-num">3</div><div><div class="quiz-step-label">Material palette</div><div class="quiz-step-answer" id="ans-3"></div></div></div>
+      <div class="quiz-step-item" id="step-4"><div class="quiz-step-num">4</div><div><div class="quiz-step-label">Budget range</div><div class="quiz-step-answer" id="ans-4"></div></div></div>
+      <div class="quiz-step-item" id="step-5"><div class="quiz-step-num">5</div><div><div class="quiz-step-label">Priority piece</div><div class="quiz-step-answer" id="ans-5"></div></div></div>
     </div>
     <div class="quiz-main" id="quiz-main"></div>
   </div>
@@ -280,7 +281,22 @@ const catalog = {
       { name: 'Wooden Frame Accent Chair', link: 'https://amzn.to/4aml6mn', images: ['https://lh3.googleusercontent.com/d/19AidPGHUCM9R3T2GuYToX0CuxNmLXcDO','https://lh3.googleusercontent.com/d/1zTA_pKFJ_hblEsIHgYGd9XlPHZQlXaya','https://lh3.googleusercontent.com/d/1NCW0aeLXxFjk-R02u06s3-r3CRn07FHN'] },
     ],
   },
-    // Oak Living Room — accent chairs, side tables, coffee tables
+    // Walnut Dining Room — dining chairs and tables
+  walnutDining: {
+    'Dining Chairs': [
+      { name: 'Mid Century Modern Faux Leather Chair', link: 'https://amzn.to/4eQrpRT', images: ['https://lh3.googleusercontent.com/d/1d0QtGv-f3AafZHZ7rgU5EjvDWDDrD1QE','https://lh3.googleusercontent.com/d/1xiyFttVyWUt9S1L_p_FEIPzRFOlBYt13','https://lh3.googleusercontent.com/d/13rxRKlj6gpktk1oMCBGC_Mt8Yx7naNA9'] },
+      { name: 'Mid Century Modern Armless Faux Leather Chair', link: 'https://amzn.to/445a5Cr', images: ['https://lh3.googleusercontent.com/d/1sMz9LmAkM2aVXxLiY9fXlpIMkjnCMGbu','https://lh3.googleusercontent.com/d/1T4CIP1ughS-LN3ucUptwYI3qmZJNRrSM','https://lh3.googleusercontent.com/d/1BiN8L0NxOku2rezirzzI6dREF6ZvgvTz'] },
+      { name: 'Mid Century Modern Armless Linen Chair', link: 'https://amzn.to/3Rj7MbX', images: ['https://lh3.googleusercontent.com/d/1RJDU8dvlqXjEc0p68kRBBSc8s7Vf1-DM','https://lh3.googleusercontent.com/d/1KAjxzsN_qRP93mdRc0uoCDjMCk5mAVL7','https://lh3.googleusercontent.com/d/1Eh4TzbHjubfkG_-mt3TERtnT8A6H9Ntt','https://lh3.googleusercontent.com/d/1z3R40gRq_MFG9AfCL4akeg8yrku8Tz4O'] },
+      { name: 'Stackable Stool', link: 'https://amzn.to/4gXIRoC', images: ['https://lh3.googleusercontent.com/d/1YbC_4250OcjzqLEW_4lo3KJqRXskPPya'] },
+      { name: 'Solid Wood Dining Chair', link: 'https://www.amazon.com/dp/B0CZD5W1KP?tag=theinterio044-20', images: ['https://lh3.googleusercontent.com/d/1WlM7-OBYr54Bdf1zLmy4wn0Vq0DgNJBS','https://lh3.googleusercontent.com/d/1QMMSiFzGG9PVNteK5ZfUECVoMD27E_Uk'] },
+    ],
+    'Dining Tables': [
+      { name: 'X Pedestal Dining Table', link: 'https://amzn.to/4feyqvD', images: ['https://lh3.googleusercontent.com/d/1Yll6uQyPBR7YdzfX-0HS-adefwP87mgS','https://lh3.googleusercontent.com/d/1hzqUFzPkGtNjgmYYDGKvuA9ZF4C8UeLc','https://lh3.googleusercontent.com/d/1NNjtPq-7qv3b56utx0r8xWZhOCWBAkcb','https://lh3.googleusercontent.com/d/1iSUiEayirvsXFX63ycD-iZ6i3oHR0Bm1'] },
+      { name: 'Cone Pedestal Dining Table', link: 'https://amzn.to/4gBvsTp', images: ['https://lh3.googleusercontent.com/d/1ZxKw5kVeexVG-lAUtDe4P5hkcKPNgSkR','https://lh3.googleusercontent.com/d/1rKk4XLbnZLV6qmVNBFfKWhV-7Wno_kGm','https://lh3.googleusercontent.com/d/1RDTo6Tbokr40m2nvHQKzhL19Bhl5uX9P'] },
+      { name: 'Herringbone Dining Table', link: 'https://amzn.to/3QOqmZq', images: ['https://lh3.googleusercontent.com/d/1qbacv_852TfejOKfPT9kTOdo6qkqLn9P','https://lh3.googleusercontent.com/d/1qvyUlbpU10aGabzrCpSuQUnQ8UJrikAu'] },
+    ],
+  },
+  // Oak Living Room — accent chairs, side tables, coffee tables
   oak: {
     'Coffee Tables': [
       { name: '55" Farmhouse Coffee Table', link: 'https://amzn.to/4vHSaxG', images: ['https://lh3.googleusercontent.com/d/1Xkfg_Mqg1BKLriBKJar94GALGJaRXT3I','https://lh3.googleusercontent.com/d/1BcO-AevEEl2VaTDxn2Y5eHF6PED9yE8v'] },
@@ -362,8 +378,8 @@ const profileMap = {
 };
 
 const getMaterialProducts = (material, room) => {
-  if (material.toLowerCase().includes('walnut')) return catalog.walnut;
-  if (material.toLowerCase().includes('oak')) return room === 'Dining Room' ? catalog.oakDining : catalog.oak;
+  if (material.toLowerCase().includes('walnut')) return room === 'Dining Room' ? catalog.walnutDining : catalog.walnut;
+  if (material.toLowerCase().includes('oak'))    return room === 'Dining Room' ? catalog.oakDining    : catalog.oak;
   return catalog.walnut;
 };
 
@@ -375,7 +391,13 @@ function renderQuestion() {
   const q = questions[currentQuestion];
   const total = questions.length;
   const progress = (currentQuestion / total) * 100;
-  document.querySelectorAll('.quiz-step-item').forEach((el, i) => { el.classList.remove('active','done'); if (i < currentQuestion) el.classList.add('done'); if (i === currentQuestion) el.classList.add('active'); });
+  document.querySelectorAll('.quiz-step-item').forEach((el, i) => {
+    el.classList.remove('active','done');
+    if (i < currentQuestion) el.classList.add('done');
+    if (i === currentQuestion) el.classList.add('active');
+    const ansEl = document.getElementById('ans-' + (i + 1));
+    if (ansEl) ansEl.textContent = quizAnswers[questions[i].id] || '';
+  });
   document.getElementById('quiz-main').innerHTML = `
     <div class="quiz-q-num">${q.num} of 0${total}</div>
     <div class="quiz-q-title">${q.title}</div>
@@ -398,6 +420,7 @@ function selectOption(id, value, el) {
 
 function nextQuestion() { if (!quizAnswers[questions[currentQuestion].id]) return; if (currentQuestion < questions.length-1) { currentQuestion++; renderQuestion(); } else { showResults(); } }
 function prevQuestion() { if (currentQuestion > 0) { currentQuestion--; renderQuestion(); } }
+function quizBack() { if (currentQuestion > 0) prevQuestion(); else showScreen('screen-home'); }
 
 function showResults() {
   const aesthetic = quizAnswers.aesthetic || 'Organic Modern';
@@ -425,7 +448,7 @@ function showResults() {
     activeTab = 'Table Lamps';
   } else if (priority.toLowerCase().includes('chair')) {
     // "The perfect chair" → Seating in ALL rooms
-    activeTab = products['Seating'] || products['Dining Chairs'] ? (products['Seating'] ? 'Seating' : 'Dining Chairs') : tabs[0];
+    activeTab = products['Dining Chairs'] ? 'Dining Chairs' : (products['Seating'] ? 'Seating' : tabs[0]);
   } else if (room === 'Dining Room' && products['Dining Tables']) {
     // Dining Room + statement table/soft furnishings → Dining Tables
     activeTab = 'Dining Tables';
