@@ -7,9 +7,10 @@ type Props = {
   answers: Record<string, string>;
   onSelect: (id: string, value: string) => void;
   onBack: () => void;
+  onJumpTo: (index: number) => void;
 };
 
-export default function QuizScreen({ currentQuestion, answers, onSelect, onBack }: Props) {
+export default function QuizScreen({ currentQuestion, answers, onSelect, onBack, onJumpTo }: Props) {
   const q = questions[currentQuestion];
   const total = questions.length;
   const progress = (currentQuestion / total) * 100;
@@ -29,8 +30,22 @@ export default function QuizScreen({ currentQuestion, answers, onSelect, onBack 
           <div className="quiz-sidebar-title">Your style profile</div>
           {questions.map((step, i) => {
             const state = i < currentQuestion ? "done" : i === currentQuestion ? "active" : "";
+            const clickable = state === "done";
             return (
-              <div className={`quiz-step-item ${state}`} key={step.id}>
+              <div
+                className={`quiz-step-item ${state}`}
+                key={step.id}
+                onClick={clickable ? () => onJumpTo(i) : undefined}
+                role={clickable ? "button" : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                onKeyDown={
+                  clickable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") onJumpTo(i);
+                      }
+                    : undefined
+                }
+              >
                 <div className="quiz-step-num">{i + 1}</div>
                 <div>
                   <div className="quiz-step-label">

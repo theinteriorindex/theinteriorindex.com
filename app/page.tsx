@@ -37,6 +37,10 @@ export default function Page() {
     else setScreen("home");
   }
 
+  function jumpToQuestion(index: number) {
+    if (index >= 0 && index < currentQuestion) setCurrentQuestion(index);
+  }
+
   function goToChat() {
     setScreen("chat");
   }
@@ -51,7 +55,13 @@ export default function Page() {
     <>
       {screen === "home" && <HomeScreen onStart={startQuiz} />}
       {screen === "quiz" && (
-        <QuizScreen currentQuestion={currentQuestion} answers={answers} onSelect={selectOption} onBack={quizBack} />
+        <QuizScreen
+          currentQuestion={currentQuestion}
+          answers={answers}
+          onSelect={selectOption}
+          onBack={quizBack}
+          onJumpTo={jumpToQuestion}
+        />
       )}
       {screen === "results" && (
         <ResultsScreen answers={answers} onRestart={restart} onRetakeQuiz={startQuiz} onContinueToChat={goToChat} />
