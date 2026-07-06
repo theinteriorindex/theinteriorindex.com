@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { getEditCatalog, profileMap } from "@/lib/catalog";
+import { profileMap, type ProductGroup } from "@/lib/catalog";
+import { getEditCatalogFromDB } from "@/lib/catalogData";
 import ProductCard from "./ProductCard";
 
 type Props = {
@@ -19,7 +20,23 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onCont
   const budget = answers.budget || "Under $200";
   const priority = answers.priority || "A statement table";
 
-  const products = useMemo(() => getEditCatalog(material, room, priority), [material, room, priority]);
+  const [products, setProducts] = useState<ProductGroup>({});
+  const [productsLoading, setProductsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setProductsLoading(true);
+    getEditCatalogFromDB(material, room, priority).then((data) => {
+      if (!cancelled) {
+        setProducts(data);
+        setProductsLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [material, room, priority]);
+
   const isLighting = priority.toLowerCase().includes("lighting");
   const isDiningRoom = room === "Dining Room";
   const matName = material.split(" ")[0];
@@ -136,7 +153,20 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onCont
           ))}
         </div>
         <div className="product-grid">
-          {(products[activeTab] || []).length === 0 ? (
+          {productsLoading ? (
+            <div
+              style={{
+                gridColumn: "1/-1",
+                textAlign: "center",
+                padding: "3rem",
+                color: "var(--text-light)",
+                fontSize: "0.85rem",
+                fontStyle: "italic",
+              }}
+            >
+              Loading curated picks…
+            </div>
+          ) : (products[activeTab] || []).length === 0 ? (
             <div
               style={{
                 gridColumn: "1/-1",

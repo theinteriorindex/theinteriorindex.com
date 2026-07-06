@@ -5,8 +5,13 @@ import type { Product } from "@/lib/catalog";
 
 export default function ProductCard({ product }: { product: Product }) {
   const [idx, setIdx] = useState(0);
+  const [hovered, setHovered] = useState(false);
   const [hiddenImages, setHiddenImages] = useState<Set<number>>(new Set());
   const multi = product.images.length > 1;
+
+  // While hovered, preview the next image after the resting slide; revert
+  // to the resting slide (idx) as soon as the mouse leaves the card.
+  const displayIdx = hovered && multi ? (idx + 1) % product.images.length : idx;
 
   const shift = (dir: number, e: React.MouseEvent) => {
     e.preventDefault();
@@ -21,7 +26,7 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="product-card">
+    <div className="product-card" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div className="card-slides">
         {product.images.map((img, i) => (
           <img
@@ -31,14 +36,14 @@ export default function ProductCard({ product }: { product: Product }) {
             referrerPolicy="no-referrer"
             loading={i === 0 ? "eager" : "lazy"}
             onError={() => setHiddenImages((prev) => new Set(prev).add(i))}
-            style={{ opacity: hiddenImages.has(i) ? 0 : i === idx ? 1 : 0 }}
+            style={{ opacity: hiddenImages.has(i) ? 0 : i === displayIdx ? 1 : 0 }}
           />
         ))}
       </div>
       {multi && (
         <div className="card-dots">
           {product.images.map((_, i) => (
-            <div key={i} className={`card-dot ${i === idx ? "active" : ""}`} onClick={(e) => setSlide(i, e)} />
+            <div key={i} className={`card-dot ${i === displayIdx ? "active" : ""}`} onClick={(e) => setSlide(i, e)} />
           ))}
         </div>
       )}
