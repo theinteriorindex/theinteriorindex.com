@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { BrowseProduct } from "@/lib/catalogData";
+import { getRetailerLabel } from "@/lib/retailer";
 
 // Card for the Browse Our Edit grid: title + retailer under the image (not a
 // hover overlay like the results-page ProductCard), but still peeks at the
@@ -70,12 +71,15 @@ export default function BrowseProductCard({ product }: { product: BrowseProduct 
   );
 }
 
+// Prefers the shared retailer map (which unwraps AWIN's p= redirect param to
+// find the real destination, e.g. eternitymodern.com); falls back to the raw
+// hostname for anything not yet in that map instead of mislabeling it.
 function getStoreName(link: string): string {
+  const known = getRetailerLabel(link);
+  if (known) return known;
   try {
-    const host = new URL(link).hostname.replace(/^www\./, "");
-    if (host.includes("amazon") || host.includes("amzn")) return "Amazon";
-    return host;
+    return new URL(link).hostname.replace(/^www\./, "");
   } catch {
-    return "Amazon";
+    return "Shop Now";
   }
 }
