@@ -95,9 +95,9 @@ export default function ChatScreen({
   return (
     <div className="screen active">
       <header className="site-header">
-        <div className="logo">
+        <button className="logo" onClick={onHome}>
           The Interior <span>Index</span>
-        </div>
+        </button>
         <button className="btn-secondary" onClick={onHome} style={{ fontSize: "0.65rem" }}>
           ← Home
         </button>

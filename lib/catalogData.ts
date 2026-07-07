@@ -49,7 +49,7 @@ function toProduct(row: ViewRow): Product {
 // Maps a Supabase `category` value onto the tab labels the site shows,
 // room-aware so each room's edit surfaces its own relevant categories
 // (e.g. Bedroom gets Bedframe/Bench/Side Tables instead of Coffee Tables).
-function tabLabelFor(row: ViewRow, room: string): string {
+function tabLabelFor(row: { category: string; name: string }, room: string): string {
   if (room === "Bedroom") {
     const cat = row.category.trim().toLowerCase();
     if (cat === "bedframe") return "Bedframe";
@@ -190,4 +190,87 @@ export async function getEditCatalogFromDB(material: string, room: string, prior
   }
 
   return getMaterialProductsFromDB(material, room);
+}
+
+// Powers the "Browse Edits" landing page: every active product across all
+// rooms, grouped first by material then by its tab-label category (same
+// labels the results-page tabs use), regardless of room. Materials with no
+// live products (e.g. Marble, Linen pre-launch) simply won't have a key.
+export type BrowseCatalog = Record<string, ProductGroup>;
+export type BrowseProduct = Product & { material: string; category: string };
+
+const BROWSE_MATERIALS = ["Walnut", "Oak", "Marble", "Linen"];
+
+type BrowseRow = {
+  id: string;
+  name: string;
+  material: string;
+  room: string | null;
+  category: string;
+  sort_order: number;
+  affiliate_url: string | null;
+};
+
+async function fetchBrowseRows(): Promise<(BrowseRow & { images: string[]; label: string })[]> {
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("id, name, material, room, category, affiliate_url, sort_order")
+    .eq("is_active", true)
+    .in("material", BROWSE_MATERIALS)
+    .order("sort_order");
+
+  if (error || !products || products.length === 0) {
+    if (error) console.error("Error fetching browse catalog:", error.message);
+    return [];
+  }
+
+  const rows = products as BrowseRow[];
+  const ids = rows.map((p) => p.id);
+  const { data: images, error: imgError } = await supabase
+    .from("product_images")
+    .select("product_id, image_url, sort_order")
+    .in("product_id", ids)
+    .eq("is_active", true)
+    .order("sort_order");
+  if (imgError) console.error("Error fetching browse catalog images:", imgError.message);
+
+  const imagesByProduct = new Map<string, string[]>();
+  (images || []).forEach((img: { product_id: string; image_url: string }) => {
+    const list = imagesByProduct.get(img.product_id) || [];
+    list.push(img.image_url);
+    imagesByProduct.set(img.product_id, list);
+  });
+
+  return rows.map((p) => ({
+    ...p,
+    images: imagesByProduct.get(p.id) || [],
+    label: tabLabelFor(p, p.room || "Living Room"),
+  }));
+}
+
+// Grouped by material -> category label -> Product[]. Used where the browse
+// experience is organized by material first (kept for potential reuse).
+export async function getBrowseCatalog(): Promise<BrowseCatalog> {
+  const rows = await fetchBrowseRows();
+  const catalog: BrowseCatalog = {};
+  for (const p of rows) {
+    if (!catalog[p.material]) catalog[p.material] = {};
+    if (!catalog[p.material][p.label]) catalog[p.material][p.label] = [];
+    catalog[p.material][p.label].push({ name: p.name, link: p.affiliate_url || "#", images: p.images });
+  }
+  return catalog;
+}
+
+// Flat list of every active product across all materials, each tagged with
+// its material and category label — powers the Browse Our Edit landing page
+// (one mixed grid, filterable by tag).
+export async function getBrowseProducts(): Promise<BrowseProduct[]> {
+  const rows = await fetchBrowseRows();
+  return rows.map((p) => ({
+    name: p.name,
+    link: p.affiliate_url || "#",
+    images: p.images,
+    material: p.material,
+    category: p.label,
+  }));
 }

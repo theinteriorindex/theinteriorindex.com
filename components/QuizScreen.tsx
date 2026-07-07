@@ -8,9 +8,10 @@ type Props = {
   onSelect: (id: string, value: string) => void;
   onBack: () => void;
   onJumpTo: (index: number) => void;
+  onLogoClick: () => void;
 };
 
-export default function QuizScreen({ currentQuestion, answers, onSelect, onBack, onJumpTo }: Props) {
+export default function QuizScreen({ currentQuestion, answers, onSelect, onBack, onJumpTo, onLogoClick }: Props) {
   const questions = getQuestions(answers.room);
   const q = questions[currentQuestion];
   const total = questions.length;
@@ -19,9 +20,9 @@ export default function QuizScreen({ currentQuestion, answers, onSelect, onBack,
   return (
     <div className="screen active">
       <header className="site-header">
-        <div className="logo">
+        <button className="logo" onClick={onLogoClick}>
           The Interior <span>Index</span>
-        </div>
+        </button>
         <button className="btn-secondary" onClick={onBack} style={{ fontSize: "0.65rem" }}>
           ← Back
         </button>

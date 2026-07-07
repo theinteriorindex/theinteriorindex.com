@@ -5,15 +5,16 @@ import { profileMap, type ProductGroup } from "@/lib/catalog";
 import { getEditCatalogFromDB } from "@/lib/catalogData";
 import { getRoomTabs, getPriorityCategory } from "@/lib/rooms";
 import ProductCard from "./ProductCard";
+import EmailListModal from "./EmailListModal";
 
 type Props = {
   answers: Record<string, string>;
   onRestart: () => void;
   onRetakeQuiz: () => void;
-  onContinueToChat: () => void;
+  onBrowseEdits: () => void;
 };
 
-export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onContinueToChat }: Props) {
+export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrowseEdits }: Props) {
   const aesthetic = answers.aesthetic || "Organic Modern";
   const profile = profileMap[aesthetic] || profileMap["Organic Modern"];
   const material = answers.material || "Walnut & Dark Wood";
@@ -70,10 +71,13 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onCont
 
   return (
     <div className="screen active">
+      {!productsLoading && orderedTabs.length > 0 && (
+        <EmailListModal editLabel={editLabel} orderedTabs={orderedTabs} products={products} />
+      )}
       <header className="site-header">
-        <div className="logo">
+        <button className="logo" onClick={onRestart}>
           The Interior <span>Index</span>
-        </div>
+        </button>
         <button className="btn-secondary" onClick={onRestart} style={{ fontSize: "0.65rem" }}>
           Start over
         </button>
@@ -179,8 +183,8 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onCont
         </div>
       </div>
       <div className="results-actions">
-        <button className="btn-primary" onClick={onContinueToChat}>
-          Continue with AI chat{" "}
+        <button className="btn-primary" onClick={onBrowseEdits}>
+          Browse Our Edit{" "}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>

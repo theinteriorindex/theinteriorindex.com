@@ -12,7 +12,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .screen { display: none; min-height: 100vh; }
 .screen.active { display: flex; flex-direction: column; }
 .site-header { padding: 2rem 3rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--linen); }
-.logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); }
+.logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); background: none; border: none; padding: 0; cursor: pointer; }
 .logo span { font-style: italic; color: var(--terracotta); }
 .nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); font-weight: 300; }
 .hero { flex: 1; display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); background: var(--warm-white); }
@@ -137,6 +137,42 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .chat-send { background: var(--bark); border: none; color: var(--cream); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
 .chat-send:hover { background: var(--terracotta); }
 .chat-send svg { width: 18px; height: 18px; }
+.browse-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.5rem 0 2.5rem; }
+.browse-tag { border: 1px solid var(--linen); background: transparent; padding: 0.55rem 1.15rem; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-mid); cursor: pointer; transition: all 0.2s; font-weight: 300; }
+.browse-tag:hover { border-color: var(--clay); color: var(--terracotta); }
+.browse-tag.active { background: var(--bark); border-color: var(--bark); color: var(--cream); }
+.browse-tag-notify { border-style: dashed; }
+.browse-product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem 1rem; }
+.browse-product-card { display: block; text-decoration: none; opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.browse-product-card.in-view { opacity: 1; transform: translateY(0); }
+.browse-product-card:nth-child(4n+2) { transition-delay: 0.06s; }
+.browse-product-card:nth-child(4n+3) { transition-delay: 0.12s; }
+.browse-product-card:nth-child(4n+4) { transition-delay: 0.18s; }
+.browse-product-img { position: relative; aspect-ratio: 3 / 4; overflow: hidden; background: var(--sand); margin-bottom: 0.85rem; }
+.browse-product-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.45s ease, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94); }
+.browse-product-card:hover .browse-product-img img { transform: scale(1.04); }
+.browse-product-title { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 400; color: var(--bark); line-height: 1.35; margin-bottom: 0.3rem; }
+.browse-product-card:hover .browse-product-title { color: var(--terracotta); }
+.browse-product-from { font-family: 'Jost', sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); font-weight: 300; }
+@media (max-width: 768px) {
+  .browse-product-grid { grid-template-columns: 1fr 1fr; }
+}
+.email-modal-overlay { position: fixed; inset: 0; background: rgba(42,31,21,0.55); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1.5rem; animation: fadeUp 0.25s ease; }
+.email-modal { position: relative; background: var(--warm-white); max-width: 420px; width: 100%; padding: 2.5rem 2.25rem; border: 1px solid var(--linen); }
+.email-modal-close { position: absolute; top: 0.75rem; right: 0.9rem; background: transparent; border: none; font-size: 1.4rem; line-height: 1; color: var(--text-light); cursor: pointer; font-weight: 300; }
+.email-modal-close:hover { color: var(--terracotta); }
+.email-modal-eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 0.75rem; }
+.email-modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 300; color: var(--bark); margin-bottom: 0.75rem; line-height: 1.25; }
+.email-modal-body { font-size: 0.82rem; color: var(--text-mid); line-height: 1.7; font-weight: 300; margin-bottom: 1.5rem; }
+.email-modal-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.email-modal-input { border: 1px solid var(--linen); background: var(--cream); padding: 0.85rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.85rem; color: var(--text-dark); outline: none; transition: border-color 0.2s; }
+.email-modal-input:focus { border-color: var(--clay); }
+.email-modal-input::placeholder { color: var(--text-light); }
+.email-modal-form .btn-primary { justify-content: center; }
+.email-modal-form .btn-primary:disabled { opacity: 0.6; cursor: default; }
+.email-modal-error { font-size: 0.75rem; color: var(--terracotta); margin-top: 0.75rem; }
+.email-modal-dismiss { display: block; margin: 1rem auto 0; background: transparent; border: none; font-family: 'Jost', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); cursor: pointer; }
+.email-modal-dismiss:hover { color: var(--terracotta); }
 @media (max-width: 768px) {
   .hero { padding: 2rem 1.5rem; }
   .quiz-container { grid-template-columns: 1fr; } .quiz-sidebar { display: none; }

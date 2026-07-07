@@ -5,9 +5,10 @@ import HomeScreen from "@/components/HomeScreen";
 import QuizScreen from "@/components/QuizScreen";
 import ResultsScreen from "@/components/ResultsScreen";
 import ChatScreen from "@/components/ChatScreen";
+import BrowseEditsScreen from "@/components/BrowseEditsScreen";
 import { questions } from "@/lib/quiz";
 
-type Screen = "home" | "quiz" | "results" | "chat";
+type Screen = "home" | "quiz" | "results" | "chat" | "browse";
 
 type HistoryState = {
   screen: Screen;
@@ -87,6 +88,11 @@ export default function Page() {
     pushHistory({ screen: "chat", currentQuestion, answers });
   }
 
+  function goToBrowse() {
+    setScreen("browse");
+    pushHistory({ screen: "browse", currentQuestion, answers });
+  }
+
   function restart() {
     setAnswers({});
     setProfileInjected(false);
@@ -104,11 +110,13 @@ export default function Page() {
           onSelect={selectOption}
           onBack={quizBack}
           onJumpTo={jumpToQuestion}
+          onLogoClick={restart}
         />
       )}
       {screen === "results" && (
-        <ResultsScreen answers={answers} onRestart={restart} onRetakeQuiz={startQuiz} onContinueToChat={goToChat} />
+        <ResultsScreen answers={answers} onRestart={restart} onRetakeQuiz={startQuiz} onBrowseEdits={goToBrowse} />
       )}
+      {screen === "browse" && <BrowseEditsScreen onBack={() => setScreen("results")} onHome={restart} />}
       {screen === "chat" && (
         <ChatScreen
           answers={answers}
