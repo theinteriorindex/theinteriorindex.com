@@ -249,11 +249,27 @@ async function fetchBrowseRows(): Promise<(BrowseRow & { images: string[]; label
     imagesByProduct.set(img.product_id, list);
   });
 
-  return rows.map((p) => ({
+  const withImages = rows.map((p) => ({
     ...p,
     images: imagesByProduct.get(p.id) || [],
     label: tabLabelFor(p, p.room || "Living Room"),
   }));
+
+  // Some products (e.g. a chair that fits both the Living Room and Dining
+  // Room edits) intentionally have one row per room so each room's quiz
+  // results can surface them — but that means the same physical product can
+  // appear twice here, since Browse Our Edit spans every room. Dedupe by
+  // name + affiliate link so each product shows once, keeping whichever row
+  // sorts first.
+  const seen = new Set<string>();
+  const deduped: typeof withImages = [];
+  for (const p of withImages) {
+    const key = `${p.name.trim().toLowerCase()}|${p.affiliate_url || ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(p);
+  }
+  return deduped;
 }
 
 // Grouped by material -> category label -> Product[]. Used where the browse
