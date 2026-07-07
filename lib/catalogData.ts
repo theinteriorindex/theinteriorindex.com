@@ -25,6 +25,8 @@ const VIEW_NAMES = [
   "walnut_dining_room",
   "oak_living_room",
   "oak_dining_room",
+  "stone_living_room",
+  "natural_materials_living_room",
   "the_light_edit",
 ] as const;
 type ViewName = (typeof VIEW_NAMES)[number];
@@ -131,6 +133,12 @@ export async function getMaterialProductsFromDB(material: string, room: string):
   if (material.toLowerCase().includes("oak")) {
     return groupByTab(await fetchView(isDining ? "oak_dining_room" : "oak_living_room"), room);
   }
+  if (material.toLowerCase().includes("stone") || material.toLowerCase().includes("marble")) {
+    return groupByTab(await fetchView("stone_living_room"), "Living Room");
+  }
+  if (material.toLowerCase().includes("linen") || material.toLowerCase().includes("natural")) {
+    return groupByTab(await fetchView("natural_materials_living_room"), "Living Room");
+  }
   return groupByTab(await fetchView("walnut_living_room"), "Living Room");
 }
 
@@ -195,11 +203,11 @@ export async function getEditCatalogFromDB(material: string, room: string, prior
 // Powers the "Browse Edits" landing page: every active product across all
 // rooms, grouped first by material then by its tab-label category (same
 // labels the results-page tabs use), regardless of room. Materials with no
-// live products (e.g. Marble, Linen pre-launch) simply won't have a key.
+// live products simply won't have a key.
 export type BrowseCatalog = Record<string, ProductGroup>;
 export type BrowseProduct = Product & { material: string; category: string };
 
-const BROWSE_MATERIALS = ["Walnut", "Oak", "Marble", "Linen"];
+const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials"];
 
 type BrowseRow = {
   id: string;
