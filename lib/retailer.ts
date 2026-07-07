@@ -9,6 +9,7 @@
 
 const RETAILER_HOSTS: Record<string, string> = {
   "amazon.com": "Amazon",
+  "amzn.to": "Amazon",
   "eternitymodern.com": "Eternity Modern",
 };
 
