@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Product } from "@/lib/catalog";
+import { getShopCta } from "@/lib/retailer";
 
 export default function ProductCard({ product }: { product: Product }) {
   const [idx, setIdx] = useState(0);
@@ -59,7 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
       )}
       <a href={product.link} target="_blank" rel="noopener" className="product-overlay">
         <div className="product-overlay-title">{product.name}</div>
-        <span className="product-overlay-cta">Shop on Amazon →</span>
+        <span className="product-overlay-cta">{getShopCta(product.link)} →</span>
       </a>
     </div>
   );

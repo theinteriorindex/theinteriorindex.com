@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ProductGroup } from "@/lib/catalog";
+import { getShopCta } from "@/lib/retailer";
 
 // This route runs server-side only, so the Resend API key never reaches the
 // browser. Set RESEND_API_KEY in your Vercel project's Environment Variables
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: fromAddress,
         to,
-        subject: `Your ${label} — The Interior Index`,
+        subject: `${label} — The Interior Index`,
         html,
       }),
     });
@@ -110,7 +111,7 @@ function buildEmailHtml(editLabel: string, orderedTabs: string[], products: Prod
 
 function renderSection(tab: string, items: ProductGroup[string], isFirst: boolean): string {
   if (!items || items.length === 0) return "";
-  const rows = items.map(renderRow).join("");
+  const rows = renderRows(items);
   return `
     <tr>
       <td style="padding: 8px;">
@@ -124,28 +125,33 @@ function renderSection(tab: string, items: ProductGroup[string], isFirst: boolea
     </tr>`;
 }
 
-function renderRow(p: { name: string; link: string; images: string[] }): string {
+// Two products per row so the images actually use the email's width instead
+// of a single narrow thumbnail column with empty space beside it.
+function renderRows(items: ProductGroup[string]): string {
+  let rows = "";
+  for (let i = 0; i < items.length; i += 2) {
+    const pair = items.slice(i, i + 2);
+    rows += `<tr>${renderCell(pair[0])}${pair[1] ? renderCell(pair[1]) : `<td width="50%" style="padding:0 8px;"></td>`}</tr>`;
+  }
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>`;
+}
+
+function renderCell(p: { name: string; link: string; images: string[] }): string {
   const img = p.images?.[0];
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
-      <tr>
-        <td width="80" style="padding-right:16px; vertical-align:top;">
-          ${
-            img
-              ? `<img src="${img}" width="80" height="107" style="object-fit:cover; display:block; background:${COLORS.linen};" alt="${escapeHtml(
-                  p.name
-                )}" />`
-              : `<div style="width:80px; height:107px; background:${COLORS.linen};"></div>`
-          }
-        </td>
-        <td style="vertical-align:top;">
-          <div style="font-size:15px; color:${COLORS.bark}; margin-bottom:6px; line-height:1.35;">${escapeHtml(p.name)}</div>
-          <a href="${p.link}" style="font-family: Arial, sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:${
-            COLORS.terracotta
-          }; text-decoration:none; border-bottom:1px solid ${COLORS.terracotta}; padding-bottom:2px;">Shop on Amazon →</a>
-        </td>
-      </tr>
-    </table>`;
+    <td width="50%" style="vertical-align:top; padding:0 8px 22px 8px;">
+      ${
+        img
+          ? `<img src="${img}" width="252" height="336" style="width:100%; height:auto; object-fit:cover; display:block; background:${COLORS.linen}; margin-bottom:10px;" alt="${escapeHtml(
+              p.name
+            )}" />`
+          : `<div style="width:100%; padding-top:133%; background:${COLORS.linen}; margin-bottom:10px;"></div>`
+      }
+      <div style="font-size:15px; color:${COLORS.bark}; margin-bottom:6px; line-height:1.35;">${escapeHtml(p.name)}</div>
+      <a href="${p.link}" style="font-family: Arial, sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:${
+        COLORS.terracotta
+      }; text-decoration:none; border-bottom:1px solid ${COLORS.terracotta}; padding-bottom:2px;">${getShopCta(p.link)} →</a>
+    </td>`;
 }
 
 function escapeHtml(s: string): string {
