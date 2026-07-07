@@ -31,10 +31,26 @@ export const PRIORITY_OPTIONS: Record<string, RoomOption[]> = {
     { title: "Soft furnishings", desc: "Table linens and finishing touches", category: "Dining Tables" },
   ],
   Bedroom: [
-    { title: "The bedframe", desc: "The anchor piece — the foundation of the room", category: "Bedframe" },
-    { title: "A bench", desc: "End-of-bed seating and storage — the finishing piece", category: "Bench" },
-    { title: "Side tables", desc: "Nightstands — the everyday functional piece", category: "Side Tables" },
-    { title: "Lighting", desc: "Table lamps or sconces — the mood piece", category: "Lighting" },
+    {
+      title: "The bedframe",
+      desc: "The anchor piece — sets the scale, proportion, and material tone for the whole room",
+      category: "Bedframe",
+    },
+    {
+      title: "A bench",
+      desc: "End-of-bed seating, layering space for throws, and quiet storage — the finishing piece",
+      category: "Bench",
+    },
+    {
+      title: "Side tables",
+      desc: "Nightstands for lighting, books, and the everyday essentials within reach — the functional piece",
+      category: "Side Tables",
+    },
+    {
+      title: "Lighting",
+      desc: "Table lamps or sconces — the soft, ambient glow that makes a bedroom feel restful",
+      category: "Lighting",
+    },
   ],
   "Home Office": [
     { title: "The desk", desc: "The anchor piece — where the work happens", category: "Desk" },
