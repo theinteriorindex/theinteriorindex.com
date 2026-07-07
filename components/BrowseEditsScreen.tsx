@@ -10,7 +10,7 @@ type Props = {
   onHome: () => void;
 };
 
-const ALL_MATERIALS = ["Walnut", "Oak", "Marble", "Linen"];
+const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials"];
 // Fixed display order for category tags — anything not listed falls back to
 // alphabetical, appended after these.
 const CATEGORY_ORDER = [

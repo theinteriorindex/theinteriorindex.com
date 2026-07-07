@@ -10,8 +10,8 @@ type Props = {
 type Status = "idle" | "sending" | "sent" | "error";
 
 // Shown when someone picks a material on the Browse Edits page that has no
-// live catalog yet (Marble, Linen). Captures their email via /api/notify-me,
-// which saves it to Supabase (edit_waitlist) and sends a confirmation.
+// live catalog yet. Captures their email via /api/notify-me, which saves it
+// to Supabase (edit_waitlist) and sends a confirmation.
 export default function NotifyMeModal({ material, onClose }: Props) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
