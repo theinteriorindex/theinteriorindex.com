@@ -1,6 +1,6 @@
 "use client";
 
-import { questions } from "@/lib/quiz";
+import { getQuestions } from "@/lib/quiz";
 
 type Props = {
   currentQuestion: number;
@@ -11,6 +11,7 @@ type Props = {
 };
 
 export default function QuizScreen({ currentQuestion, answers, onSelect, onBack, onJumpTo }: Props) {
+  const questions = getQuestions(answers.room);
   const q = questions[currentQuestion];
   const total = questions.length;
   const progress = (currentQuestion / total) * 100;

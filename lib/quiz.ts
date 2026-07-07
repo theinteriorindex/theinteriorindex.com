@@ -1,3 +1,5 @@
+import { getPriorityOptions } from "./rooms";
+
 export type QuizOption = { title: string; desc: string };
 export type QuizQuestion = { id: string; num: string; title: string; sub: string; options: QuizOption[] };
 
@@ -63,3 +65,10 @@ export const questions: QuizQuestion[] = [
     ],
   },
 ];
+
+// Room-aware version of `questions`: step 5 ("priority piece") options
+// change based on which room was chosen in step 1, so a Bedroom selection
+// offers Bedframe/Bench/Side tables/Lighting instead of living-room pieces.
+export function getQuestions(room?: string): QuizQuestion[] {
+  return questions.map((q) => (q.id === "priority" ? { ...q, options: getPriorityOptions(room || "Living Room") } : q));
+}

@@ -46,9 +46,19 @@ function toProduct(row: ViewRow): Product {
   };
 }
 
-// Maps a Supabase `category` value onto the tab labels the site already
-// uses (matching lib/catalog.ts's existing conventions).
-function tabLabelFor(row: ViewRow, isDining: boolean): string {
+// Maps a Supabase `category` value onto the tab labels the site shows,
+// room-aware so each room's edit surfaces its own relevant categories
+// (e.g. Bedroom gets Bedframe/Bench/Side Tables instead of Coffee Tables).
+function tabLabelFor(row: ViewRow, room: string): string {
+  if (room === "Bedroom") {
+    const cat = row.category.trim().toLowerCase();
+    if (cat === "bedframe") return "Bedframe";
+    if (cat === "bench") return "Bench";
+    if (cat.startsWith("side table")) return "Side Tables";
+    if (cat === "lighting") return "Lighting";
+    return row.category;
+  }
+  const isDining = room === "Dining Room";
   switch (row.category) {
     case "Coffee Table":
       return "Coffee Tables";
@@ -68,35 +78,77 @@ function tabLabelFor(row: ViewRow, isDining: boolean): string {
   }
 }
 
-function groupByTab(rows: ViewRow[], isDining: boolean): ProductGroup {
+function groupByTab(rows: ViewRow[], room: string): ProductGroup {
   const groups: ProductGroup = {};
   for (const row of rows) {
-    const tab = tabLabelFor(row, isDining);
+    const tab = tabLabelFor(row, room);
     if (!groups[tab]) groups[tab] = [];
     groups[tab].push(toProduct(row));
   }
   return groups;
 }
 
+// Bedroom (and any future room without a dedicated Supabase view) is read
+// directly from the products + product_images tables rather than a
+// per-room view, since RLS already restricts reads to is_active rows.
+async function fetchRoomMaterialRows(room: string, materialKey: "Oak" | "Walnut"): Promise<ViewRow[]> {
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("id, name, category, price, description, affiliate_url, sort_order, is_active")
+    .eq("room", room)
+    .eq("material", materialKey)
+    .eq("is_active", true)
+    .order("sort_order");
+  if (error || !products || products.length === 0) {
+    if (error) console.error(`Error fetching ${room}/${materialKey} products:`, error.message);
+    return [];
+  }
+
+  const ids = products.map((p) => p.id);
+  const { data: images, error: imgError } = await supabase
+    .from("product_images")
+    .select("product_id, image_url, sort_order")
+    .in("product_id", ids)
+    .eq("is_active", true)
+    .order("sort_order");
+  if (imgError) console.error(`Error fetching images for ${room}/${materialKey}:`, imgError.message);
+
+  const imagesByProduct = new Map<string, string[]>();
+  (images || []).forEach((img: { product_id: string; image_url: string }) => {
+    const list = imagesByProduct.get(img.product_id) || [];
+    list.push(img.image_url);
+    imagesByProduct.set(img.product_id, list);
+  });
+
+  return products.map((p) => ({ ...p, images: imagesByProduct.get(p.id) || [] }));
+}
+
 export async function getMaterialProductsFromDB(material: string, room: string): Promise<ProductGroup> {
   const isDining = room === "Dining Room";
   if (material.toLowerCase().includes("walnut")) {
-    return groupByTab(await fetchView(isDining ? "walnut_dining_room" : "walnut_living_room"), isDining);
+    return groupByTab(await fetchView(isDining ? "walnut_dining_room" : "walnut_living_room"), room);
   }
   if (material.toLowerCase().includes("oak")) {
-    return groupByTab(await fetchView(isDining ? "oak_dining_room" : "oak_living_room"), isDining);
+    return groupByTab(await fetchView(isDining ? "oak_dining_room" : "oak_living_room"), room);
   }
-  return groupByTab(await fetchView("walnut_living_room"), false);
+  return groupByTab(await fetchView("walnut_living_room"), "Living Room");
 }
 
 export async function getEditCatalogFromDB(material: string, room: string, priority: string): Promise<ProductGroup> {
   const isLighting = Boolean(priority && priority.toLowerCase().includes("lighting"));
   const isDining = room === "Dining Room";
+  const isBedroom = room === "Bedroom";
   const isWalnut = Boolean(material && material.toLowerCase().includes("walnut"));
   const isOak = Boolean(material && material.toLowerCase().includes("oak"));
 
   if (isLighting) {
-    return groupByTab(await fetchView("the_light_edit"), false);
+    // The Light Edit is a room-agnostic universal lighting collection —
+    // always split into Table Lamps / Pendants regardless of chosen room.
+    return groupByTab(await fetchView("the_light_edit"), "Living Room");
+  }
+
+  if (isBedroom) {
+    return groupByTab(await fetchRoomMaterialRows("Bedroom", isWalnut ? "Walnut" : "Oak"), "Bedroom");
   }
 
   if (isDining) {
@@ -109,9 +161,9 @@ export async function getEditCatalogFromDB(material: string, room: string, prior
       fetchView("oak_living_room"),
       fetchView("the_light_edit"),
     ]);
-    const walnut = groupByTab(walnutRows, false);
-    const oak = groupByTab(oakRows, false);
-    const light = groupByTab(lightRows, false);
+    const walnut = groupByTab(walnutRows, "Living Room");
+    const oak = groupByTab(oakRows, "Living Room");
+    const light = groupByTab(lightRows, "Living Room");
     return {
       "Coffee Tables": walnut["Coffee Tables"] || [],
       "Side Tables": oak["Side Tables"] || [],
@@ -126,9 +178,9 @@ export async function getEditCatalogFromDB(material: string, room: string, prior
       fetchView("walnut_living_room"),
       fetchView("the_light_edit"),
     ]);
-    const oak = groupByTab(oakRows, false);
-    const walnut = groupByTab(walnutRows, false);
-    const light = groupByTab(lightRows, false);
+    const oak = groupByTab(oakRows, "Living Room");
+    const walnut = groupByTab(walnutRows, "Living Room");
+    const light = groupByTab(lightRows, "Living Room");
     return {
       "Coffee Tables": oak["Coffee Tables"] || [],
       "Side Tables": walnut["Side Tables"] || [],

@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { profileMap, type ProductGroup } from "@/lib/catalog";
 import { getEditCatalogFromDB } from "@/lib/catalogData";
+import { getRoomTabs, getPriorityCategory } from "@/lib/rooms";
 import ProductCard from "./ProductCard";
 
 type Props = {
@@ -43,26 +44,13 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onCont
 
   const orderedTabs = useMemo(() => {
     const tabs = Object.keys(products);
-    let hero: string;
-    if (isLighting) hero = "Table Lamps";
-    else if (priority.toLowerCase().includes("chair"))
-      hero = products["Dining Chairs"] ? "Dining Chairs" : products["Seating"] ? "Seating" : tabs[0];
-    else if (room === "Dining Room" && products["Dining Tables"]) hero = "Dining Tables";
-    else if (priority.toLowerCase().includes("table") || priority.toLowerCase().includes("side"))
-      hero = products["Coffee Tables"] ? "Coffee Tables" : tabs[0];
-    else if (priority.toLowerCase().includes("soft") || priority.toLowerCase().includes("furnishing"))
-      hero = products["Table Lamps"] ? "Table Lamps" : tabs[0];
-    else hero = tabs[0];
+    if (isLighting) return ["Table Lamps", "Pendants"].filter((t) => products[t]);
 
-    let order: string[];
-    if (isLighting) order = ["Table Lamps", "Pendants"];
-    else if (room === "Dining Room")
-      order = hero === "Dining Tables" ? ["Dining Tables", "Dining Chairs"] : ["Dining Chairs", "Dining Tables"];
-    else if (hero === "Coffee Tables") order = ["Coffee Tables", "Seating", "Side Tables", "Table Lamps"];
-    else if (hero === "Seating") order = ["Seating", "Coffee Tables", "Side Tables", "Table Lamps"];
-    else if (hero === "Table Lamps") order = ["Table Lamps", "Coffee Tables", "Side Tables", "Seating"];
-    else order = [hero, ...tabs.filter((t) => t !== hero)];
+    const roomOrder = getRoomTabs(room);
+    const priorityCategory = getPriorityCategory(room, priority);
+    const hero = priorityCategory && products[priorityCategory] ? priorityCategory : roomOrder.find((t) => products[t]) || tabs[0];
 
+    const order = [hero, ...roomOrder.filter((t) => t !== hero)];
     return order.filter((t) => products[t]);
   }, [products, priority, room, isLighting]);
 
@@ -74,6 +62,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onCont
   let subCopy = "Curated finds based on your material profile.";
   if (isLighting) subCopy = "Table lamps and pendants — the mood pieces that finish a room.";
   else if (isDiningRoom) subCopy = "Chairs and tables curated for your dining room.";
+  else if (room === "Bedroom") subCopy = "Bedframes, benches, and nightstands curated for a quiet, considered bedroom.";
   else if (material.toLowerCase().includes("walnut"))
     subCopy = `${matName} anchors the space. Oak side tables and considered lighting bring contrast and balance.`;
   else if (material.toLowerCase().includes("oak"))
