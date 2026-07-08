@@ -54,8 +54,12 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
 
   const materialsWithProducts = useMemo(() => new Set(products.map((p) => p.material)), [products]);
 
+  // Category is a *secondary* filter that only makes sense once a material
+  // is chosen — so the tag list is scoped to that material's own products,
+  // not every category across the whole catalog.
   const categoryTags = useMemo(() => {
-    const present = Array.from(new Set(products.map((p) => p.category)));
+    if (!selectedMaterial) return [];
+    const present = Array.from(new Set(products.filter((p) => p.material === selectedMaterial).map((p) => p.category)));
     return present.sort((a, b) => {
       const ai = CATEGORY_ORDER.indexOf(a);
       const bi = CATEGORY_ORDER.indexOf(b);
@@ -64,7 +68,7 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
       if (bi === -1) return -1;
       return ai - bi;
     });
-  }, [products]);
+  }, [products, selectedMaterial]);
 
   const filtered = useMemo(() => {
     return products.filter(
@@ -77,6 +81,9 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
       setNotifyMaterial(m);
       return;
     }
+    // Switching (or clearing) material invalidates whatever category was
+    // selected, since the category list itself is scoped per-material.
+    setSelectedCategory(null);
     setSelectedMaterial((prev) => (prev === m ? null : m));
   }
 
@@ -103,7 +110,7 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
       <div className="products-section" style={{ borderTop: "none" }}>
         <div className="products-title">Browse Our Edit</div>
 
-        <div className="browse-tags">
+        <div className={`browse-tags ${selectedMaterial ? "browse-tags-primary" : ""}`}>
           <button
             className={`browse-tag ${!selectedMaterial && !selectedCategory ? "active" : ""}`}
             onClick={clearFilters}
@@ -121,16 +128,23 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
               {m}
             </button>
           ))}
-          {categoryTags.map((c) => (
-            <button
-              key={c}
-              className={`browse-tag ${selectedCategory === c ? "active" : ""}`}
-              onClick={() => handleCategoryClick(c)}
-            >
-              {c}
-            </button>
-          ))}
         </div>
+
+        {/* Category is a secondary step — it only appears once a material
+            is selected, scoped to that material's own categories. */}
+        {selectedMaterial && categoryTags.length > 0 && (
+          <div className="browse-tags browse-tags-secondary">
+            {categoryTags.map((c) => (
+              <button
+                key={c}
+                className={`browse-tag ${selectedCategory === c ? "active" : ""}`}
+                onClick={() => handleCategoryClick(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-light)", fontStyle: "italic" }}>

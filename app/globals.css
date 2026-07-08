@@ -138,6 +138,8 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .chat-send:hover { background: var(--terracotta); }
 .chat-send svg { width: 18px; height: 18px; }
 .browse-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.5rem 0 2.5rem; }
+.browse-tags-primary { margin-bottom: 0.9rem; }
+.browse-tags-secondary { margin: 0 0 2.5rem; }
 .browse-tag { border: 1px solid var(--linen); background: transparent; padding: 0.55rem 1.15rem; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-mid); cursor: pointer; transition: all 0.2s; font-weight: 300; }
 .browse-tag:hover { border-color: var(--clay); color: var(--terracotta); }
 .browse-tag.active { background: var(--bark); border-color: var(--bark); color: var(--cream); }
