@@ -172,18 +172,23 @@ const TABLETOP_CATEGORIES = ["Side Plate", "Dinner Plate", "Dessert Plate", "Nap
 // itself uses (Lighting = the universal Light Edit; Tabletop = the
 // cross-material dining edit) so "affordable" always matches what they'd
 // actually see next.
+//
+// Checks `budget_tier` rather than the raw `price` column: most of the
+// catalog (everything sourced through the Amazon intake tab) has a curated
+// budget_tier but no numeric price on file, so filtering on price alone
+// under-counts what's actually affordable.
 export async function getAffordablePriorityCategories(room: string): Promise<Set<string>> {
   const affordable = new Set<string>();
 
   const [lightRows, roomRows] = await Promise.all([
-    supabase.from("the_light_edit").select("id, price").lt("price", 200),
-    supabase.from("products").select("category, name, price").eq("room", room).eq("is_active", true).lt("price", 200),
+    supabase.from("products").select("id").eq("category", "Lighting").eq("is_active", true).eq("budget_tier", "Under $200"),
+    supabase.from("products").select("category, name, budget_tier").eq("room", room).eq("is_active", true).eq("budget_tier", "Under $200"),
   ]);
 
   if (!lightRows.error && lightRows.data && lightRows.data.length > 0) affordable.add("Lighting");
 
   if (!roomRows.error && roomRows.data) {
-    for (const row of roomRows.data as { category: string; name: string; price: number }[]) {
+    for (const row of roomRows.data as { category: string; name: string; budget_tier: string }[]) {
       if (room === "Dining Room" && TABLETOP_CATEGORIES.includes(row.category)) {
         affordable.add("Tabletop");
         continue;

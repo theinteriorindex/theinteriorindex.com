@@ -110,7 +110,14 @@ export function getQuestions(room?: string, aesthetic?: string, affordableCatego
     if (q.id === "priority") {
       let options = getPriorityOptions(room || "Living Room");
       if (affordableCategories) {
-        const affordableOnly = options.filter((o) => affordableCategories.has(o.category));
+        const affordableOnly = options.filter((o) =>
+          // "Lighting" is checked by title, not category: its `category`
+          // field (e.g. "Table Lamps" for Living Room, "Dining Tables" for
+          // Dining Room) is vestigial — picking Lighting always routes to
+          // the universal Light Edit regardless of room/category, the same
+          // way isLighting short-circuits everywhere else in the app.
+          o.title.toLowerCase().includes("lighting") ? affordableCategories.has("Lighting") : affordableCategories.has(o.category)
+        );
         // Never leave the shopper with zero options to click — if the
         // affordability check comes back empty, fall back to the full list
         // rather than showing a dead end.
