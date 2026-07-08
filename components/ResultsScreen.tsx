@@ -40,12 +40,14 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
   }, [material, room, priority]);
 
   const isLighting = priority.toLowerCase().includes("lighting");
+  const isTableSetting = priority.toLowerCase().includes("table setting");
   const isDiningRoom = room === "Dining Room";
   const matName = material.split(" ")[0];
 
   const orderedTabs = useMemo(() => {
     const tabs = Object.keys(products);
     if (isLighting) return ["Table Lamps", "Pendants"].filter((t) => products[t]);
+    if (isTableSetting) return ["Tabletop"].filter((t) => products[t]);
 
     const roomOrder = getRoomTabs(room);
     const priorityCategory = getPriorityCategory(room, priority);
@@ -53,15 +55,16 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
 
     const order = [hero, ...roomOrder.filter((t) => t !== hero)];
     return order.filter((t) => products[t]);
-  }, [products, priority, room, isLighting]);
+  }, [products, priority, room, isLighting, isTableSetting]);
 
   const [activeTab, setActiveTab] = useState(orderedTabs[0]);
   useEffect(() => setActiveTab(orderedTabs[0]), [orderedTabs]);
 
-  const editLabel = isLighting ? "The Light Edit" : `Your ${matName} ${room} Edit`;
+  const editLabel = isLighting ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${matName} ${room} Edit`;
 
   let subCopy = "Curated finds based on your material profile.";
   if (isLighting) subCopy = "Table lamps and pendants — the mood pieces that finish a room.";
+  else if (isTableSetting) subCopy = "Plates, napkins, and the finishing touches for the dining table.";
   else if (isDiningRoom) subCopy = "Chairs and tables curated for your dining room.";
   else if (room === "Bedroom") subCopy = "Bedframes, benches, and nightstands curated for a quiet, considered bedroom.";
   else if (material.toLowerCase().includes("walnut"))

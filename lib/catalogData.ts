@@ -125,6 +125,43 @@ async function fetchRoomMaterialRows(room: string, materialKey: string): Promise
   return products.map((p) => ({ ...p, images: imagesByProduct.get(p.id) || [] }));
 }
 
+// Powers "The table setting" priority-piece pick: a curated dining-tabletop
+// edit (plates, napkins, tablecloths) that spans two materials (Ceramic +
+// Natural Materials) rather than living under a single material bucket, so
+// it's fetched directly instead of through fetchRoomMaterialRows.
+async function fetchTabletopEdit(): Promise<ViewRow[]> {
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("id, name, category, price, description, affiliate_url, sort_order, is_active")
+    .eq("room", "Dining Room")
+    .in("material", ["Ceramic", "Natural Materials"])
+    .in("category", ["Side Plate", "Dinner Plate", "Dessert Plate", "Napkin", "Tablecloth"])
+    .eq("is_active", true)
+    .order("sort_order");
+  if (error || !products || products.length === 0) {
+    if (error) console.error("Error fetching tabletop edit:", error.message);
+    return [];
+  }
+
+  const ids = products.map((p) => p.id);
+  const { data: images, error: imgError } = await supabase
+    .from("product_images")
+    .select("product_id, image_url, sort_order")
+    .in("product_id", ids)
+    .eq("is_active", true)
+    .order("sort_order");
+  if (imgError) console.error("Error fetching tabletop edit images:", imgError.message);
+
+  const imagesByProduct = new Map<string, string[]>();
+  (images || []).forEach((img: { product_id: string; image_url: string }) => {
+    const list = imagesByProduct.get(img.product_id) || [];
+    list.push(img.image_url);
+    imagesByProduct.set(img.product_id, list);
+  });
+
+  return products.map((p) => ({ ...p, images: imagesByProduct.get(p.id) || [] }));
+}
+
 export async function getMaterialProductsFromDB(material: string, room: string): Promise<ProductGroup> {
   const isDining = room === "Dining Room";
   if (material.toLowerCase().includes("walnut")) {
@@ -153,6 +190,7 @@ export async function getMaterialProductsFromDB(material: string, room: string):
 
 export async function getEditCatalogFromDB(material: string, room: string, priority: string): Promise<ProductGroup> {
   const isLighting = Boolean(priority && priority.toLowerCase().includes("lighting"));
+  const isTableSetting = Boolean(priority && priority.toLowerCase().includes("table setting"));
   const isDining = room === "Dining Room";
   const isBedroom = room === "Bedroom";
   const isWalnut = Boolean(material && material.toLowerCase().includes("walnut"));
@@ -162,6 +200,15 @@ export async function getEditCatalogFromDB(material: string, room: string, prior
     // The Light Edit is a room-agnostic universal lighting collection —
     // always split into Table Lamps / Pendants regardless of chosen room.
     return groupByTab(await fetchView("the_light_edit"), "Living Room");
+  }
+
+  if (isTableSetting) {
+    // Same pattern as Lighting above: the table-setting pieces (plates,
+    // napkins, tablecloths) span Ceramic and Natural Materials, so this
+    // priority overrides whatever material was chosen and pulls the whole
+    // dining tabletop edit into one "Tabletop" tab instead of splitting it
+    // by category.
+    return { Tabletop: (await fetchTabletopEdit()).map(toProduct) };
   }
 
   if (isBedroom) {
