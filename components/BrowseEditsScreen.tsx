@@ -10,12 +10,15 @@ type Props = {
   onHome: () => void;
 };
 
-const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials"];
+const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Reclaimed Wood", "Metal", "Ceramic"];
 // Fixed display order for category tags — anything not listed falls back to
 // alphabetical, appended after these.
 const CATEGORY_ORDER = [
   "Coffee Tables",
   "Side Tables",
+  "Side Table",
+  "Console Table",
+  "Credenza",
   "Seating",
   "Dining Tables",
   "Dining Chairs",
@@ -23,6 +26,7 @@ const CATEGORY_ORDER = [
   "Bench",
   "Table Lamps",
   "Pendants",
+  "Decor",
 ];
 
 export default function BrowseEditsScreen({ onBack, onHome }: Props) {

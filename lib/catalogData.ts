@@ -207,7 +207,7 @@ export async function getEditCatalogFromDB(material: string, room: string, prior
 export type BrowseCatalog = Record<string, ProductGroup>;
 export type BrowseProduct = Product & { material: string; category: string };
 
-const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials"];
+const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Reclaimed Wood", "Metal", "Ceramic"];
 
 type BrowseRow = {
   id: string;
