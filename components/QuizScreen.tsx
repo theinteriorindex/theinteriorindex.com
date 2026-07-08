@@ -12,7 +12,7 @@ type Props = {
 };
 
 export default function QuizScreen({ currentQuestion, answers, onSelect, onBack, onJumpTo, onLogoClick }: Props) {
-  const questions = getQuestions(answers.room);
+  const questions = getQuestions(answers.room, answers.aesthetic);
   const q = questions[currentQuestion];
   const total = questions.length;
   const progress = (currentQuestion / total) * 100;

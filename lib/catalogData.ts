@@ -145,10 +145,9 @@ export async function getMaterialProductsFromDB(material: string, room: string):
     // force the room regardless of what was selected.
     return groupByTab(await fetchRoomMaterialRows("Dining Room", "Metal"), "Dining Room");
   }
-  if (material.toLowerCase().includes("ceramic")) {
-    // Ceramic pieces (decor accents) only exist in Living Room today.
-    return groupByTab(await fetchRoomMaterialRows("Living Room", "Ceramic"), "Living Room");
-  }
+  // Ceramic is intentionally not handled here — it's a decor-only category
+  // reachable from Browse Our Edit, not one of the quiz's material options,
+  // so getMaterialProductsFromDB should never be called with it.
   return groupByTab(await fetchView("walnut_living_room"), "Living Room");
 }
 

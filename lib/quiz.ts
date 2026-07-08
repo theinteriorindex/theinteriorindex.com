@@ -33,13 +33,13 @@ export const questions: QuizQuestion[] = [
     num: "Question 03",
     title: "Which material palette draws you in?",
     sub: "Your primary material anchors the whole room.",
+    // Overridden per-aesthetic by getMaterialOptions below — this static
+    // list is just the fallback before Question 02 has been answered.
     options: [
       { title: "Walnut & Dark Wood", desc: "Warm, rich, sculptural" },
       { title: "Oak & Light Wood", desc: "Airy, Scandinavian, versatile" },
       { title: "Marble & Stone", desc: "Cool, refined, timeless" },
       { title: "Linen & Natural Textiles", desc: "Soft, tactile, calming" },
-      { title: "Metal & Sculptural Forms", desc: "Cool, tactile, sculptural accents" },
-      { title: "Ceramic & Earthy Textures", desc: "Handcrafted, tactile, quietly organic" },
     ],
   },
   {
@@ -68,9 +68,42 @@ export const questions: QuizQuestion[] = [
   },
 ];
 
-// Room-aware version of `questions`: step 5 ("priority piece") options
-// change based on which room was chosen in step 1, so a Bedroom selection
-// offers Bedframe/Bench/Side tables/Lighting instead of living-room pieces.
-export function getQuestions(room?: string): QuizQuestion[] {
-  return questions.map((q) => (q.id === "priority" ? { ...q, options: getPriorityOptions(room || "Living Room") } : q));
+// The five materials the quiz can offer, keyed for the per-aesthetic lookup
+// below. Ceramic is deliberately not included here — it's a Browse Our Edit
+// decor-only category, not a quiz-reachable "hero material".
+const MATERIAL_OPTIONS = {
+  walnut: { title: "Walnut & Dark Wood", desc: "Warm, rich, sculptural" },
+  oak: { title: "Oak & Light Wood", desc: "Airy, Scandinavian, versatile" },
+  stone: { title: "Marble & Stone", desc: "Cool, refined, timeless" },
+  natural: { title: "Linen & Natural Textiles", desc: "Soft, tactile, calming" },
+  metal: { title: "Metal & Sculptural Forms", desc: "Cool, tactile, sculptural accents" },
+} satisfies Record<string, QuizOption>;
+type MaterialKey = keyof typeof MATERIAL_OPTIONS;
+
+// Each aesthetic surfaces exactly 4 of the 5 materials — trimmed to whichever
+// one reads tonally off for that direction, so Question 03 always feels
+// consistent with the Question 02 answer instead of listing every material.
+const MATERIALS_BY_AESTHETIC: Record<string, MaterialKey[]> = {
+  "Wabi-Sabi": ["walnut", "oak", "stone", "natural"], // Metal reads too polished/industrial for Wabi-Sabi
+  Japandi: ["oak", "stone", "natural", "metal"], // Walnut reads too heavy/traditional for Japandi
+  "Organic Modern": ["oak", "stone", "natural", "metal"],
+  "Quiet Luxury": ["oak", "stone", "natural", "metal"],
+};
+const DEFAULT_MATERIAL_KEYS: MaterialKey[] = ["walnut", "oak", "stone", "natural"];
+
+function getMaterialOptions(aesthetic?: string): QuizOption[] {
+  const keys = (aesthetic && MATERIALS_BY_AESTHETIC[aesthetic]) || DEFAULT_MATERIAL_KEYS;
+  return keys.map((k) => MATERIAL_OPTIONS[k]);
+}
+
+// Room-aware and aesthetic-aware version of `questions`: step 5 ("priority
+// piece") options change based on which room was chosen in step 1, and step
+// 3 ("material palette") options change based on the aesthetic chosen in
+// step 2, so each question stays tailored to what's already been answered.
+export function getQuestions(room?: string, aesthetic?: string): QuizQuestion[] {
+  return questions.map((q) => {
+    if (q.id === "priority") return { ...q, options: getPriorityOptions(room || "Living Room") };
+    if (q.id === "material") return { ...q, options: getMaterialOptions(aesthetic) };
+    return q;
+  });
 }
