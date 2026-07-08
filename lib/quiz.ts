@@ -38,6 +38,8 @@ export const questions: QuizQuestion[] = [
       { title: "Oak & Light Wood", desc: "Airy, Scandinavian, versatile" },
       { title: "Marble & Stone", desc: "Cool, refined, timeless" },
       { title: "Linen & Natural Textiles", desc: "Soft, tactile, calming" },
+      { title: "Metal & Sculptural Forms", desc: "Cool, tactile, sculptural accents" },
+      { title: "Ceramic & Earthy Textures", desc: "Handcrafted, tactile, quietly organic" },
     ],
   },
   {

@@ -93,7 +93,7 @@ function groupByTab(rows: ViewRow[], room: string): ProductGroup {
 // Bedroom (and any future room without a dedicated Supabase view) is read
 // directly from the products + product_images tables rather than a
 // per-room view, since RLS already restricts reads to is_active rows.
-async function fetchRoomMaterialRows(room: string, materialKey: "Oak" | "Walnut"): Promise<ViewRow[]> {
+async function fetchRoomMaterialRows(room: string, materialKey: string): Promise<ViewRow[]> {
   const { data: products, error } = await supabase
     .from("products")
     .select("id, name, category, price, description, affiliate_url, sort_order, is_active")
@@ -138,6 +138,16 @@ export async function getMaterialProductsFromDB(material: string, room: string):
   }
   if (material.toLowerCase().includes("linen") || material.toLowerCase().includes("natural")) {
     return groupByTab(await fetchView("natural_materials_living_room"), "Living Room");
+  }
+  if (material.toLowerCase().includes("metal")) {
+    // Metal pieces (Wabi-Sabi sculptural stools/chairs) only exist in Dining
+    // Room today, so — same convention as Stone/Natural Materials above —
+    // force the room regardless of what was selected.
+    return groupByTab(await fetchRoomMaterialRows("Dining Room", "Metal"), "Dining Room");
+  }
+  if (material.toLowerCase().includes("ceramic")) {
+    // Ceramic pieces (decor accents) only exist in Living Room today.
+    return groupByTab(await fetchRoomMaterialRows("Living Room", "Ceramic"), "Living Room");
   }
   return groupByTab(await fetchView("walnut_living_room"), "Living Room");
 }
@@ -207,7 +217,7 @@ export async function getEditCatalogFromDB(material: string, room: string, prior
 export type BrowseCatalog = Record<string, ProductGroup>;
 export type BrowseProduct = Product & { material: string; category: string };
 
-const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Reclaimed Wood", "Metal", "Ceramic"];
+const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "Ceramic"];
 
 type BrowseRow = {
   id: string;
