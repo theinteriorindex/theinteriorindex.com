@@ -11,6 +11,7 @@ const RETAILER_HOSTS: Record<string, string> = {
   "amazon.com": "Amazon",
   "amzn.to": "Amazon",
   "eternitymodern.com": "Eternity Modern",
+  "islacapricho.com": "Isla Capricho",
 };
 
 function extractHostname(link: string): string | null {
