@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import HomeScreen from "@/components/HomeScreen";
 import QuizScreen from "@/components/QuizScreen";
-import ResultsScreen from "@/components/ResultsScreen";
 import ChatScreen from "@/components/ChatScreen";
 import { questions } from "@/lib/quiz";
+import { answersToQuery, queryToAnswers } from "@/lib/resultsUrl";
 
-type Screen = "home" | "quiz" | "results" | "chat";
+type Screen = "home" | "quiz" | "chat";
 
 type HistoryState = {
   screen: Screen;
@@ -16,8 +16,9 @@ type HistoryState = {
   answers: Record<string, string>;
 };
 
-export default function Page() {
+function HomeInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [screen, setScreen] = useState<Screen>("home");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -25,7 +26,8 @@ export default function Page() {
 
   // Push a browser history entry on every screen/step change so the
   // browser's back button steps back through the quiz instead of leaving
-  // the site (the app has no routes of its own — it's all client state).
+  // the site (the quiz itself has no route of its own — it's client state
+  // living at "/"; /results and /browse are real routes).
   const pushHistory = useCallback((state: HistoryState) => {
     if (typeof window !== "undefined") window.history.pushState(state, "");
   }, []);
@@ -35,6 +37,17 @@ export default function Page() {
     // fresh page load restores "home" instead of skipping past it.
     window.history.replaceState({ screen: "home", currentQuestion: 0, answers: {} }, "");
 
+    // "Retake quiz" from /results links back here with the previous answers
+    // in the query string (e.g. /?room=Living+Room&material=...) so the
+    // retake starts pre-filled instead of blank.
+    const seeded = queryToAnswers(searchParams);
+    if (Object.keys(seeded).length > 0) {
+      setAnswers(seeded);
+      setCurrentQuestion(0);
+      setScreen("quiz");
+      pushHistory({ screen: "quiz", currentQuestion: 0, answers: seeded });
+    }
+
     function onPopState(e: PopStateEvent) {
       const s = e.state as HistoryState | null;
       setScreen(s?.screen || "home");
@@ -43,6 +56,7 @@ export default function Page() {
     }
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function startQuiz() {
@@ -60,8 +74,9 @@ export default function Page() {
         setCurrentQuestion(nextQuestion);
         pushHistory({ screen: "quiz", currentQuestion: nextQuestion, answers: next });
       } else {
-        setScreen("results");
-        pushHistory({ screen: "results", currentQuestion, answers: next });
+        // Results is a real route so the finished edit is bookmarkable and
+        // shareable — the answers travel as query params.
+        router.push(`/results?${answersToQuery(next)}`);
       }
     }, 180);
   }
@@ -89,12 +104,6 @@ export default function Page() {
     pushHistory({ screen: "chat", currentQuestion, answers });
   }
 
-  function goToBrowse() {
-    // Browse Our Edit is a real route (not client-only screen state) so it's
-    // bookmarkable and shareable on its own.
-    router.push("/browse");
-  }
-
   function restart() {
     setAnswers({});
     setProfileInjected(false);
@@ -115,9 +124,6 @@ export default function Page() {
           onLogoClick={restart}
         />
       )}
-      {screen === "results" && (
-        <ResultsScreen answers={answers} onRestart={restart} onRetakeQuiz={startQuiz} onBrowseEdits={goToBrowse} />
-      )}
       {screen === "chat" && (
         <ChatScreen
           answers={answers}
@@ -127,5 +133,13 @@ export default function Page() {
         />
       )}
     </>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <HomeInner />
+    </Suspense>
   );
 }
