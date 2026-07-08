@@ -28,7 +28,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
   useEffect(() => {
     let cancelled = false;
     setProductsLoading(true);
-    getEditCatalogFromDB(material, room, priority).then((data) => {
+    getEditCatalogFromDB(material, room, priority, budget).then((data) => {
       if (!cancelled) {
         setProducts(data);
         setProductsLoading(false);
@@ -37,7 +37,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
     return () => {
       cancelled = true;
     };
-  }, [material, room, priority]);
+  }, [material, room, priority, budget]);
 
   const isLighting = priority.toLowerCase().includes("lighting");
   const isTableSetting = priority.toLowerCase().includes("table setting");
