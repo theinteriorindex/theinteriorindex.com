@@ -61,6 +61,16 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
     if (cat === "lighting") return "Lighting";
     return row.category;
   }
+  if (room === "Home Office") {
+    // Office keeps a single "Lighting" tab (task lighting) rather than
+    // splitting into Table Lamps/Pendants like Living/Dining Room do.
+    const cat = row.category.trim().toLowerCase();
+    if (cat === "desk") return "Desk";
+    if (cat === "seating") return "Seating";
+    if (cat === "storage") return "Storage";
+    if (cat === "lighting") return "Lighting";
+    return row.category;
+  }
   const isDining = room === "Dining Room";
   switch (row.category) {
     case "Coffee Table":
@@ -268,6 +278,10 @@ export async function getEditCatalogFromDB(
 
   if (isBedroom) {
     return groupByTab(await fetchRoomMaterialRows("Bedroom", isWalnut ? "Walnut" : "Oak"), "Bedroom", budget);
+  }
+
+  if (room === "Home Office") {
+    return groupByTab(await fetchRoomMaterialRows("Home Office", isWalnut ? "Walnut" : "Oak"), "Home Office", budget);
   }
 
   if (isDining) {

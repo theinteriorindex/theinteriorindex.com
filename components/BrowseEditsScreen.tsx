@@ -23,8 +23,11 @@ const CATEGORY_ORDER = [
   "Dining Chairs",
   "Bedframe",
   "Bench",
+  "Desk",
+  "Storage",
   "Table Lamps",
   "Pendants",
+  "Lighting",
   "Decor",
 ];
 
