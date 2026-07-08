@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import HomeScreen from "@/components/HomeScreen";
 import QuizScreen from "@/components/QuizScreen";
 import ResultsScreen from "@/components/ResultsScreen";
 import ChatScreen from "@/components/ChatScreen";
-import BrowseEditsScreen from "@/components/BrowseEditsScreen";
 import { questions } from "@/lib/quiz";
 
-type Screen = "home" | "quiz" | "results" | "chat" | "browse";
+type Screen = "home" | "quiz" | "results" | "chat";
 
 type HistoryState = {
   screen: Screen;
@@ -17,6 +17,7 @@ type HistoryState = {
 };
 
 export default function Page() {
+  const router = useRouter();
   const [screen, setScreen] = useState<Screen>("home");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -89,8 +90,9 @@ export default function Page() {
   }
 
   function goToBrowse() {
-    setScreen("browse");
-    pushHistory({ screen: "browse", currentQuestion, answers });
+    // Browse Our Edit is a real route (not client-only screen state) so it's
+    // bookmarkable and shareable on its own.
+    router.push("/browse");
   }
 
   function restart() {
@@ -116,7 +118,6 @@ export default function Page() {
       {screen === "results" && (
         <ResultsScreen answers={answers} onRestart={restart} onRetakeQuiz={startQuiz} onBrowseEdits={goToBrowse} />
       )}
-      {screen === "browse" && <BrowseEditsScreen onBack={() => setScreen("results")} onHome={restart} />}
       {screen === "chat" && (
         <ChatScreen
           answers={answers}
