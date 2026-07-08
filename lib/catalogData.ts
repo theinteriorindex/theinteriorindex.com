@@ -162,6 +162,39 @@ async function fetchTabletopEdit(): Promise<ViewRow[]> {
   return products.map((p) => ({ ...p, images: imagesByProduct.get(p.id) || [] }));
 }
 
+const TABLETOP_CATEGORIES = ["Side Plate", "Dinner Plate", "Dessert Plate", "Napkin", "Tablecloth"];
+
+// Powers the "Under $200" filter on the priority-piece quiz question: tells
+// the quiz which of that room's priority options actually have an active
+// product under $200 today, so a budget-conscious user never lands on a
+// hero category (e.g. Lighting) that turns out to have nothing they can
+// afford. Mirrors the same tab-label/edit-routing rules the results page
+// itself uses (Lighting = the universal Light Edit; Tabletop = the
+// cross-material dining edit) so "affordable" always matches what they'd
+// actually see next.
+export async function getAffordablePriorityCategories(room: string): Promise<Set<string>> {
+  const affordable = new Set<string>();
+
+  const [lightRows, roomRows] = await Promise.all([
+    supabase.from("the_light_edit").select("id, price").lt("price", 200),
+    supabase.from("products").select("category, name, price").eq("room", room).eq("is_active", true).lt("price", 200),
+  ]);
+
+  if (!lightRows.error && lightRows.data && lightRows.data.length > 0) affordable.add("Lighting");
+
+  if (!roomRows.error && roomRows.data) {
+    for (const row of roomRows.data as { category: string; name: string; price: number }[]) {
+      if (room === "Dining Room" && TABLETOP_CATEGORIES.includes(row.category)) {
+        affordable.add("Tabletop");
+        continue;
+      }
+      affordable.add(tabLabelFor(row, room));
+    }
+  }
+
+  return affordable;
+}
+
 export async function getMaterialProductsFromDB(material: string, room: string): Promise<ProductGroup> {
   const isDining = room === "Dining Room";
   if (material.toLowerCase().includes("walnut")) {

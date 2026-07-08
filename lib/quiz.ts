@@ -96,13 +96,28 @@ function getMaterialOptions(aesthetic?: string): QuizOption[] {
   return keys.map((k) => MATERIAL_OPTIONS[k]);
 }
 
-// Room-aware and aesthetic-aware version of `questions`: step 5 ("priority
-// piece") options change based on which room was chosen in step 1, and step
-// 3 ("material palette") options change based on the aesthetic chosen in
-// step 2, so each question stays tailored to what's already been answered.
-export function getQuestions(room?: string, aesthetic?: string): QuizQuestion[] {
+// Room-aware, aesthetic-aware, and budget-aware version of `questions`: step
+// 5 ("priority piece") options change based on which room was chosen in step
+// 1, step 3 ("material palette") options change based on the aesthetic
+// chosen in step 2, and — when the shopper picked "Under $200" in step 4 —
+// step 5 is further trimmed to only the pieces that actually have an
+// under-$200 product today (via `affordableCategories`, looked up from
+// Supabase by the caller). Passing `null`/`undefined` for
+// affordableCategories (e.g. budget isn't "Under $200", or the lookup is
+// still loading) leaves every room-appropriate option visible.
+export function getQuestions(room?: string, aesthetic?: string, affordableCategories?: Set<string> | null): QuizQuestion[] {
   return questions.map((q) => {
-    if (q.id === "priority") return { ...q, options: getPriorityOptions(room || "Living Room") };
+    if (q.id === "priority") {
+      let options = getPriorityOptions(room || "Living Room");
+      if (affordableCategories) {
+        const affordableOnly = options.filter((o) => affordableCategories.has(o.category));
+        // Never leave the shopper with zero options to click — if the
+        // affordability check comes back empty, fall back to the full list
+        // rather than showing a dead end.
+        if (affordableOnly.length > 0) options = affordableOnly;
+      }
+      return { ...q, options };
+    }
     if (q.id === "material") return { ...q, options: getMaterialOptions(aesthetic) };
     return q;
   });
