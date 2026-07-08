@@ -16,7 +16,6 @@ const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "
 const CATEGORY_ORDER = [
   "Coffee Tables",
   "Side Tables",
-  "Side Table",
   "Console Table",
   "Credenza",
   "Seating",

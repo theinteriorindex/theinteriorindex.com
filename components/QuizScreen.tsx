@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { getQuestions } from "@/lib/quiz";
-import { getAffordablePriorityCategories } from "@/lib/catalogData";
 
 type Props = {
   currentQuestion: number;
@@ -14,26 +12,7 @@ type Props = {
 };
 
 export default function QuizScreen({ currentQuestion, answers, onSelect, onBack, onJumpTo, onLogoClick }: Props) {
-  // Once a room and an "Under $200" budget are both picked, look up which
-  // priority-piece options actually have an under-$200 product today so
-  // step 5 never offers a category that turns out to be a dead end. Any
-  // other budget (or no budget yet) leaves every option visible.
-  const [affordableCategories, setAffordableCategories] = useState<Set<string> | null>(null);
-  useEffect(() => {
-    if (answers.budget !== "Under $200" || !answers.room) {
-      setAffordableCategories(null);
-      return;
-    }
-    let cancelled = false;
-    getAffordablePriorityCategories(answers.room).then((set) => {
-      if (!cancelled) setAffordableCategories(set);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [answers.room, answers.budget]);
-
-  const questions = getQuestions(answers.room, answers.aesthetic, affordableCategories);
+  const questions = getQuestions(answers.room, answers.aesthetic);
   const q = questions[currentQuestion];
   const total = questions.length;
   const progress = (currentQuestion / total) * 100;

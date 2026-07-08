@@ -66,6 +66,9 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
     case "Coffee Table":
       return "Coffee Tables";
     case "Side Tables":
+    case "Side Table":
+      // Supabase has both the singular and plural spelling depending on
+      // which intake pass a product came through — always show one tab.
       return "Side Tables";
     case "Seating":
     case "Accents":

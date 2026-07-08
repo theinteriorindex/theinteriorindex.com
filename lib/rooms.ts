@@ -9,7 +9,7 @@ export type RoomOption = { title: string; desc: string; category: string };
 // becomes the "hero" tab; the rest keep this relative order.
 export const ROOM_TABS: Record<string, string[]> = {
   "Living Room": ["Coffee Tables", "Seating", "Side Tables", "Table Lamps"],
-  "Dining Room": ["Dining Tables", "Dining Chairs", "Tabletop"],
+  "Dining Room": ["Dining Tables", "Dining Chairs"],
   Bedroom: ["Bedframe", "Bench", "Side Tables", "Lighting"],
   "Home Office": ["Desk", "Seating", "Storage", "Lighting"],
 };
@@ -28,7 +28,7 @@ export const PRIORITY_OPTIONS: Record<string, RoomOption[]> = {
     { title: "A statement table", desc: "The anchor piece your dining room is built around", category: "Dining Tables" },
     { title: "The perfect chair", desc: "Dining chairs with real material character", category: "Dining Chairs" },
     { title: "Lighting", desc: "Pendant or chandelier over the table — the mood piece", category: "Dining Tables" },
-    { title: "The table setting", desc: "Plates, napkins, and the finishing touches — the setting piece", category: "Tabletop" },
+    { title: "Soft furnishings", desc: "Table linens and finishing touches", category: "Dining Tables" },
   ],
   Bedroom: [
     {
