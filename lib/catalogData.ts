@@ -270,10 +270,13 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
     return groupByTab(await fetchView("natural_materials_living_room"), "Living Room", budget);
   }
   if (material.toLowerCase().includes("metal")) {
-    // Metal pieces (Wabi-Sabi sculptural stools/chairs) only exist in Dining
-    // Room today, so — same convention as Stone/Natural Materials above —
-    // force the room regardless of what was selected.
-    return groupByTab(await fetchRoomMaterialRows("Dining Room", "Metal"), "Dining Room", budget);
+    if (isDining) {
+      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Metal"), "Dining Room", budget);
+    }
+    // Real Living Room Metal inventory now exists (side tables) — use it
+    // directly instead of forcing the Dining Room Metal catalog.
+    const grouped = groupByTab(await fetchRoomMaterialRows("Living Room", "Metal"), "Living Room", budget);
+    return withThrows(grouped, "Living Room", budget);
   }
   // Ceramic is intentionally not handled here — it's a decor-only category
   // reachable from Browse Our Edit, not one of the quiz's material options,
