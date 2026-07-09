@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { BrowseProduct } from "@/lib/catalogData";
-import { getRetailerLabel, extractHostname } from "@/lib/retailer";
+import { getRetailerLabel } from "@/lib/retailer";
 
 // Card for the Browse Our Edit grid: title + retailer under the image (not a
 // hover overlay like the results-page ProductCard), but still peeks at the
@@ -77,9 +77,9 @@ export default function BrowseProductCard({ product }: { product: BrowseProduct 
 function getStoreName(link: string): string {
   const known = getRetailerLabel(link);
   if (known) return known;
-  // Fall back to the unwrapped hostname (extractHostname already reads
-  // through AWIN's p= redirect param), never the raw outer link, so an
-  // AWIN-wrapped merchant we haven't labeled yet shows its own domain
-  // instead of "awin1.com".
-  return extractHostname(link) || "Shop Now";
+  try {
+    return new URL(link).hostname.replace(/^www\./, "");
+  } catch {
+    return "Shop Now";
+  }
 }

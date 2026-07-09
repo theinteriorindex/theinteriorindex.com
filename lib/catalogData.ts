@@ -85,6 +85,9 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
       return isDining ? "Dining Chairs" : "Seating";
     case "Dining Table":
       return "Dining Tables";
+    case "Throw":
+    case "Throws":
+      return "Throws";
     case "Lighting": {
       const n = row.name.toLowerCase();
       return n.includes("pendant") || n.includes("ceiling") ? "Pendants" : "Table Lamps";
@@ -222,18 +225,48 @@ export async function getAffordablePriorityCategories(room: string): Promise<Set
   return affordable;
 }
 
+// Merges the Throws tab into a Living Room result set from any material
+// path (Walnut, Oak, Stone, or the catch-all fallback) so it always shows as
+// a supporting edit alongside whatever hero material was chosen. No-op for
+// any other room — Throws is Living Room only for now.
+async function withThrows(base: ProductGroup, room: string, budget?: string): Promise<ProductGroup> {
+  if (room !== "Living Room") return base;
+  const throwRows = await fetchView("natural_materials_living_room");
+  const throwsGrouped = groupByTab(throwRows, "Living Room", budget);
+  return { ...base, Throws: throwsGrouped["Throws"] || [] };
+}
+
 export async function getMaterialProductsFromDB(material: string, room: string, budget?: string): Promise<ProductGroup> {
   const isDining = room === "Dining Room";
   if (material.toLowerCase().includes("walnut")) {
-    return groupByTab(await fetchView(isDining ? "walnut_dining_room" : "walnut_living_room"), room, budget);
+    const grouped = groupByTab(await fetchView(isDining ? "walnut_dining_room" : "walnut_living_room"), room, budget);
+    return withThrows(grouped, room, budget);
   }
   if (material.toLowerCase().includes("oak")) {
-    return groupByTab(await fetchView(isDining ? "oak_dining_room" : "oak_living_room"), room, budget);
+    const grouped = groupByTab(await fetchView(isDining ? "oak_dining_room" : "oak_living_room"), room, budget);
+    return withThrows(grouped, room, budget);
   }
   if (material.toLowerCase().includes("stone") || material.toLowerCase().includes("marble")) {
-    return groupByTab(await fetchView("stone_living_room"), "Living Room", budget);
+    if (isDining) {
+      // No Stone/Marble Dining Room inventory exists yet. Rather than
+      // showing the Living Room Stone catalog mislabeled under a Dining
+      // Room header (wrong tab vocabulary entirely — Coffee Tables/Seating
+      // instead of Dining Tables/Dining Chairs), fall back to Oak's real
+      // Dining Room tables/chairs. Oak's dining view has no Coffee Table
+      // category at all, so this never surfaces a Coffee Tables tab here.
+      return groupByTab(await fetchView("oak_dining_room"), "Dining Room", budget);
+    }
+    const grouped = groupByTab(await fetchView("stone_living_room"), "Living Room", budget);
+    return withThrows(grouped, "Living Room", budget);
   }
   if (material.toLowerCase().includes("linen") || material.toLowerCase().includes("natural")) {
+    if (isDining) {
+      // Real Dining Room Natural Materials products exist (e.g. dining
+      // seating) — use them directly instead of forcing Living Room.
+      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Natural Materials"), "Dining Room", budget);
+    }
+    // Natural Materials Living Room already includes the Throw-category rows
+    // directly (same underlying view), so no separate merge needed here.
     return groupByTab(await fetchView("natural_materials_living_room"), "Living Room", budget);
   }
   if (material.toLowerCase().includes("metal")) {
@@ -245,7 +278,8 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
   // Ceramic is intentionally not handled here — it's a decor-only category
   // reachable from Browse Our Edit, not one of the quiz's material options,
   // so getMaterialProductsFromDB should never be called with it.
-  return groupByTab(await fetchView("walnut_living_room"), "Living Room", budget);
+  const grouped = groupByTab(await fetchView("walnut_living_room"), "Living Room", budget);
+  return withThrows(grouped, "Living Room", budget);
 }
 
 export async function getEditCatalogFromDB(
@@ -264,7 +298,10 @@ export async function getEditCatalogFromDB(
   if (isLighting) {
     // The Light Edit is a room-agnostic universal lighting collection —
     // always split into Table Lamps / Pendants regardless of chosen room.
-    return groupByTab(await fetchView("the_light_edit"), "Living Room", budget);
+    // Still merge in Throws when the actual room is Living Room, so picking
+    // "Lighting" as the priority piece doesn't drop the supporting edit.
+    const grouped = groupByTab(await fetchView("the_light_edit"), "Living Room", budget);
+    return withThrows(grouped, room, budget);
   }
 
   if (isTableSetting) {
@@ -277,7 +314,19 @@ export async function getEditCatalogFromDB(
   }
 
   if (isBedroom) {
-    return groupByTab(await fetchRoomMaterialRows("Bedroom", isWalnut ? "Walnut" : "Oak"), "Bedroom", budget);
+    const [bedroomRows, lightRows] = await Promise.all([
+      fetchRoomMaterialRows("Bedroom", isWalnut ? "Walnut" : "Oak"),
+      fetchView("the_light_edit"),
+    ]);
+    const grouped = groupByTab(bedroomRows, "Bedroom", budget);
+    // No Bedroom-tagged Lighting product exists yet, so the Lighting tab
+    // would otherwise always be empty. Fall back to the universal Light
+    // Edit for that tab specifically — real Bedroom lighting products, if
+    // added later, take priority since we only fill in when empty.
+    if (!grouped["Lighting"] || grouped["Lighting"].length === 0) {
+      grouped["Lighting"] = filterByBudget(lightRows, budget).map(toProduct);
+    }
+    return grouped;
   }
 
   if (room === "Home Office") {
@@ -289,36 +338,42 @@ export async function getEditCatalogFromDB(
   }
 
   if (isWalnut) {
-    const [walnutRows, oakRows, lightRows] = await Promise.all([
+    const [walnutRows, oakRows, lightRows, throwRows] = await Promise.all([
       fetchView("walnut_living_room"),
       fetchView("oak_living_room"),
       fetchView("the_light_edit"),
+      fetchView("natural_materials_living_room"),
     ]);
     const walnut = groupByTab(walnutRows, "Living Room", budget);
     const oak = groupByTab(oakRows, "Living Room", budget);
     const light = groupByTab(lightRows, "Living Room", budget);
+    const throws = groupByTab(throwRows, "Living Room", budget);
     return {
       "Coffee Tables": walnut["Coffee Tables"] || [],
       "Side Tables": oak["Side Tables"] || [],
       Seating: walnut["Seating"] || [],
       "Table Lamps": light["Table Lamps"] || [],
+      Throws: throws["Throws"] || [],
     };
   }
 
   if (isOak) {
-    const [oakRows, walnutRows, lightRows] = await Promise.all([
+    const [oakRows, walnutRows, lightRows, throwRows] = await Promise.all([
       fetchView("oak_living_room"),
       fetchView("walnut_living_room"),
       fetchView("the_light_edit"),
+      fetchView("natural_materials_living_room"),
     ]);
     const oak = groupByTab(oakRows, "Living Room", budget);
     const walnut = groupByTab(walnutRows, "Living Room", budget);
     const light = groupByTab(lightRows, "Living Room", budget);
+    const throws = groupByTab(throwRows, "Living Room", budget);
     return {
       "Coffee Tables": oak["Coffee Tables"] || [],
       "Side Tables": walnut["Side Tables"] || [],
       Seating: oak["Seating"] || [],
       "Table Lamps": light["Table Lamps"] || [],
+      Throws: throws["Throws"] || [],
     };
   }
 
