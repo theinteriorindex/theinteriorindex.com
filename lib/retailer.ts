@@ -12,9 +12,10 @@ const RETAILER_HOSTS: Record<string, string> = {
   "amzn.to": "Amazon",
   "eternitymodern.com": "Eternity Modern",
   "islacapricho.com": "Isla Capricho",
+  "thevintagerealm.com": "The Vintage Realm",
 };
 
-function extractHostname(link: string): string | null {
+export function extractHostname(link: string): string | null {
   try {
     const url = new URL(link);
     const wrapped = url.searchParams.get("p");
