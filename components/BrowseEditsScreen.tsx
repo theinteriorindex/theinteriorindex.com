@@ -13,7 +13,10 @@ type Props = {
 
 const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "Ceramic"];
 // Fixed display order for category tags — anything not listed falls back to
-// alphabetical, appended after these.
+// alphabetical, appended after these. Throws is pinned last explicitly
+// (rather than relying on it alphabetizing there) so it always reads as a
+// supporting/bottom category, matching its "supporting tab" role on the
+// results pages.
 const CATEGORY_ORDER = [
   "Coffee Tables",
   "Side Tables",
@@ -30,7 +33,17 @@ const CATEGORY_ORDER = [
   "Pendants",
   "Lighting",
   "Decor",
+  "Throws",
 ];
+
+// Shared rank used to both order the category tag list and to sort the
+// product grid itself, so a filtered view (e.g. Natural Materials) always
+// clusters its products by category in this same fixed order — Throws last
+// — instead of showing them in whatever order Supabase happened to return.
+function categoryRank(category: string): number {
+  const i = CATEGORY_ORDER.indexOf(category);
+  return i === -1 ? CATEGORY_ORDER.length : i;
+}
 
 // Matches a `?material=` URL value back to one of ALL_MATERIALS, tolerating
 // case and dash/underscore-for-space variants (e.g. "natural-materials",
@@ -92,19 +105,26 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     if (!selectedMaterial) return [];
     const present = Array.from(new Set(products.filter((p) => p.material === selectedMaterial).map((p) => p.category)));
     return present.sort((a, b) => {
-      const ai = CATEGORY_ORDER.indexOf(a);
-      const bi = CATEGORY_ORDER.indexOf(b);
-      if (ai === -1 && bi === -1) return a.localeCompare(b);
-      if (ai === -1) return 1;
-      if (bi === -1) return -1;
-      return ai - bi;
+      const ai = categoryRank(a);
+      const bi = categoryRank(b);
+      return ai === bi ? a.localeCompare(b) : ai - bi;
     });
   }, [products, selectedMaterial]);
 
+  // Sorted by category (Throws last) rather than raw fetch order — most
+  // rows share the same sort_order value, so without this the grid's order
+  // isn't stable/predictable and throws could land anywhere in the mix
+  // instead of clustering at the bottom.
   const filtered = useMemo(() => {
-    return products.filter(
-      (p) => (!selectedMaterial || p.material === selectedMaterial) && (!selectedCategory || p.category === selectedCategory)
-    );
+    return products
+      .filter(
+        (p) => (!selectedMaterial || p.material === selectedMaterial) && (!selectedCategory || p.category === selectedCategory)
+      )
+      .sort((a, b) => {
+        const ai = categoryRank(a.category);
+        const bi = categoryRank(b.category);
+        return ai === bi ? a.name.localeCompare(b.name) : ai - bi;
+      });
   }, [products, selectedMaterial, selectedCategory]);
 
   function handleMaterialClick(m: string) {
