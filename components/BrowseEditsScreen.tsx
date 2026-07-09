@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getBrowseProducts, type BrowseProduct } from "@/lib/catalogData";
 import BrowseProductCard from "./BrowseProductCard";
 import NotifyMeModal from "./NotifyMeModal";
@@ -31,14 +32,31 @@ const CATEGORY_ORDER = [
   "Decor",
 ];
 
+// Matches a `?material=` URL value back to one of ALL_MATERIALS, tolerating
+// case and dash/underscore-for-space variants (e.g. "natural-materials",
+// "OAK") so a hand-typed or Pinterest-shortened link still resolves.
+function matchMaterialParam(raw: string | null): string | null {
+  if (!raw) return null;
+  const cleaned = raw.replace(/[-_]+/g, " ").trim().toLowerCase();
+  return ALL_MATERIALS.find((m) => m.toLowerCase() === cleaned) || null;
+}
+
 export default function BrowseEditsScreen({ onBack, onHome }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [products, setProducts] = useState<BrowseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   // Material and category are independent single-select slots (not a
   // generic tag list) so picking a new category never bumps the material
   // you already had selected, and vice versa — up to one of each at a time.
-  const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  // Initialized from the URL (?material=&category=) so a direct/pinned link
+  // lands on the right filter instead of always starting at "All".
+  const [selectedMaterial, setSelectedMaterial] = useState<string | null>(() =>
+    matchMaterialParam(searchParams.get("material"))
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => searchParams.get("category"));
   const [notifyMaterial, setNotifyMaterial] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,6 +71,17 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
       cancelled = true;
     };
   }, []);
+
+  // Keeps the address bar in sync with the current filter selection, so
+  // whatever's on screen — whether reached by clicking a tag or by loading a
+  // pinned link — always has a matching, copyable/shareable URL.
+  function syncUrl(material: string | null, category: string | null) {
+    const params = new URLSearchParams();
+    if (material) params.set("material", material);
+    if (category) params.set("category", category);
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
 
   const materialsWithProducts = useMemo(() => new Set(products.map((p) => p.material)), [products]);
 
@@ -85,17 +114,22 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     }
     // Switching (or clearing) material invalidates whatever category was
     // selected, since the category list itself is scoped per-material.
+    const next = selectedMaterial === m ? null : m;
     setSelectedCategory(null);
-    setSelectedMaterial((prev) => (prev === m ? null : m));
+    setSelectedMaterial(next);
+    syncUrl(next, null);
   }
 
   function handleCategoryClick(c: string) {
-    setSelectedCategory((prev) => (prev === c ? null : c));
+    const next = selectedCategory === c ? null : c;
+    setSelectedCategory(next);
+    syncUrl(selectedMaterial, next);
   }
 
   function clearFilters() {
     setSelectedMaterial(null);
     setSelectedCategory(null);
+    syncUrl(null, null);
   }
 
   return (
