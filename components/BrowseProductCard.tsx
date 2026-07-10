@@ -1,24 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { BrowseProduct } from "@/lib/catalogData";
+import type { Product } from "@/lib/catalog";
 import { getRetailerLabel, extractHostname } from "@/lib/retailer";
 
-// Card for the Browse Our Edit grid: title + retailer under the image (not a
-// hover overlay like the results-page ProductCard), but still peeks at the
-// next product image on hover — using the exact same mounting pattern as
-// ProductCard (all of a product's images sit in the DOM from the start, with
-// native loading="lazy" pacing anything past the first) so the crossfade
-// timing and feel matches exactly. A previous version only mounted the
-// second image on hover to limit requests, but that meant the fade sometimes
-// started before the browser had committed the image's initial state,
-// making it snap instead of ease — eager-mounting avoids that entirely, and
-// native lazy-loading already paces off-screen images sensibly on its own.
+// Product card used for both the Browse Our Edit grid and the quiz results
+// grid: title + retailer under the image, no hover overlay. All of a
+// product's images sit in the DOM from the start, with native
+// loading="lazy" pacing anything past the first, so the crossfade on hover
+// (to a second image, where one exists) timing and feel is consistent. A
+// previous version only mounted the second image on hover to limit
+// requests, but that meant the fade sometimes started before the browser
+// had committed the image's initial state, making it snap instead of
+// ease — eager-mounting avoids that entirely, and native lazy-loading
+// already paces off-screen images sensibly on its own.
 //
 // Cards also fade/slide up into place as they scroll into view instead of
 // all rendering at once — an IntersectionObserver flips `visible` and the
 // CSS transition does the rest.
-export default function BrowseProductCard({ product }: { product: BrowseProduct }) {
+export default function BrowseProductCard({ product }: { product: Product }) {
   const [hovered, setHovered] = useState(false);
   const [hiddenImages, setHiddenImages] = useState<Set<number>>(new Set());
   const [visible, setVisible] = useState(false);

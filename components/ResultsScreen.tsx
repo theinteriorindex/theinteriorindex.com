@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { profileMap, type ProductGroup } from "@/lib/catalog";
 import { getEditCatalogFromDB } from "@/lib/catalogData";
 import { getRoomTabs, getPriorityCategory } from "@/lib/rooms";
-import ProductCard from "./ProductCard";
+import BrowseProductCard from "./BrowseProductCard";
 import EmailListModal from "./EmailListModal";
 
 type Props = {
@@ -149,7 +149,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
             </button>
           ))}
         </div>
-        <div className="product-grid">
+        <div className="browse-product-grid">
           {productsLoading ? (
             <div
               style={{
@@ -177,7 +177,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
               More products coming soon.
             </div>
           ) : (
-            (products[activeTab] || []).map((p, i) => <ProductCard key={p.name + i} product={p} />)
+            (products[activeTab] || []).map((p, i) => <BrowseProductCard key={p.name + i} product={p} />)
           )}
         </div>
         <div className="affiliate-note">
