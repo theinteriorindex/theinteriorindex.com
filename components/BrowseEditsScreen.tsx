@@ -13,6 +13,12 @@ type Props = {
 };
 
 const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "Ceramic"];
+
+// Same paging pattern as HomeBrowsePreview: PREVIEW_COUNT per page,
+// "Discover more" fades the current batch out and the next one in — a
+// replace, not an accumulate — across every filter state, All included.
+const PREVIEW_COUNT = 8;
+const FADE_MS = 280;
 // Fixed display order for category tags — anything not listed falls back to
 // alphabetical, appended after these. Throws is pinned last explicitly
 // (rather than relying on it alphabetizing there) so it always reads as a
@@ -73,6 +79,8 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => searchParams.get("category"));
   const [notifyMaterial, setNotifyMaterial] = useState<string | null>(null);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [fading, setFading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,19 +147,34 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     const next = selectedMaterial === m ? null : m;
     setSelectedCategory(null);
     setSelectedMaterial(next);
+    setPageIndex(0);
     syncUrl(next, null);
   }
 
   function handleCategoryClick(c: string) {
     const next = selectedCategory === c ? null : c;
     setSelectedCategory(next);
+    setPageIndex(0);
     syncUrl(selectedMaterial, next);
   }
 
   function clearFilters() {
     setSelectedMaterial(null);
     setSelectedCategory(null);
+    setPageIndex(0);
     syncUrl(null, null);
+  }
+
+  const visible = filtered.slice(pageIndex * PREVIEW_COUNT, pageIndex * PREVIEW_COUNT + PREVIEW_COUNT);
+  const hasMore = filtered.length > (pageIndex + 1) * PREVIEW_COUNT;
+
+  function handleDiscoverMore() {
+    if (fading) return;
+    setFading(true);
+    setTimeout(() => {
+      setPageIndex((p) => p + 1);
+      setFading(false);
+    }, FADE_MS);
   }
 
   return (
@@ -213,11 +236,24 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
             No pieces match that combination yet.
           </div>
         ) : (
-          <div className="browse-product-grid">
-            {filtered.map((p, i) => (
-              <BrowseProductCard key={p.name + i} product={p} />
-            ))}
-          </div>
+          <>
+            <div
+              className="browse-product-grid"
+              style={{ opacity: fading ? 0 : 1, transition: `opacity ${FADE_MS}ms ease` }}
+            >
+              {visible.map((p, i) => (
+                <BrowseProductCard key={p.name + i} product={p} />
+              ))}
+            </div>
+
+            {hasMore && (
+              <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+                <button className="btn-secondary" onClick={handleDiscoverMore} disabled={fading}>
+                  Discover more
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         <div className="affiliate-note">

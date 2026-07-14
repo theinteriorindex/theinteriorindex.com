@@ -91,8 +91,18 @@ const MATERIALS_BY_AESTHETIC: Record<string, MaterialKey[]> = {
 };
 const DEFAULT_MATERIAL_KEYS: MaterialKey[] = ["walnut", "oak", "stone", "natural"];
 
-function getMaterialOptions(aesthetic?: string): QuizOption[] {
-  const keys = (aesthetic && MATERIALS_BY_AESTHETIC[aesthetic]) || DEFAULT_MATERIAL_KEYS;
+function getMaterialOptions(aesthetic?: string, room?: string): QuizOption[] {
+  let keys = (aesthetic && MATERIALS_BY_AESTHETIC[aesthetic]) || DEFAULT_MATERIAL_KEYS;
+  // Home Office has zero Marble/Stone inventory (no Home Office product is
+  // tagged material=Stone) but real Walnut inventory (Desk, Storage) — swap
+  // Stone out for Walnut here specifically rather than offering a material
+  // that's guaranteed to lead to an empty results tab. Falls back to
+  // swapping in Metal on the aesthetics that already include Walnut
+  // alongside Stone (Wabi-Sabi, and the pre-Question-02 default), so the
+  // option count stays at 4 either way.
+  if (room === "Home Office") {
+    keys = keys.map((k) => (k === "stone" ? (keys.includes("walnut") ? "metal" : "walnut") : k));
+  }
   return keys.map((k) => MATERIAL_OPTIONS[k]);
 }
 
@@ -125,7 +135,7 @@ export function getQuestions(room?: string, aesthetic?: string, affordableCatego
       }
       return { ...q, options };
     }
-    if (q.id === "material") return { ...q, options: getMaterialOptions(aesthetic) };
+    if (q.id === "material") return { ...q, options: getMaterialOptions(aesthetic, room) };
     return q;
   });
 }
