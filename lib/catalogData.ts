@@ -236,6 +236,25 @@ async function withThrows(base: ProductGroup, room: string, budget?: string): Pr
   return { ...base, Throws: throwsGrouped["Throws"] || [] };
 }
 
+// Marble/Stone has real Dining Tables but no real dining chairs of its own
+// yet. Rather than leave the "Dining Chairs" tab empty, Liz's call was to
+// curate a mix of real chairs pulled from Natural Materials, Oak, and
+// Walnut's Dining Room seating — same spirit as the Throws merge below, just
+// pulling from three materials instead of one. Stone/Marble-specific; remove
+// once real marble/stone dining chairs are sourced.
+async function withStoneDiningChairs(base: ProductGroup, budget?: string): Promise<ProductGroup> {
+  const [naturalRows, oakRows, walnutRows] = await Promise.all([
+    fetchRoomMaterialRows("Dining Room", "Natural Materials"),
+    fetchRoomMaterialRows("Dining Room", "Oak"),
+    fetchRoomMaterialRows("Dining Room", "Walnut"),
+  ]);
+  const seatingRows = [...naturalRows, ...oakRows, ...walnutRows].filter(
+    (r) => r.category === "Seating" || r.category === "Accents"
+  );
+  const grouped = groupByTab(seatingRows, "Dining Room", budget);
+  return { ...base, "Dining Chairs": grouped["Dining Chairs"] || [] };
+}
+
 export async function getMaterialProductsFromDB(material: string, room: string, budget?: string): Promise<ProductGroup> {
   const isDining = room === "Dining Room";
   if (material.toLowerCase().includes("walnut")) {
@@ -250,8 +269,11 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
     if (isDining) {
       // Real Stone/Marble Dining Room inventory now exists (the marble
       // pedestal dining tables) — use it directly instead of the old Oak
-      // dining-table fallback.
-      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Stone"), "Dining Room", budget);
+      // dining-table fallback. No real marble dining chairs yet, so a
+      // curated cross-material mix fills the supporting Dining Chairs tab
+      // (see withStoneDiningChairs).
+      const grouped = groupByTab(await fetchRoomMaterialRows("Dining Room", "Stone"), "Dining Room", budget);
+      return withStoneDiningChairs(grouped, budget);
     }
     const grouped = groupByTab(await fetchView("stone_living_room"), "Living Room", budget);
     return withThrows(grouped, "Living Room", budget);
