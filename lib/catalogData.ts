@@ -248,13 +248,10 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
   }
   if (material.toLowerCase().includes("stone") || material.toLowerCase().includes("marble")) {
     if (isDining) {
-      // No Stone/Marble Dining Room inventory exists yet. Rather than
-      // showing the Living Room Stone catalog mislabeled under a Dining
-      // Room header (wrong tab vocabulary entirely — Coffee Tables/Seating
-      // instead of Dining Tables/Dining Chairs), fall back to Oak's real
-      // Dining Room tables/chairs. Oak's dining view has no Coffee Table
-      // category at all, so this never surfaces a Coffee Tables tab here.
-      return groupByTab(await fetchView("oak_dining_room"), "Dining Room", budget);
+      // Real Stone/Marble Dining Room inventory now exists (the marble
+      // pedestal dining tables) — use it directly instead of the old Oak
+      // dining-table fallback.
+      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Stone"), "Dining Room", budget);
     }
     const grouped = groupByTab(await fetchView("stone_living_room"), "Living Room", budget);
     return withThrows(grouped, "Living Room", budget);
