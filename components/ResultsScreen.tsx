@@ -15,6 +15,12 @@ type Props = {
   onBrowseEdits: () => void;
 };
 
+// Unlike HomeBrowsePreview's fade-replace, "Discover more" here accumulates
+// — each click reveals the next PREVIEW_COUNT on top of what's already
+// showing, no fade, since a quiz result is a single set to browse through
+// rather than a rotating preview.
+const PREVIEW_COUNT = 8;
+
 export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrowseEdits }: Props) {
   const aesthetic = answers.aesthetic || "Organic Modern";
   const profile = profileMap[aesthetic] || profileMap["Organic Modern"];
@@ -60,6 +66,19 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
 
   const [activeTab, setActiveTab] = useState(orderedTabs[0]);
   useEffect(() => setActiveTab(orderedTabs[0]), [orderedTabs]);
+
+  const [pageIndex, setPageIndex] = useState(0);
+  // A tab switch starts that tab's grid back at its own first page rather
+  // than wherever "Discover more" had scrolled the previous tab to.
+  useEffect(() => setPageIndex(0), [activeTab]);
+
+  const tabProducts = products[activeTab] || [];
+  const visibleProducts = tabProducts.slice(0, (pageIndex + 1) * PREVIEW_COUNT);
+  const hasMoreProducts = tabProducts.length > (pageIndex + 1) * PREVIEW_COUNT;
+
+  function handleDiscoverMore() {
+    setPageIndex((p) => p + 1);
+  }
 
   const editLabel = isLighting ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${matName} ${room} Edit`;
 
@@ -164,12 +183,19 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
             >
               Loading curated picks…
             </div>
-          ) : (products[activeTab] || []).length === 0 ? (
+          ) : tabProducts.length === 0 ? (
             <EmptyTabNotify label={`${matName} ${room} — ${activeTab}`} />
           ) : (
-            (products[activeTab] || []).map((p, i) => <BrowseProductCard key={p.name + i} product={p} />)
+            visibleProducts.map((p, i) => <BrowseProductCard key={p.name + i} product={p} />)
           )}
         </div>
+        {!productsLoading && hasMoreProducts && (
+          <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+            <button className="btn-secondary" onClick={handleDiscoverMore}>
+              Discover more
+            </button>
+          </div>
+        )}
         <div className="affiliate-note">
           This edit contains affiliate links. Purchasing through these links supports The Interior Index at no
           additional cost to you. Every piece is chosen for material quality, proportion, and value — never for
