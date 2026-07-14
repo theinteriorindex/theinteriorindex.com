@@ -1,5 +1,6 @@
 import { supabase } from "./supabaseClient";
 import type { Product, ProductGroup } from "./catalog";
+import { getRoomTabs } from "./rooms";
 
 // Reads the live catalog from Supabase (products + product_images, exposed
 // via the per-collection views: walnut_living_room, walnut_dining_room,
@@ -255,6 +256,45 @@ async function withStoneDiningChairs(base: ProductGroup, budget?: string): Promi
   return { ...base, "Dining Chairs": grouped["Dining Chairs"] || [] };
 }
 
+// Merges the Table Lamps tab into a Living Room result for any material path
+// that doesn't already have one. Walnut and Oak already get Table Lamps via
+// their own cross-material mix below; this covers Stone, Natural Materials,
+// and Metal, which previously had no Table Lamps data at all — the tab
+// didn't just come up empty, it silently disappeared from the results page
+// entirely since Living Room's tab bar only shows tabs with a data key.
+async function withTableLamps(base: ProductGroup, room: string, budget?: string): Promise<ProductGroup> {
+  if (room !== "Living Room" || base["Table Lamps"]) return base;
+  const grouped = groupByTab(await fetchView("the_light_edit"), "Living Room", budget);
+  return { ...base, "Table Lamps": grouped["Table Lamps"] || [] };
+}
+
+// Merges the Tabletop tab (plates, napkins, tablecloths) into every Dining
+// Room result regardless of chosen priority — mirrors the Throws merge in
+// Living Room. Previously Tabletop only ever appeared when the priority was
+// literally "The table setting"; now it always shows as a supporting edit
+// alongside whatever hero category (Dining Tables/Dining Chairs) was chosen.
+async function withTabletop(base: ProductGroup, budget?: string): Promise<ProductGroup> {
+  const tabletopRows = filterByBudget(await fetchTabletopEdit(), budget).map(toProduct);
+  return { ...base, Tabletop: tabletopRows };
+}
+
+// Ensures every tab a room is supposed to show (per ROOM_TABS in lib/rooms)
+// is present in the result, even with zero matching products. Previously, a
+// category with no rows was simply absent from the object, which made it
+// vanish from the results-page tab bar — and worse, could silently redirect
+// the "hero" tab to whatever else happened to have data (e.g. Walnut +
+// Bedroom, with no real Walnut bedroom inventory yet, defaulted its hero to
+// Lighting even when the user's priority was "The bedframe"). Now every
+// expected tab always shows, and an empty one renders a "coming soon" /
+// notify-me state (see EmptyTabNotify) instead of disappearing.
+function fillRoomTabs(group: ProductGroup, room: string): ProductGroup {
+  const filled: ProductGroup = { ...group };
+  for (const tab of getRoomTabs(room)) {
+    if (!filled[tab]) filled[tab] = [];
+  }
+  return filled;
+}
+
 export async function getMaterialProductsFromDB(material: string, room: string, budget?: string): Promise<ProductGroup> {
   const isDining = room === "Dining Room";
   if (material.toLowerCase().includes("walnut")) {
@@ -275,8 +315,8 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
       const grouped = groupByTab(await fetchRoomMaterialRows("Dining Room", "Stone"), "Dining Room", budget);
       return withStoneDiningChairs(grouped, budget);
     }
-    const grouped = groupByTab(await fetchView("stone_living_room"), "Living Room", budget);
-    return withThrows(grouped, "Living Room", budget);
+    const grouped = await withThrows(groupByTab(await fetchView("stone_living_room"), "Living Room", budget), "Living Room", budget);
+    return withTableLamps(grouped, "Living Room", budget);
   }
   if (material.toLowerCase().includes("linen") || material.toLowerCase().includes("natural")) {
     if (isDining) {
@@ -285,8 +325,10 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
       return groupByTab(await fetchRoomMaterialRows("Dining Room", "Natural Materials"), "Dining Room", budget);
     }
     // Natural Materials Living Room already includes the Throw-category rows
-    // directly (same underlying view), so no separate merge needed here.
-    return groupByTab(await fetchView("natural_materials_living_room"), "Living Room", budget);
+    // directly (same underlying view), so no separate Throws merge needed —
+    // still needs Table Lamps merged in, though.
+    const grouped = groupByTab(await fetchView("natural_materials_living_room"), "Living Room", budget);
+    return withTableLamps(grouped, "Living Room", budget);
   }
   if (material.toLowerCase().includes("metal")) {
     if (isDining) {
@@ -294,14 +336,18 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
     }
     // Real Living Room Metal inventory now exists (side tables) — use it
     // directly instead of forcing the Dining Room Metal catalog.
-    const grouped = groupByTab(await fetchRoomMaterialRows("Living Room", "Metal"), "Living Room", budget);
-    return withThrows(grouped, "Living Room", budget);
+    const grouped = await withThrows(
+      groupByTab(await fetchRoomMaterialRows("Living Room", "Metal"), "Living Room", budget),
+      "Living Room",
+      budget
+    );
+    return withTableLamps(grouped, "Living Room", budget);
   }
   // Ceramic is intentionally not handled here — it's a decor-only category
   // reachable from Browse Our Edit, not one of the quiz's material options,
   // so getMaterialProductsFromDB should never be called with it.
-  const grouped = groupByTab(await fetchView("walnut_living_room"), "Living Room", budget);
-  return withThrows(grouped, "Living Room", budget);
+  const grouped = await withThrows(groupByTab(await fetchView("walnut_living_room"), "Living Room", budget), "Living Room", budget);
+  return withTableLamps(grouped, "Living Room", budget);
 }
 
 export async function getEditCatalogFromDB(
@@ -348,15 +394,17 @@ export async function getEditCatalogFromDB(
     if (!grouped["Lighting"] || grouped["Lighting"].length === 0) {
       grouped["Lighting"] = filterByBudget(lightRows, budget).map(toProduct);
     }
-    return grouped;
+    return fillRoomTabs(grouped, room);
   }
 
   if (room === "Home Office") {
-    return groupByTab(await fetchRoomMaterialRows("Home Office", isWalnut ? "Walnut" : "Oak"), "Home Office", budget);
+    const grouped = groupByTab(await fetchRoomMaterialRows("Home Office", isWalnut ? "Walnut" : "Oak"), "Home Office", budget);
+    return fillRoomTabs(grouped, room);
   }
 
   if (isDining) {
-    return getMaterialProductsFromDB(material, room, budget);
+    const grouped = await withTabletop(await getMaterialProductsFromDB(material, room, budget), budget);
+    return fillRoomTabs(grouped, room);
   }
 
   if (isWalnut) {
@@ -370,13 +418,16 @@ export async function getEditCatalogFromDB(
     const oak = groupByTab(oakRows, "Living Room", budget);
     const light = groupByTab(lightRows, "Living Room", budget);
     const throws = groupByTab(throwRows, "Living Room", budget);
-    return {
-      "Coffee Tables": walnut["Coffee Tables"] || [],
-      "Side Tables": oak["Side Tables"] || [],
-      Seating: walnut["Seating"] || [],
-      "Table Lamps": light["Table Lamps"] || [],
-      Throws: throws["Throws"] || [],
-    };
+    return fillRoomTabs(
+      {
+        "Coffee Tables": walnut["Coffee Tables"] || [],
+        "Side Tables": oak["Side Tables"] || [],
+        Seating: walnut["Seating"] || [],
+        "Table Lamps": light["Table Lamps"] || [],
+        Throws: throws["Throws"] || [],
+      },
+      room
+    );
   }
 
   if (isOak) {
@@ -390,16 +441,19 @@ export async function getEditCatalogFromDB(
     const walnut = groupByTab(walnutRows, "Living Room", budget);
     const light = groupByTab(lightRows, "Living Room", budget);
     const throws = groupByTab(throwRows, "Living Room", budget);
-    return {
-      "Coffee Tables": oak["Coffee Tables"] || [],
-      "Side Tables": walnut["Side Tables"] || [],
-      Seating: oak["Seating"] || [],
-      "Table Lamps": light["Table Lamps"] || [],
-      Throws: throws["Throws"] || [],
-    };
+    return fillRoomTabs(
+      {
+        "Coffee Tables": oak["Coffee Tables"] || [],
+        "Side Tables": walnut["Side Tables"] || [],
+        Seating: oak["Seating"] || [],
+        "Table Lamps": light["Table Lamps"] || [],
+        Throws: throws["Throws"] || [],
+      },
+      room
+    );
   }
 
-  return getMaterialProductsFromDB(material, room, budget);
+  return fillRoomTabs(await getMaterialProductsFromDB(material, room, budget), room);
 }
 
 // Powers the "Browse Edits" landing page: every active product across all

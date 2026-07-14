@@ -6,6 +6,7 @@ import { getEditCatalogFromDB } from "@/lib/catalogData";
 import { getRoomTabs, getPriorityCategory } from "@/lib/rooms";
 import BrowseProductCard from "./BrowseProductCard";
 import EmailListModal from "./EmailListModal";
+import EmptyTabNotify from "./EmptyTabNotify";
 
 type Props = {
   answers: Record<string, string>;
@@ -164,18 +165,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
               Loading curated picks…
             </div>
           ) : (products[activeTab] || []).length === 0 ? (
-            <div
-              style={{
-                gridColumn: "1/-1",
-                textAlign: "center",
-                padding: "3rem",
-                color: "var(--text-light)",
-                fontSize: "0.85rem",
-                fontStyle: "italic",
-              }}
-            >
-              More products coming soon.
-            </div>
+            <EmptyTabNotify label={`${matName} ${room} — ${activeTab}`} />
           ) : (
             (products[activeTab] || []).map((p, i) => <BrowseProductCard key={p.name + i} product={p} />)
           )}
