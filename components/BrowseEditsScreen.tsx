@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getBrowseProducts, type BrowseProduct } from "@/lib/catalogData";
 import BrowseProductCard from "./BrowseProductCard";
 import NotifyMeModal from "./NotifyMeModal";
+import SubscribeModal from "./SubscribeModal";
 
 type Props = {
   onBack: () => void;
@@ -71,6 +72,7 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
   );
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => searchParams.get("category"));
   const [notifyMaterial, setNotifyMaterial] = useState<string | null>(null);
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -225,6 +227,16 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
       </div>
 
       {notifyMaterial && <NotifyMeModal material={notifyMaterial} onClose={() => setNotifyMaterial(null)} />}
+
+      <div className="subscribe-corner">
+        <button className="btn-primary" onClick={() => setSubscribeOpen(true)}>
+          Join the Edit{" "}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+      {subscribeOpen && <SubscribeModal onClose={() => setSubscribeOpen(false)} />}
     </div>
   );
 }

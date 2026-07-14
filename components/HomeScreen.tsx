@@ -20,7 +20,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           </h1>
           <p className="hero-body">
             Tell us how you want your space to feel. We&apos;ll identify your material palette, curate the right
-            pieces, and connect you with finds that fit your aesthetic — and your budget.
+            pieces, and connect you with finds that fit your aesthetic and your budget.
           </p>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
             <button className="btn-primary" onClick={onStart}>

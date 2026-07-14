@@ -7,6 +7,7 @@ import { getRoomTabs, getPriorityCategory } from "@/lib/rooms";
 import BrowseProductCard from "./BrowseProductCard";
 import EmailListModal from "./EmailListModal";
 import EmptyTabNotify from "./EmptyTabNotify";
+import SubscribeModal from "./SubscribeModal";
 
 type Props = {
   answers: Record<string, string>;
@@ -71,6 +72,8 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
   // A tab switch starts that tab's grid back at its own first page rather
   // than wherever "Discover more" had scrolled the previous tab to.
   useEffect(() => setPageIndex(0), [activeTab]);
+
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
 
   const tabProducts = products[activeTab] || [];
   const visibleProducts = tabProducts.slice(0, (pageIndex + 1) * PREVIEW_COUNT);
@@ -212,7 +215,14 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
         <button className="btn-secondary" onClick={onRetakeQuiz}>
           Retake quiz
         </button>
+        <button className="btn-primary" onClick={() => setSubscribeOpen(true)} style={{ marginLeft: "auto" }}>
+          Join the Edit{" "}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
+      {subscribeOpen && <SubscribeModal onClose={() => setSubscribeOpen(false)} />}
     </div>
   );
 }
