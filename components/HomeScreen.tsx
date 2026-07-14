@@ -1,3 +1,5 @@
+import HomeBrowsePreview from "./HomeBrowsePreview";
+
 export default function HomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="screen active">
@@ -10,9 +12,9 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
       <div className="hero">
         <div className="hero-left">
           <h1 className="hero-title">
-            Your room,
+            Your space,
             <br />
-            <em>indexed</em>
+            <em>curated</em>
             <br />
             by material.
           </h1>
@@ -30,6 +32,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           </div>
         </div>
       </div>
+      <HomeBrowsePreview />
     </div>
   );
 }
