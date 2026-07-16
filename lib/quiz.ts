@@ -119,6 +119,35 @@ function getMaterialOptions(aesthetic?: string, room?: string): QuizOption[] {
   return keys.map((k) => MATERIAL_OPTIONS[k]);
 }
 
+// Quiet Luxury's positioning ("refined restraint, quality over quantity")
+// reads oddly next to "Under $200," and the real inventory in the default
+// top tier ("$1,000+") actually spans ~$1,050 to ~$8,700 — a wide enough
+// spread that lumping it into one option hides real price differentiation
+// for a shopper who's already signaled they want the high end. So Quiet
+// Luxury drops "Under $200" and splits "$1,000+" into two real tiers at the
+// $2,500 mark instead (4 Quiet-Luxury-tagged products sit under that line,
+// 5 sit above it — neither half is a dead end). Every other aesthetic (and
+// the pre-Question-02 default) keeps the original four tiers unchanged.
+// `filterByBudget` in catalogData.ts checks the real `price` column against
+// $2,500 for these two options specifically, since Supabase's `budget_tier`
+// column itself only ever has the coarse "$1,000+" value.
+const DEFAULT_BUDGET_OPTIONS: QuizOption[] = [
+  { title: "Under $200", desc: "Amazon finds that punch above their weight" },
+  { title: "$200 — $500", desc: "Mid-range with real material quality" },
+  { title: "$500 — $1,000", desc: "Investment pieces worth the price" },
+  { title: "$1,000+", desc: "Heirloom quality, no compromise" },
+];
+const QUIET_LUXURY_BUDGET_OPTIONS: QuizOption[] = [
+  { title: "$200 — $500", desc: "Mid-range with real material quality" },
+  { title: "$500 — $1,000", desc: "Investment pieces worth the price" },
+  { title: "$1,000 — $2,500", desc: "Heirloom quality, considered investment" },
+  { title: "$2,500+", desc: "No compromise, the piece the room is built around" },
+];
+
+function getBudgetOptions(aesthetic?: string): QuizOption[] {
+  return aesthetic === "Quiet Luxury" ? QUIET_LUXURY_BUDGET_OPTIONS : DEFAULT_BUDGET_OPTIONS;
+}
+
 // Room-aware, aesthetic-aware, and material-aware version of `questions`:
 // step 3 ("material palette") options change based on the aesthetic chosen
 // in step 2; once a material is picked, step 4 ("priority piece") is
@@ -126,9 +155,11 @@ function getMaterialOptions(aesthetic?: string, room?: string): QuizOption[] {
 // material combination (via `availablePriorityTitles` — a piece like "A
 // statement table" never gets offered for a material with zero coffee
 // tables at any price, e.g. Linen & Natural Textiles). Step 5 ("budget
-// range") always shows all four tiers. Passing `null`/`undefined` for
-// availablePriorityTitles (e.g. the answer it depends on isn't set yet, or
-// the lookup is still loading) leaves every priority option visible.
+// range") shows all four tiers for every aesthetic except Quiet Luxury,
+// which gets its own four via `getBudgetOptions` (see above). Passing
+// `null`/`undefined` for availablePriorityTitles (e.g. the answer it
+// depends on isn't set yet, or the lookup is still loading) leaves every
+// priority option visible.
 export function getQuestions(
   room?: string,
   aesthetic?: string,
@@ -136,6 +167,7 @@ export function getQuestions(
 ): QuizQuestion[] {
   return questions.map((q) => {
     if (q.id === "material") return { ...q, options: getMaterialOptions(aesthetic, room) };
+    if (q.id === "budget") return { ...q, options: getBudgetOptions(aesthetic) };
     if (q.id === "priority") {
       const options = getPriorityOptions(room || "Living Room");
       if (availablePriorityTitles) {

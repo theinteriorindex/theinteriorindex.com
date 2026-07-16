@@ -101,9 +101,18 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
 // When `budget` is "Under $200", drops any row not tagged that tier before
 // grouping — checked via `budget_tier` rather than raw `price` since most of
 // the catalog only has the curated tier, not an exact numeric price on file.
+//
+// Quiet Luxury's quiz (see getBudgetOptions in lib/quiz.ts) splits the
+// coarse "$1,000+" budget_tier into two real options, "$1,000 — $2,500" and
+// "$2,500+" — Supabase has no such tier value, so these two check the real
+// `price` column against the $2,500 line instead. Every $1,000+ product
+// has a real price on file today, so this never silently drops a row for
+// lacking one.
 function filterByBudget(rows: ViewRow[], budget?: string): ViewRow[] {
-  if (budget !== "Under $200") return rows;
-  return rows.filter((r) => r.budget_tier === "Under $200");
+  if (budget === "Under $200") return rows.filter((r) => r.budget_tier === "Under $200");
+  if (budget === "$1,000 — $2,500") return rows.filter((r) => r.budget_tier === "$1,000+" && r.price !== null && r.price < 2500);
+  if (budget === "$2,500+") return rows.filter((r) => r.budget_tier === "$1,000+" && r.price !== null && r.price >= 2500);
+  return rows;
 }
 
 function groupByTab(rows: ViewRow[], room: string, budget?: string): ProductGroup {
