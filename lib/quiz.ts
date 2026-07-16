@@ -43,20 +43,8 @@ export const questions: QuizQuestion[] = [
     ],
   },
   {
-    id: "budget",
-    num: "Question 04",
-    title: "What's your budget for the hero piece?",
-    sub: "We'll find options that deliver the look at the right price.",
-    options: [
-      { title: "Under $200", desc: "Amazon finds that punch above their weight" },
-      { title: "$200 — $500", desc: "Mid-range with real material quality" },
-      { title: "$500 — $1,000", desc: "Investment pieces worth the price" },
-      { title: "$1,000+", desc: "Heirloom quality, no compromise" },
-    ],
-  },
-  {
     id: "priority",
-    num: "Question 05",
+    num: "Question 04",
     title: "What's the one piece you need most?",
     sub: "We'll lead with this in your curated edit.",
     options: [
@@ -64,6 +52,18 @@ export const questions: QuizQuestion[] = [
       { title: "The perfect chair", desc: "Accent, dining, or reading — the character piece" },
       { title: "Lighting", desc: "Floor lamp, pendant, or sconce — the mood piece" },
       { title: "Soft furnishings", desc: "Bedding, throws, or cushions — the texture piece" },
+    ],
+  },
+  {
+    id: "budget",
+    num: "Question 05",
+    title: "What's your budget for the hero piece?",
+    sub: "We'll find options that deliver the look at the right price.",
+    options: [
+      { title: "Under $200", desc: "Amazon finds that punch above their weight" },
+      { title: "$200 — $500", desc: "Mid-range with real material quality" },
+      { title: "$500 — $1,000", desc: "Investment pieces worth the price" },
+      { title: "$1,000+", desc: "Heirloom quality, no compromise" },
     ],
   },
 ];
@@ -93,49 +93,59 @@ const DEFAULT_MATERIAL_KEYS: MaterialKey[] = ["walnut", "oak", "stone", "natural
 
 function getMaterialOptions(aesthetic?: string, room?: string): QuizOption[] {
   let keys = (aesthetic && MATERIALS_BY_AESTHETIC[aesthetic]) || DEFAULT_MATERIAL_KEYS;
-  // Home Office has zero Marble/Stone inventory (no Home Office product is
-  // tagged material=Stone) but real Walnut inventory (Desk, Storage) — swap
-  // Stone out for Walnut here specifically rather than offering a material
-  // that's guaranteed to lead to an empty results tab. Falls back to
-  // swapping in Metal on the aesthetics that already include Walnut
-  // alongside Stone (Wabi-Sabi, and the pre-Question-02 default), so the
-  // option count stays at 4 either way.
+  // Home Office has zero Marble/Stone inventory (its catalog fetch only
+  // branches Walnut vs. Oak — see getEditCatalogFromDB — so picking Stone
+  // silently falls through to Oak product data) but real Walnut inventory
+  // (Desk, Storage) — swap Stone out for Walnut here specifically rather
+  // than offering a material that's guaranteed to be a mislabeled duplicate
+  // of Oak. Falls back to swapping in Metal on the aesthetics that already
+  // include Walnut alongside Stone (Wabi-Sabi, and the pre-Question-02
+  // default), so the option count stays at 4 either way.
   if (room === "Home Office") {
     keys = keys.map((k) => (k === "stone" ? (keys.includes("walnut") ? "metal" : "walnut") : k));
+  }
+  // Bedroom's real inventory is Walnut and Oak only (per Supabase) — its
+  // catalog fetch, same as Home Office, only ever branches Walnut vs. Oak.
+  // Metal has zero Bedroom inventory too, so unlike Home Office it's never
+  // swapped in as a Stone replacement — both Stone and Metal collapse to
+  // Walnut here, then get deduped. That means Bedroom shows 3 options
+  // (Walnut, Oak, Natural) instead of 4, consistently across every
+  // aesthetic, rather than surfacing a material guaranteed to be a
+  // mislabeled duplicate of Oak.
+  if (room === "Bedroom") {
+    const mapped = keys.map((k) => (k === "stone" || k === "metal" ? "walnut" : k));
+    keys = Array.from(new Set(mapped)) as MaterialKey[];
   }
   return keys.map((k) => MATERIAL_OPTIONS[k]);
 }
 
-// Room-aware, aesthetic-aware, and budget-aware version of `questions`: step
-// 5 ("priority piece") options change based on which room was chosen in step
-// 1, step 3 ("material palette") options change based on the aesthetic
-// chosen in step 2, and — when the shopper picked "Under $200" in step 4 —
-// step 5 is further trimmed to only the pieces that actually have an
-// under-$200 product today (via `affordableCategories`, looked up from
-// Supabase by the caller). Passing `null`/`undefined` for
-// affordableCategories (e.g. budget isn't "Under $200", or the lookup is
-// still loading) leaves every room-appropriate option visible.
-export function getQuestions(room?: string, aesthetic?: string, affordableCategories?: Set<string> | null): QuizQuestion[] {
+// Room-aware, aesthetic-aware, and material-aware version of `questions`:
+// step 3 ("material palette") options change based on the aesthetic chosen
+// in step 2; once a material is picked, step 4 ("priority piece") is
+// smart-linked to only the pieces that have real inventory for that room +
+// material combination (via `availablePriorityTitles` — a piece like "A
+// statement table" never gets offered for a material with zero coffee
+// tables at any price, e.g. Linen & Natural Textiles). Step 5 ("budget
+// range") always shows all four tiers. Passing `null`/`undefined` for
+// availablePriorityTitles (e.g. the answer it depends on isn't set yet, or
+// the lookup is still loading) leaves every priority option visible.
+export function getQuestions(
+  room?: string,
+  aesthetic?: string,
+  availablePriorityTitles?: Set<string> | null
+): QuizQuestion[] {
   return questions.map((q) => {
+    if (q.id === "material") return { ...q, options: getMaterialOptions(aesthetic, room) };
     if (q.id === "priority") {
-      let options = getPriorityOptions(room || "Living Room");
-      if (affordableCategories) {
-        const affordableOnly = options.filter((o) =>
-          // "Lighting" is checked by title, not category: its `category`
-          // field (e.g. "Table Lamps" for Living Room, "Dining Tables" for
-          // Dining Room) is vestigial — picking Lighting always routes to
-          // the universal Light Edit regardless of room/category, the same
-          // way isLighting short-circuits everywhere else in the app.
-          o.title.toLowerCase().includes("lighting") ? affordableCategories.has("Lighting") : affordableCategories.has(o.category)
-        );
-        // Never leave the shopper with zero options to click — if the
-        // affordability check comes back empty, fall back to the full list
-        // rather than showing a dead end.
-        if (affordableOnly.length > 0) options = affordableOnly;
+      const options = getPriorityOptions(room || "Living Room");
+      if (availablePriorityTitles) {
+        const availableOnly = options.filter((o) => availablePriorityTitles.has(o.title));
+        // Never leave the shopper with zero options to click — if nothing
+        // matched, fall back to the full list rather than showing a dead end.
+        if (availableOnly.length > 0) return { ...q, options: availableOnly };
       }
       return { ...q, options };
     }
-    if (q.id === "material") return { ...q, options: getMaterialOptions(aesthetic, room) };
     return q;
   });
 }

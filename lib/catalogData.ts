@@ -1,6 +1,6 @@
 import { supabase } from "./supabaseClient";
 import type { Product, ProductGroup } from "./catalog";
-import { getRoomTabs } from "./rooms";
+import { getRoomTabs, getPriorityOptions } from "./rooms";
 
 // Reads the live catalog from Supabase (products + product_images, exposed
 // via the per-collection views: walnut_living_room, walnut_dining_room,
@@ -190,40 +190,88 @@ async function fetchTabletopEdit(): Promise<ViewRow[]> {
 
 const TABLETOP_CATEGORIES = ["Side Plate", "Dinner Plate", "Dessert Plate", "Napkin", "Tablecloth"];
 
-// Powers the "Under $200" filter on the priority-piece quiz question: tells
-// the quiz which of that room's priority options actually have an active
-// product under $200 today, so a budget-conscious user never lands on a
-// hero category (e.g. Lighting) that turns out to have nothing they can
-// afford. Mirrors the same tab-label/edit-routing rules the results page
-// itself uses (Lighting = the universal Light Edit; Tabletop = the
-// cross-material dining edit) so "affordable" always matches what they'd
-// actually see next.
-//
-// Checks `budget_tier` rather than the raw `price` column: most of the
-// catalog (everything sourced through the Amazon intake tab) has a curated
-// budget_tier but no numeric price on file, so filtering on price alone
-// under-counts what's actually affordable.
-export async function getAffordablePriorityCategories(room: string): Promise<Set<string>> {
-  const affordable = new Set<string>();
+// Resolves the quiz's material-question title down to the DB `material`
+// value actually used to fetch products, mirroring the branching in
+// getMaterialProductsFromDB/getEditCatalogFromDB below. Falls back to
+// "Walnut" for anything unrecognized, same as those functions' final
+// fallback.
+function resolveMaterialKey(material: string): string {
+  const m = material.toLowerCase();
+  if (m.includes("walnut")) return "Walnut";
+  if (m.includes("oak")) return "Oak";
+  if (m.includes("stone") || m.includes("marble")) return "Stone";
+  if (m.includes("linen") || m.includes("natural")) return "Natural Materials";
+  if (m.includes("metal")) return "Metal";
+  return "Walnut";
+}
 
-  const [lightRows, roomRows] = await Promise.all([
-    supabase.from("products").select("id").eq("category", "Lighting").eq("is_active", true).eq("budget_tier", "Under $200"),
-    supabase.from("products").select("category, name, budget_tier").eq("room", room).eq("is_active", true).eq("budget_tier", "Under $200"),
-  ]);
+// Tab categories that always render with something, regardless of which
+// material was chosen, because getEditCatalogFromDB unconditionally merges
+// them in from a universal or cross-material source rather than filtering
+// by the room+material combination: Living Room's Table Lamps and Throws,
+// Dining Room's Tabletop, and Bedroom's Lighting (falls back to the
+// universal Light Edit whenever no room-tagged product fills it). Home
+// Office's Lighting has no such fallback, so it's deliberately left out —
+// it can genuinely be empty for a given material.
+const ALWAYS_AVAILABLE_CATEGORIES: Record<string, string[]> = {
+  "Living Room": ["Table Lamps", "Throws"],
+  "Dining Room": ["Tabletop"],
+  Bedroom: ["Lighting"],
+  "Home Office": [],
+};
 
-  if (!lightRows.error && lightRows.data && lightRows.data.length > 0) affordable.add("Lighting");
+// Powers the "smart-linked" priority-piece quiz question: once a material
+// is chosen (step 3, right before priority piece at step 4), this tells the
+// quiz which priority pieces actually have real inventory for that room +
+// material combination, so the piece list never offers something like "A
+// statement table" (Coffee Tables) for a material that has zero coffee
+// tables at any price — that's a dead-end category, not just a dead-end
+// budget tier. Lighting and "The table setting" are always kept: both
+// override whatever material was picked and route to a universal/
+// cross-material edit (see getEditCatalogFromDB), so they're never a dead
+// end regardless of material.
+export async function getAvailablePriorityTitles(room: string, material: string): Promise<Set<string>> {
+  const options = getPriorityOptions(room);
+  const available = new Set<string>();
+  const alwaysAvailable = new Set(ALWAYS_AVAILABLE_CATEGORIES[room] || []);
 
-  if (!roomRows.error && roomRows.data) {
-    for (const row of roomRows.data as { category: string; name: string; budget_tier: string }[]) {
-      if (room === "Dining Room" && TABLETOP_CATEGORIES.includes(row.category)) {
-        affordable.add("Tabletop");
-        continue;
+  let materialKey = resolveMaterialKey(material);
+  if (room === "Bedroom" || room === "Home Office") {
+    materialKey = materialKey === "Walnut" ? "Walnut" : "Oak";
+  }
+
+  const presentCategories = new Set<string>();
+  const { data, error } = await supabase.from("products").select("category, name").eq("room", room).eq("material", materialKey).eq("is_active", true);
+  if (!error && data) {
+    for (const row of data as { category: string; name: string }[]) presentCategories.add(tabLabelFor(row, room));
+  }
+
+  // Living Room's Walnut/Oak paths swap in each other's Side Tables tab —
+  // check the complementary material for that one tab too.
+  if (room === "Living Room" && (materialKey === "Walnut" || materialKey === "Oak")) {
+    const complementKey = materialKey === "Walnut" ? "Oak" : "Walnut";
+    const { data: compData } = await supabase
+      .from("products")
+      .select("category, name")
+      .eq("room", room)
+      .eq("material", complementKey)
+      .eq("is_active", true);
+    if (compData) {
+      for (const row of compData as { category: string; name: string }[]) {
+        if (tabLabelFor(row, room) === "Side Tables") presentCategories.add("Side Tables");
       }
-      affordable.add(tabLabelFor(row, room));
     }
   }
 
-  return affordable;
+  for (const opt of options) {
+    const isLighting = opt.title.toLowerCase().includes("lighting");
+    const isTableSetting = opt.title.toLowerCase().includes("table setting");
+    if (isLighting || isTableSetting || alwaysAvailable.has(opt.category) || presentCategories.has(opt.category)) {
+      available.add(opt.title);
+    }
+  }
+
+  return available;
 }
 
 // Merges the Throws tab into a Living Room result set from any material

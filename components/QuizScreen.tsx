@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getQuestions } from "@/lib/quiz";
-import { getAffordablePriorityCategories } from "@/lib/catalogData";
+import { getAvailablePriorityTitles } from "@/lib/catalogData";
 
 type Props = {
   currentQuestion: number;
@@ -14,26 +14,28 @@ type Props = {
 };
 
 export default function QuizScreen({ currentQuestion, answers, onSelect, onBack, onJumpTo, onLogoClick }: Props) {
-  // Once a room and an "Under $200" budget are both picked, look up which
-  // priority-piece options actually have an under-$200 product today so
-  // step 5 never offers a category that turns out to be a dead end. Any
-  // other budget (or no budget yet) leaves every option visible.
-  const [affordableCategories, setAffordableCategories] = useState<Set<string> | null>(null);
+  // Once room and material are both picked, look up which priority pieces
+  // actually have real inventory (at any price) for that combination today,
+  // so step 4 (priority piece) never offers a category that's a dead end
+  // for the chosen material — e.g. "A statement table" for Linen & Natural
+  // Textiles, which has no coffee tables at all. Either answer missing (or
+  // the lookup still loading) leaves every priority option visible.
+  const [availablePriorityTitles, setAvailablePriorityTitles] = useState<Set<string> | null>(null);
   useEffect(() => {
-    if (answers.budget !== "Under $200" || !answers.room) {
-      setAffordableCategories(null);
+    if (!answers.room || !answers.material) {
+      setAvailablePriorityTitles(null);
       return;
     }
     let cancelled = false;
-    getAffordablePriorityCategories(answers.room).then((set) => {
-      if (!cancelled) setAffordableCategories(set);
+    getAvailablePriorityTitles(answers.room, answers.material).then((set) => {
+      if (!cancelled) setAvailablePriorityTitles(set);
     });
     return () => {
       cancelled = true;
     };
-  }, [answers.room, answers.budget]);
+  }, [answers.room, answers.material]);
 
-  const questions = getQuestions(answers.room, answers.aesthetic, affordableCategories);
+  const questions = getQuestions(answers.room, answers.aesthetic, availablePriorityTitles);
   const q = questions[currentQuestion];
   const total = questions.length;
   const progress = (currentQuestion / total) * 100;
@@ -72,7 +74,7 @@ export default function QuizScreen({ currentQuestion, answers, onSelect, onBack,
                 <div className="quiz-step-num">{i + 1}</div>
                 <div>
                   <div className="quiz-step-label">
-                    {["Room focus", "Aesthetic direction", "Material palette", "Budget range", "Priority piece"][i]}
+                    {["Room focus", "Aesthetic direction", "Material palette", "Priority piece", "Budget range"][i]}
                   </div>
                   <div className="quiz-step-answer">{answers[step.id] || ""}</div>
                 </div>
