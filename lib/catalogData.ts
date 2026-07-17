@@ -98,6 +98,16 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
   }
 }
 
+// Browse Our Edit spans every room in one tab bar, unlike the room-scoped
+// quiz results pages — so a room-specific tab like Bedroom's "Bench" reads as
+// a stray orphan tab there instead of a meaningful category. Fold it into
+// "Seating" for Browse Our Edit only; tabLabelFor()'s Bedroom branch (and the
+// Bedroom results page that depends on it) is untouched.
+function browseTabLabelFor(row: { category: string; name: string }, room: string): string {
+  const label = tabLabelFor(row, room);
+  return label === "Bench" ? "Seating" : label;
+}
+
 // When `budget` is "Under $200", drops any row not tagged that tier before
 // grouping — checked via `budget_tier` rather than raw `price` since most of
 // the catalog only has the curated tier, not an exact numeric price on file.
@@ -565,7 +575,7 @@ async function fetchBrowseRows(): Promise<(BrowseRow & { images: string[]; label
   const withImages = rows.map((p) => ({
     ...p,
     images: imagesByProduct.get(p.id) || [],
-    label: tabLabelFor(p, p.room || "Living Room"),
+    label: browseTabLabelFor(p, p.room || "Living Room"),
   }));
 
   // Some products (e.g. a chair that fits both the Living Room and Dining
