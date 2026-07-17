@@ -127,7 +127,19 @@ function filterByBudget(rows: ViewRow[], budget?: string): ViewRow[] {
 
 function groupByTab(rows: ViewRow[], room: string, budget?: string): ProductGroup {
   const groups: ProductGroup = {};
+  // Some products (e.g. Eternity Modern's dual-aesthetic rows) intentionally
+  // have more than one Supabase row for the same physical item — one per
+  // aesthetic value — so it can surface under more than one aesthetic edit.
+  // But `aesthetic` is never actually filtered on here (it's display-only,
+  // see ResultsScreen), so within a single room+material result those rows
+  // are indistinguishable and render as literal duplicate cards. Dedupe by
+  // name + affiliate link, same key Browse Our Edit already uses, so only
+  // one card per physical product shows per tab.
+  const seen = new Set<string>();
   for (const row of filterByBudget(rows, budget)) {
+    const key = `${row.name.trim().toLowerCase()}|${row.affiliate_url || ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     const tab = tabLabelFor(row, room);
     if (!groups[tab]) groups[tab] = [];
     groups[tab].push(toProduct(row));
