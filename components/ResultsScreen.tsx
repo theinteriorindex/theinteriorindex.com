@@ -50,7 +50,10 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
   const isLighting = priority.toLowerCase().includes("lighting");
   const isTableSetting = priority.toLowerCase().includes("table setting");
   const isDiningRoom = room === "Dining Room";
-  const matName = material.split(" ")[0];
+  // Every other material reads fine as just its first word ("Walnut",
+  // "Oak", "Marble") but "Natural Fibers" needs both words kept together,
+  // so it's special-cased rather than truncated to just "Natural".
+  const matName = material.startsWith("Natural Fibers") ? "Natural Fibers" : material.split(" ")[0];
 
   const orderedTabs = useMemo(() => {
     const tabs = Object.keys(products);
@@ -126,7 +129,6 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
           </div>
           <div className="material-tags">
             <span className="material-tag">{material.split(" ")[0]}</span>
-            <span className="material-tag">Linen</span>
             <span className="material-tag">Ceramic</span>
           </div>
         </div>

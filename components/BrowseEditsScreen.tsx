@@ -14,11 +14,10 @@ type Props = {
 
 const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "Ceramic"];
 
-// Same paging pattern as HomeBrowsePreview: PREVIEW_COUNT per page,
-// "Discover more" fades the current batch out and the next one in — a
-// replace, not an accumulate — across every filter state, All included.
+// "Discover more" accumulates: each click appends the next PREVIEW_COUNT
+// items below what's already shown, same pattern as ResultsScreen's product
+// grid, rather than replacing the current batch.
 const PREVIEW_COUNT = 8;
-const FADE_MS = 280;
 // Fixed display order for category tags — anything not listed falls back to
 // alphabetical, appended after these. Throws is pinned last explicitly
 // (rather than relying on it alphabetizing there) so it always reads as a
@@ -80,7 +79,6 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
   const [notifyMaterial, setNotifyMaterial] = useState<string | null>(null);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
-  const [fading, setFading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,16 +163,11 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     syncUrl(null, null);
   }
 
-  const visible = filtered.slice(pageIndex * PREVIEW_COUNT, pageIndex * PREVIEW_COUNT + PREVIEW_COUNT);
+  const visible = filtered.slice(0, (pageIndex + 1) * PREVIEW_COUNT);
   const hasMore = filtered.length > (pageIndex + 1) * PREVIEW_COUNT;
 
   function handleDiscoverMore() {
-    if (fading) return;
-    setFading(true);
-    setTimeout(() => {
-      setPageIndex((p) => p + 1);
-      setFading(false);
-    }, FADE_MS);
+    setPageIndex((p) => p + 1);
   }
 
   return (
@@ -237,10 +230,7 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
           </div>
         ) : (
           <>
-            <div
-              className="browse-product-grid"
-              style={{ opacity: fading ? 0 : 1, transition: `opacity ${FADE_MS}ms ease` }}
-            >
+            <div className="browse-product-grid">
               {visible.map((p, i) => (
                 <BrowseProductCard key={p.name + i} product={p} />
               ))}
@@ -248,7 +238,7 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
 
             {hasMore && (
               <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
-                <button className="btn-secondary" onClick={handleDiscoverMore} disabled={fading}>
+                <button className="btn-secondary" onClick={handleDiscoverMore}>
                   Discover more
                 </button>
               </div>

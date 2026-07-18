@@ -17,8 +17,8 @@ export default function QuizScreen({ currentQuestion, answers, onSelect, onBack,
   // Once room and material are both picked, look up which priority pieces
   // actually have real inventory (at any price) for that combination today,
   // so step 4 (priority piece) never offers a category that's a dead end
-  // for the chosen material — e.g. "A statement table" for Linen & Natural
-  // Textiles, which has no coffee tables at all. Either answer missing (or
+  // for the chosen material — e.g. "A statement table" for Natural Fibers,
+  // which has no coffee tables at all. Either answer missing (or
   // the lookup still loading) leaves every priority option visible.
   const [availablePriorityTitles, setAvailablePriorityTitles] = useState<Set<string> | null>(null);
   useEffect(() => {

@@ -39,7 +39,7 @@ export const questions: QuizQuestion[] = [
       { title: "Walnut & Dark Wood", desc: "Warm, rich, sculptural" },
       { title: "Oak & Light Wood", desc: "Airy, Scandinavian, versatile" },
       { title: "Marble & Stone", desc: "Cool, refined, timeless" },
-      { title: "Linen & Natural Textiles", desc: "Soft, tactile, calming" },
+      { title: "Natural Fibers", desc: "Soft, tactile, calming" },
     ],
   },
   {
@@ -75,7 +75,7 @@ const MATERIAL_OPTIONS = {
   walnut: { title: "Walnut & Dark Wood", desc: "Warm, rich, sculptural" },
   oak: { title: "Oak & Light Wood", desc: "Airy, Scandinavian, versatile" },
   stone: { title: "Marble & Stone", desc: "Cool, refined, timeless" },
-  natural: { title: "Linen & Natural Textiles", desc: "Soft, tactile, calming" },
+  natural: { title: "Natural Fibers", desc: "Soft, tactile, calming" },
   metal: { title: "Metal & Sculptural Forms", desc: "Cool, tactile, sculptural accents" },
 } satisfies Record<string, QuizOption>;
 type MaterialKey = keyof typeof MATERIAL_OPTIONS;
@@ -154,7 +154,7 @@ function getBudgetOptions(aesthetic?: string): QuizOption[] {
 // smart-linked to only the pieces that have real inventory for that room +
 // material combination (via `availablePriorityTitles` — a piece like "A
 // statement table" never gets offered for a material with zero coffee
-// tables at any price, e.g. Linen & Natural Textiles). Step 5 ("budget
+// tables at any price, e.g. Natural Fibers). Step 5 ("budget
 // range") shows all four tiers for every aesthetic except Quiet Luxury,
 // which gets its own four via `getBudgetOptions` (see above). Passing
 // `null`/`undefined` for availablePriorityTitles (e.g. the answer it
