@@ -128,8 +128,18 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
             Build outward from this foundation.
           </div>
           <div className="material-tags">
-            <span className="material-tag">{material.split(" ")[0]}</span>
-            <span className="material-tag">Ceramic</span>
+            {material.startsWith("Natural Fibers") ? (
+              <>
+                <span className="material-tag">Rattan</span>
+                <span className="material-tag">Cane</span>
+                <span className="material-tag">Ceramic</span>
+              </>
+            ) : (
+              <>
+                <span className="material-tag">{material.split(" ")[0]}</span>
+                <span className="material-tag">Ceramic</span>
+              </>
+            )}
           </div>
         </div>
         <div className="result-card">
