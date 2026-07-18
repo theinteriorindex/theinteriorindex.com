@@ -75,6 +75,12 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
   const isDining = room === "Dining Room";
   switch (row.category) {
     case "Coffee Table":
+    case "Console Table":
+    case "Credenza":
+      // Console tables and credenzas fold into the same "Coffee Tables" tab
+      // — it's also what the "A statement table" priority piece leads to
+      // (see PRIORITY_OPTIONS in lib/rooms.ts), so all three read as one
+      // "anchor table" category rather than three thin, separate tabs.
       return "Coffee Tables";
     case "Side Tables":
     case "Side Table":
