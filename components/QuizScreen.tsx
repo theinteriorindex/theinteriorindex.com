@@ -42,7 +42,7 @@ export default function QuizScreen({ currentQuestion, answers, onSelect, onBack,
 
   return (
     <div className="screen active">
-      <header className="site-header">
+      <header className="site-header site-header--quiz">
         <button className="logo" onClick={onLogoClick}>
           The Interior <span>Index</span>
         </button>

@@ -12,6 +12,43 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .screen { display: none; min-height: 100vh; }
 .screen.active { display: flex; flex-direction: column; }
 .site-header { padding: 2rem 3rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--linen); }
+/* Quiz-only variant: a quarter smaller than the standard site-header (2rem
+   vertical padding -> 1.5rem), so stepping into the quiz reads as the
+   header actually shrinking to make room for the question, not just a
+   couple of small text elements nudging into place (a subtler,
+   content-only version of this was tried and felt like barely anything —
+   too small to register). Logo stays at its normal size — shrinking it
+   too read as jarring on its own, an oddly small logo in an otherwise
+   normal-looking header — so only the header's padding (and the back
+   button's, in step with it) animates down to the compact size.
+   Deliberately no transform anywhere in this animation, on the header or
+   its children: a transform is a paint-only effect that doesn't move
+   where the browser thinks the box actually is, so an earlier version
+   that combined animated padding with a transform had the header
+   visually paint below its own laid-out box for part of the animation —
+   right where the sidebar begins — which read as the line dipping down
+   and crossing the sidebar. Animating padding alone keeps the header's
+   real box (and the sidebar/quiz-main reflowing below it) in sync on
+   every frame, so the whole header shrinks and the line only ever moves
+   up. The animation starts at 1.75rem, not the home page's full 2rem —
+   starting from an exact match to the home header's height read as "the
+   line starts too low" (identical to home's line), even though it does
+   shrink from there; starting already a bit more compact keeps the
+   motion visible without the first frame looking like it's just sitting
+   at the home page's level. */
+@keyframes quizHeaderSettle {
+  from { padding-top: 1.75rem; padding-bottom: 1.75rem; opacity: 0.6; }
+  to { padding-top: 1.5rem; padding-bottom: 1.5rem; opacity: 1; }
+}
+.site-header--quiz {
+  padding: 1.5rem 3rem;
+  animation: quizHeaderSettle 1.1s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+@keyframes quizBackButtonSettle {
+  from { padding: 0.6rem 1.25rem; }
+  to { padding: 0.4rem 1rem; }
+}
+.site-header--quiz .btn-secondary { animation: quizBackButtonSettle 1.1s cubic-bezier(0.33, 1, 0.68, 1) both; }
 .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); background: none; border: none; padding: 0; cursor: pointer; }
 .logo span { font-style: italic; color: var(--terracotta); }
 .nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); font-weight: 300; }
@@ -45,6 +82,16 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .quiz-sidebar { background: var(--cream); padding: 3rem 2rem; border-right: 1px solid var(--linen); display: flex; flex-direction: column; gap: 0.5rem; }
 .quiz-sidebar-title { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); margin-bottom: 1.5rem; font-weight: 400; }
 .quiz-step-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; opacity: 0.4; transition: opacity 0.3s, transform 0.15s; }
+/* Only the first sidebar step (Room focus — the one that's "active" on
+   the quiz's first mount, since nothing is "done" yet) fades up; steps
+   2-5 just appear at their normal dimmed opacity with no entrance
+   animation. The sidebar title is the first child, so "Room focus" is
+   nth-child(2) — that's the only selector this animation is scoped to. */
+@keyframes quizStepFadeUpActive {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.quiz-step-item:nth-child(2) { animation: quizStepFadeUpActive 0.5s ease backwards; }
 .quiz-step-item.active { opacity: 1; }
 .quiz-step-item.done { opacity: 0.7; cursor: pointer; }
 .quiz-step-item.done:hover { opacity: 1; transform: translateX(2px); }
@@ -59,8 +106,34 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .quiz-q-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--bark); margin-bottom: 0.75rem; line-height: 1.2; }
 .quiz-q-sub { font-size: 0.85rem; color: var(--text-light); margin-bottom: 2.5rem; font-weight: 300; }
 .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 3rem; }
+/* Answer cards fade up on mount instead of popping in whole. Each option
+   button unmounts/remounts on every question change (mapped by
+   key={opt.title}, a different set of titles per question), so this
+   replays each time you move to a new question, not just on first load —
+   the four cards for "Which room" fade in staggered, then the four for
+   the next question do the same. Each card's own fade takes half a
+   second, and the delays are spaced a full 0.5s apart (not overlapping),
+   so they read as a clean 1-2-3-4 sequence in DOM/reading order (Living
+   Room, Dining Room, Bedroom, Home Office) rather than four cards
+   nearly-simultaneously drifting up. Cards land with a cream background
+   and a quiet cream/warm-white border — kept deliberately subtle/close
+   to the background at rest so hover (clay, thicker) is the only clear
+   accent moment; only opacity/position/background animate here now,
+   border color stays constant — linen, the same divider tone used for
+   the sidebar's border-right and the header's border-bottom — through
+   the whole animation, only opacity/position/background move. */
+@keyframes quizOptionFadeUp {
+  0% { opacity: 0; transform: translateY(10px); background: var(--warm-white); }
+  50% { opacity: 0.35; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); background: var(--cream); }
+}
+.quiz-option { animation: quizOptionFadeUp 0.5s ease-in both; }
+.quiz-option:nth-child(1) { animation-delay: 0s; }
+.quiz-option:nth-child(2) { animation-delay: 0.5s; }
+.quiz-option:nth-child(3) { animation-delay: 1s; }
+.quiz-option:nth-child(4) { animation-delay: 1.5s; }
 .quiz-option { border: 1px solid var(--linen); padding: 1.25rem 1.5rem; cursor: pointer; transition: all 0.2s; background: var(--warm-white); text-align: left; }
-.quiz-option:hover { border-color: var(--clay); background: var(--cream); }
+.quiz-option:hover { border-color: var(--walnut); background: var(--cream); }
 .quiz-option.selected { border-color: var(--terracotta); background: var(--cream); }
 .quiz-option-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--bark); display: block; margin-bottom: 0.25rem; font-weight: 400; }
 .quiz-option-desc { font-size: 0.72rem; color: var(--text-light); line-height: 1.5; font-weight: 300; }
