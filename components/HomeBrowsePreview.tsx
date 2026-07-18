@@ -42,6 +42,42 @@ function categoryRank(category: string): number {
   return i === -1 ? CATEGORY_ORDER.length : i;
 }
 
+// Same synonym map as BrowseEditsScreen — see the comment there for why
+// this exists and why it targets the display *label* (tabLabelFor()'s
+// output, e.g. "Table Lamps"/"Throws") rather than the raw Supabase
+// category column.
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  sofa: ["seating"],
+  couch: ["seating"],
+  sectional: ["seating"],
+  loveseat: ["seating"],
+  armchair: ["seating"],
+  ottoman: ["seating"],
+  pouf: ["seating"],
+  stool: ["seating"],
+  recliner: ["seating"],
+  sconce: ["table lamps", "pendants"],
+  chandelier: ["table lamps", "pendants"],
+  nightstand: ["side table", "side tables"],
+  vase: ["decor"],
+  bowl: ["decor"],
+  pillow: ["throws"],
+  cushion: ["throws"],
+  blanket: ["throws"],
+  cabinet: ["storage"],
+  shelf: ["storage"],
+  shelving: ["storage"],
+};
+
+function matchesSearchSynonym(category: string, q: string): boolean {
+  if (!q) return false;
+  const cat = category.toLowerCase();
+  for (const [keyword, categories] of Object.entries(SEARCH_SYNONYMS)) {
+    if ((keyword.includes(q) || q.includes(keyword)) && categories.includes(cat)) return true;
+  }
+  return false;
+}
+
 // Homepage preview of the full Browse Our Edit page (components/BrowseEditsScreen.tsx)
 // — same data source, same card, same grid styling, same material tag row,
 // so it reads as a continuation of that page rather than a different
@@ -59,6 +95,7 @@ export default function HomeBrowsePreview() {
   const [products, setProducts] = useState<BrowseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
   const [fading, setFading] = useState(false);
 
@@ -75,23 +112,35 @@ export default function HomeBrowsePreview() {
     };
   }, []);
 
-  const filtered = useMemo(
-    () =>
-      products
-        .filter((p) => !selectedMaterial || p.material === selectedMaterial)
-        .sort((a, b) => {
-          const ai = categoryRank(a.category);
-          const bi = categoryRank(b.category);
-          return ai === bi ? a.name.localeCompare(b.name) : ai - bi;
-        }),
-    [products, selectedMaterial]
-  );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return products
+      .filter(
+        (p) =>
+          (!selectedMaterial || p.material === selectedMaterial) &&
+          (!q ||
+            p.name.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            p.material.toLowerCase().includes(q) ||
+            matchesSearchSynonym(p.category, q))
+      )
+      .sort((a, b) => {
+        const ai = categoryRank(a.category);
+        const bi = categoryRank(b.category);
+        return ai === bi ? a.name.localeCompare(b.name) : ai - bi;
+      });
+  }, [products, selectedMaterial, search]);
 
   const visible = filtered.slice(pageIndex * PREVIEW_COUNT, pageIndex * PREVIEW_COUNT + PREVIEW_COUNT);
   const hasMore = filtered.length > (pageIndex + 1) * PREVIEW_COUNT;
 
   function selectMaterial(m: string | null) {
     setSelectedMaterial(m);
+    setPageIndex(0);
+  }
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
     setPageIndex(0);
   }
 
@@ -110,30 +159,70 @@ export default function HomeBrowsePreview() {
     <div className="products-section" style={{ borderTop: "1px solid var(--linen)" }}>
       <div className="products-title">Browse Our Edit</div>
 
-      <div className="browse-tags">
-        <button
-          className={`browse-tag ${!selectedMaterial ? "active" : ""}`}
-          onClick={() => selectMaterial(null)}
-        >
-          All
-        </button>
-        {ALL_MATERIALS.map((m) => (
+      <div className="browse-toolbar">
+        <div className="browse-tags" style={{ margin: 0 }}>
           <button
-            key={m}
-            className={`browse-tag ${selectedMaterial === m ? "active" : ""}`}
-            onClick={() => selectMaterial(selectedMaterial === m ? null : m)}
+            className={`browse-tag ${!selectedMaterial ? "active" : ""}`}
+            onClick={() => selectMaterial(null)}
           >
-            {m}
+            All
           </button>
-        ))}
+          {ALL_MATERIALS.map((m) => (
+            <button
+              key={m}
+              className={`browse-tag ${selectedMaterial === m ? "active" : ""}`}
+              onClick={() => selectMaterial(selectedMaterial === m ? null : m)}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+
+        <div className="browse-search">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            aria-label="Search Browse Our Edit"
+          />
+          {search && (
+            <button className="browse-search-clear" onClick={() => handleSearchChange("")} aria-label="Clear search">
+              ×
+            </button>
+          )}
+          <svg className="browse-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+        </div>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-light)", fontStyle: "italic" }}>
+        <div
+          style={{
+            textAlign: "center",
+            minHeight: "40vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-light)",
+            fontStyle: "italic",
+          }}
+        >
           Loading edits…
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-light)", fontStyle: "italic" }}>
+        <div
+          style={{
+            textAlign: "center",
+            minHeight: "40vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-light)",
+            fontStyle: "italic",
+          }}
+        >
           No pieces match that combination yet.
         </div>
       ) : (

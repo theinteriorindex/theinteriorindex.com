@@ -51,6 +51,46 @@ function categoryRank(category: string): number {
   return i === -1 ? CATEGORY_ORDER.length : i;
 }
 
+// The search bar matches product name/category/material directly, but real
+// searches often use a word the catalog itself never uses (nobody searches
+// "Seating" — they search "sofa" or "couch"). `category` here is actually
+// the same display *label* the tab bar and tag filters use (tabLabelFor()'s
+// output, e.g. "Dining Chairs", "Table Lamps", "Throws" — not the raw
+// Supabase `category` column), so these synonyms target that label text.
+// Checked as a substring both ways so partial typing ("sof") still resolves
+// to the full keyword ("sofa").
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  sofa: ["seating"],
+  couch: ["seating"],
+  sectional: ["seating"],
+  loveseat: ["seating"],
+  armchair: ["seating"],
+  ottoman: ["seating"],
+  pouf: ["seating"],
+  stool: ["seating"],
+  recliner: ["seating"],
+  sconce: ["table lamps", "pendants"],
+  chandelier: ["table lamps", "pendants"],
+  nightstand: ["side table", "side tables"],
+  vase: ["decor"],
+  bowl: ["decor"],
+  pillow: ["throws"],
+  cushion: ["throws"],
+  blanket: ["throws"],
+  cabinet: ["storage"],
+  shelf: ["storage"],
+  shelving: ["storage"],
+};
+
+function matchesSearchSynonym(category: string, q: string): boolean {
+  if (!q) return false;
+  const cat = category.toLowerCase();
+  for (const [keyword, categories] of Object.entries(SEARCH_SYNONYMS)) {
+    if ((keyword.includes(q) || q.includes(keyword)) && categories.includes(cat)) return true;
+  }
+  return false;
+}
+
 // Matches a `?material=` URL value back to one of ALL_MATERIALS, tolerating
 // case and dash/underscore-for-space variants (e.g. "natural-materials",
 // "OAK") so a hand-typed or Pinterest-shortened link still resolves.
@@ -79,6 +119,7 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
   const [notifyMaterial, setNotifyMaterial] = useState<string | null>(null);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -124,16 +165,24 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
   // isn't stable/predictable and throws could land anywhere in the mix
   // instead of clustering at the bottom.
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return products
       .filter(
-        (p) => (!selectedMaterial || p.material === selectedMaterial) && (!selectedCategory || p.category === selectedCategory)
+        (p) =>
+          (!selectedMaterial || p.material === selectedMaterial) &&
+          (!selectedCategory || p.category === selectedCategory) &&
+          (!q ||
+            p.name.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            p.material.toLowerCase().includes(q) ||
+            matchesSearchSynonym(p.category, q))
       )
       .sort((a, b) => {
         const ai = categoryRank(a.category);
         const bi = categoryRank(b.category);
         return ai === bi ? a.name.localeCompare(b.name) : ai - bi;
       });
-  }, [products, selectedMaterial, selectedCategory]);
+  }, [products, selectedMaterial, selectedCategory, search]);
 
   function handleMaterialClick(m: string) {
     if (!materialsWithProducts.has(m)) {
@@ -154,6 +203,11 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     setSelectedCategory(next);
     setPageIndex(0);
     syncUrl(selectedMaterial, next);
+  }
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPageIndex(0);
   }
 
   function clearFilters() {
@@ -184,24 +238,44 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
       <div className="products-section" style={{ borderTop: "none" }}>
         <div className="products-title">Browse Our Edit</div>
 
-        <div className={`browse-tags ${selectedMaterial ? "browse-tags-primary" : ""}`}>
-          <button
-            className={`browse-tag ${!selectedMaterial && !selectedCategory ? "active" : ""}`}
-            onClick={clearFilters}
-          >
-            All
-          </button>
-          {ALL_MATERIALS.map((m) => (
+        <div className="browse-toolbar">
+          <div className={`browse-tags ${selectedMaterial ? "browse-tags-primary" : ""}`} style={{ margin: 0 }}>
             <button
-              key={m}
-              className={`browse-tag ${selectedMaterial === m ? "active" : ""} ${
-                !materialsWithProducts.has(m) ? "browse-tag-notify" : ""
-              }`}
-              onClick={() => handleMaterialClick(m)}
+              className={`browse-tag ${!selectedMaterial && !selectedCategory ? "active" : ""}`}
+              onClick={clearFilters}
             >
-              {m}
+              All
             </button>
-          ))}
+            {ALL_MATERIALS.map((m) => (
+              <button
+                key={m}
+                className={`browse-tag ${selectedMaterial === m ? "active" : ""} ${
+                  !materialsWithProducts.has(m) ? "browse-tag-notify" : ""
+                }`}
+                onClick={() => handleMaterialClick(m)}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
+          <div className="browse-search">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              aria-label="Search Browse Our Edit"
+            />
+            {search && (
+              <button className="browse-search-clear" onClick={() => handleSearchChange("")} aria-label="Clear search">
+                ×
+              </button>
+            )}
+            <svg className="browse-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+          </div>
         </div>
 
         {/* Category is a secondary step — it only appears once a material
@@ -221,11 +295,31 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
         )}
 
         {loading ? (
-          <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-light)", fontStyle: "italic" }}>
+          <div
+            style={{
+              textAlign: "center",
+              minHeight: "80vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--text-light)",
+              fontStyle: "italic",
+            }}
+          >
             Loading edits…
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-light)", fontStyle: "italic" }}>
+          <div
+            style={{
+              textAlign: "center",
+              minHeight: "80vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--text-light)",
+              fontStyle: "italic",
+            }}
+          >
             No pieces match that combination yet.
           </div>
         ) : (
