@@ -60,9 +60,16 @@ function HomeInner() {
   }, []);
 
   function startQuiz() {
+    // "Begin the Style Quiz" is the fresh-start entry point — always clears
+    // any prior answers still sitting in state (e.g. from an earlier run
+    // this session) so question 1 never opens with a stale option
+    // pre-selected. Contrast with the seeded-retake flow above (triggered
+    // by query params from /results' "Retake quiz" link), which
+    // intentionally pre-fills answers — that path never calls startQuiz().
+    setAnswers({});
     setCurrentQuestion(0);
     setScreen("quiz");
-    pushHistory({ screen: "quiz", currentQuestion: 0, answers });
+    pushHistory({ screen: "quiz", currentQuestion: 0, answers: {} });
   }
 
   function selectOption(id: string, value: string) {

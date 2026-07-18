@@ -11,9 +11,9 @@ type Props = {
 
 type Status = "idle" | "sending" | "sent" | "error";
 
-// Auto-opens once per browser session when the results page lands with a
-// populated edit, offering to email the curated list (first/hero tab plus
-// every other tab, same order as the on-page tabs) via /api/send-list.
+// Auto-opens every time the results page lands with a populated edit,
+// offering to email the curated list (first/hero tab plus every other tab,
+// same order as the on-page tabs) via /api/send-list.
 export default function EmailListModal({ editLabel, orderedTabs, products }: Props) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -22,8 +22,6 @@ export default function EmailListModal({ editLabel, orderedTabs, products }: Pro
 
   useEffect(() => {
     if (typeof window === "undefined" || orderedTabs.length === 0) return;
-    if (sessionStorage.getItem("tii_email_prompt_shown")) return;
-    sessionStorage.setItem("tii_email_prompt_shown", "1");
     const t = setTimeout(() => setOpen(true), 1200);
     return () => clearTimeout(t);
   }, [orderedTabs.length]);
@@ -50,8 +48,6 @@ export default function EmailListModal({ editLabel, orderedTabs, products }: Pro
 
   if (!open) return null;
 
-  const restTabs = orderedTabs.slice(1);
-
   return (
     <div className="email-modal-overlay" onClick={() => setOpen(false)}>
       <div className="email-modal" onClick={(e) => e.stopPropagation()}>
@@ -69,11 +65,8 @@ export default function EmailListModal({ editLabel, orderedTabs, products }: Pro
         ) : (
           <>
             <div className="email-modal-eyebrow">Save this edit</div>
-            <div className="email-modal-title">Get your curated list by email</div>
-            <div className="email-modal-body">
-              We&rsquo;ll send your {editLabel} — {orderedTabs[0]}
-              {restTabs.length > 0 ? ` to start, plus ${restTabs.join(", ")}` : ""} — so you can shop it later.
-            </div>
+            <div className="email-modal-title">Get your curated list</div>
+            <div className="email-modal-body">We&rsquo;ll send {editLabel} to your inbox.</div>
             <form className="email-modal-form" onSubmit={handleSubmit}>
               <input
                 type="email"

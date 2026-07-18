@@ -86,7 +86,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
     setPageIndex((p) => p + 1);
   }
 
-  const editLabel = isLighting ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${matName} ${room} Edit`;
+  const editLabel = isLighting ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${room} Edit`;
 
   let subCopy = "Curated finds based on your material profile.";
   if (isLighting) subCopy = "Table lamps and pendants — the mood pieces that finish a room.";

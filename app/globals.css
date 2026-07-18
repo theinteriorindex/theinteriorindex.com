@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { overflow-x: hidden; }
 :root {
   --cream: #F5F0E8; --warm-white: #FAF7F2; --sand: #E8DFD0;
   --clay: #C4A882; --terracotta: #A0714F; --walnut: #5C3D2E;
@@ -52,7 +53,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); background: none; border: none; padding: 0; cursor: pointer; }
 .logo span { font-style: italic; color: var(--terracotta); }
 .nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); font-weight: 300; }
-.hero { flex: 1; display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); background: var(--warm-white); }
+.hero { flex: 1; display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); background: var(--warm-white); overflow: hidden; }
 .hero-left { padding: 4rem 2rem; display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 560px; width: 100%; position: relative; }
 .hero-left::after { content: ''; position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, var(--clay) 0%, transparent 70%); opacity: 0.08; border-radius: 50%; pointer-events: none; }
 .hero-eyebrow { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 1.5rem; font-weight: 400; }
@@ -123,17 +124,25 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
    the sidebar's border-right and the header's border-bottom — through
    the whole animation, only opacity/position/background move. */
 @keyframes quizOptionFadeUp {
-  0% { opacity: 0; transform: translateY(10px); background: var(--warm-white); }
+  0% { opacity: 0; transform: translateY(10px); }
   50% { opacity: 0.35; transform: translateY(4px); }
-  100% { opacity: 1; transform: translateY(0); background: var(--cream); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 .quiz-option { animation: quizOptionFadeUp 0.3s ease-in both; }
 .quiz-option:nth-child(1) { animation-delay: 0s; }
 .quiz-option:nth-child(2) { animation-delay: 0.08s; }
 .quiz-option:nth-child(3) { animation-delay: 0.16s; }
 .quiz-option:nth-child(4) { animation-delay: 0.24s; }
-.quiz-option { border: 1px solid var(--linen); padding: 1.25rem 1.5rem; cursor: pointer; transition: all 0.2s; background: var(--warm-white); text-align: left; }
-.quiz-option:hover { border-color: var(--walnut); background: var(--cream); }
+.quiz-option { border: 1px solid var(--linen); padding: 1.25rem 1.5rem; cursor: pointer; transition: all 0.2s; background: var(--cream); text-align: left; }
+/* Scoped to real hover-capable pointers (mouse/trackpad) only — on touch
+   devices, tapping an option would otherwise leave this hover style stuck
+   on screen until the next tap elsewhere (iOS Safari's sticky-hover
+   behavior), which reads as a phantom pre-selected answer and, worse,
+   carries the touch position over into whatever option sits in the same
+   screen spot on the next question. */
+@media (hover: hover) and (pointer: fine) {
+  .quiz-option:hover { border-color: var(--walnut); background: var(--cream); }
+}
 .quiz-option.selected { border-color: var(--terracotta); background: var(--cream); }
 .quiz-option-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--bark); display: block; margin-bottom: 0.25rem; font-weight: 400; }
 .quiz-option-desc { font-size: 0.72rem; color: var(--text-light); line-height: 1.5; font-weight: 300; }
@@ -272,10 +281,22 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .hero { padding: 2rem 1.5rem; }
   .quiz-container { grid-template-columns: 1fr; } .quiz-sidebar { display: none; }
   .quiz-main { padding: 2rem; } .quiz-options { grid-template-columns: 1fr; }
-  .results-cards { grid-template-columns: 1fr; padding: 2rem; }
+  .results-header { padding: 2rem 1.5rem; }
+  .results-title { font-size: 1.9rem; }
+  .results-eyebrow { margin-bottom: 0.6rem; }
+  .results-cards { grid-template-columns: 1fr; padding: 1.25rem; gap: 0.6rem; }
+  .result-card { padding: 0.85rem; }
+  .result-card-label { margin-bottom: 0.35rem; }
+  .result-card-title { font-size: 1.1rem; margin-bottom: 0.3rem; }
+  .result-card-body { font-size: 0.72rem; line-height: 1.4; }
+  .material-tags { margin-top: 0.5rem; gap: 0.35rem; }
+  .material-tag { padding: 0.15rem 0.5rem; font-size: 0.58rem; }
   .product-grid { grid-template-columns: 1fr 1fr; }
-  .products-section { padding: 2rem; }
+  .products-section { padding: 1.5rem; }
   .chat-container { grid-template-columns: 1fr; } .chat-sidebar { display: none; }
-  .site-header { padding: 1.5rem; } .hero-left { padding: 3rem 2rem; }
-  .results-actions { padding: 2rem; flex-direction: column; }
+  .site-header { padding: 1.5rem; flex-direction: column; align-items: center; text-align: center; gap: 0.35rem; }
+  .nav-tag { font-size: 0.55rem; letter-spacing: 0.1em; }
+  .hero-left { padding: 3rem 2rem; }
+  .results-actions { padding: 2rem; flex-direction: column; align-items: stretch; }
+  .results-actions .btn-primary { margin-left: 0 !important; justify-content: center; }
 }
