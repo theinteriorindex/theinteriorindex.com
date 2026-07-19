@@ -46,7 +46,14 @@ export default function QuizScreen({ currentQuestion, answers, onSelect, onBack,
         <button className="logo" onClick={onLogoClick}>
           The Interior <span>Index</span>
         </button>
-        <button className="btn-secondary" onClick={onBack} style={{ fontSize: "0.65rem" }}>
+        {/* Mobile-only: browser back already steps back through the quiz
+            (see the pushHistory/popstate wiring in app/page.tsx), so on
+            small screens we swap the in-app Back button for the same
+            tagline the home page header shows, instead of stacking a
+            "← BACK" box under the logo. Hidden on desktop, where the real
+            Back button (below) still renders. */}
+        <div className="nav-tag quiz-nav-tag-mobile">A material-based design concierge</div>
+        <button className="btn-secondary quiz-back-btn" onClick={onBack} style={{ fontSize: "0.65rem" }}>
           ← Back
         </button>
       </header>

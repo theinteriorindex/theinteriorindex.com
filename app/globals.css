@@ -53,6 +53,9 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); background: none; border: none; padding: 0; cursor: pointer; }
 .logo span { font-style: italic; color: var(--terracotta); }
 .nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); font-weight: 300; }
+/* Desktop keeps the quiz header's real Back button; this tagline only
+   takes its place below 768px (see the mobile block further down). */
+.quiz-nav-tag-mobile { display: none; }
 .hero { flex: 1; display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); background: var(--warm-white); overflow: hidden; }
 .hero-left { padding: 4rem 2rem; display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 560px; width: 100%; position: relative; }
 .hero-left::after { content: ''; position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, var(--clay) 0%, transparent 70%); opacity: 0.08; border-radius: 50%; pointer-events: none; }
@@ -296,6 +299,8 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .chat-container { grid-template-columns: 1fr; } .chat-sidebar { display: none; }
   .site-header { padding: 1.5rem; flex-direction: column; align-items: center; text-align: center; gap: 0.35rem; }
   .nav-tag { font-size: 0.55rem; letter-spacing: 0.1em; }
+  .quiz-back-btn { display: none; }
+  .quiz-nav-tag-mobile { display: block; }
   .hero-left { padding: 3rem 2rem; }
   .results-actions { padding: 2rem; flex-direction: column; align-items: stretch; }
   .results-actions .btn-primary { margin-left: 0 !important; justify-content: center; }
