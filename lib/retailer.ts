@@ -17,6 +17,7 @@ const RETAILER_HOSTS: Record<string, string> = {
   "hulalahome.prf.hn": "HuLaLa Home",
   "noguchi.org": "Noguchi",
   "coyuchi.com": "Coyuchi",
+  "1stdibs.com": "1stDibs",
 };
 
 export function extractHostname(link: string): string | null {
