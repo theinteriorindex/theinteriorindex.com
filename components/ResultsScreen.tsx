@@ -57,7 +57,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
 
   const orderedTabs = useMemo(() => {
     const tabs = Object.keys(products);
-    if (isLighting) return ["Table Lamps", "Pendants"].filter((t) => products[t]);
+    if (isLighting) return ["Lamps", "Pendants"].filter((t) => products[t]);
     if (isTableSetting) return ["Tabletop"].filter((t) => products[t]);
 
     const roomOrder = getRoomTabs(room);
@@ -89,7 +89,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
   const editLabel = isLighting ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${room} Edit`;
 
   let subCopy = "Curated finds based on your material profile.";
-  if (isLighting) subCopy = "Table lamps and pendants — the mood pieces that finish a room.";
+  if (isLighting) subCopy = "Lamps and pendants — the mood pieces that finish a room.";
   else if (isTableSetting) subCopy = "Plates, napkins, and the finishing touches for the dining table.";
   else if (isDiningRoom) subCopy = "Chairs and tables curated for your dining room.";
   else if (room === "Bedroom") subCopy = "Bedframes, benches, and nightstands curated for a quiet, considered bedroom.";

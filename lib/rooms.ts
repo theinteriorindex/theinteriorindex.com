@@ -8,7 +8,7 @@ export type RoomOption = { title: string; desc: string; category: string };
 // Display-tab order per room. The first tab a user's priority piece maps to
 // becomes the "hero" tab; the rest keep this relative order.
 export const ROOM_TABS: Record<string, string[]> = {
-  "Living Room": ["Coffee Tables", "Seating", "Side Tables", "Table Lamps", "Throws"],
+  "Living Room": ["Coffee Tables", "Seating", "Side Tables", "Lamps", "Throws"],
   "Dining Room": ["Dining Tables", "Dining Chairs", "Tabletop"],
   Bedroom: ["Bedframe", "Bench", "Side Tables", "Lighting"],
   "Home Office": ["Desk", "Seating", "Storage", "Lighting"],
@@ -21,7 +21,7 @@ export const PRIORITY_OPTIONS: Record<string, RoomOption[]> = {
   "Living Room": [
     { title: "A statement table", desc: "Coffee or side — the anchor piece", category: "Coffee Tables" },
     { title: "The perfect chair", desc: "Accent or reading — the character piece", category: "Seating" },
-    { title: "Lighting", desc: "Floor lamp, pendant, or sconce — the mood piece", category: "Table Lamps" },
+    { title: "Lighting", desc: "Floor lamp, pendant, or sconce — the mood piece", category: "Lamps" },
     { title: "Soft furnishings", desc: "Throws, cushions — the texture piece", category: "Throws" },
   ],
   "Dining Room": [

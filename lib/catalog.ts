@@ -91,7 +91,7 @@ export const catalog: Record<string, ProductGroup> = {
     ],
   },
   light: {
-    "Table Lamps": [
+    "Lamps": [
       { name: "Mushroom Lamp", link: "https://amzn.to/4oRZKTM", images: ["https://lh3.googleusercontent.com/d/1kN8Jmg_ayRcnGv7fxLydx4C6W0ZkL_nG", "https://lh3.googleusercontent.com/d/1betVRQKHa3_05d8TC805b-yhj-wQ9WPS", "https://lh3.googleusercontent.com/d/171-2QeOvc5QGQ9OehW3jNA9ZaD0B8Z_K"] },
       { name: "Oak Base Table Lamp", link: "https://amzn.to/4y0xwuk", images: ["https://lh3.googleusercontent.com/d/1hkLmbOZhhY0Z3DD5VqSU6_jivrYqtX6Y", "https://lh3.googleusercontent.com/d/16UZpgeLycuBegTtI-bSJEFsh9rCvVluT"] },
       { name: "Cassie Natural 20-in Table Lamp", link: "https://amzn.to/4v82wWl", images: ["https://lh3.googleusercontent.com/d/1Up_xlxmXoHbK2zfA7aTOHMzXGHh9vLbl", "https://lh3.googleusercontent.com/d/1w7ItB74B6X7djC1eq6nnNbqKh37XhNUu"] },
@@ -134,7 +134,7 @@ export function getEditCatalog(material: string, room: string, priority: string)
       "Coffee Tables": catalog.walnut["Coffee Tables"],
       "Side Tables": catalog.oak["Side Tables"],
       Seating: catalog.walnut["Seating"],
-      "Table Lamps": catalog.light["Table Lamps"],
+      "Lamps": catalog.light["Lamps"],
     };
 
   if (isOak)
@@ -142,7 +142,7 @@ export function getEditCatalog(material: string, room: string, priority: string)
       "Coffee Tables": catalog.oak["Coffee Tables"],
       "Side Tables": catalog.walnut["Side Tables"],
       Seating: catalog.oak["Seating"],
-      "Table Lamps": catalog.light["Table Lamps"],
+      "Lamps": catalog.light["Lamps"],
     };
 
   return getMaterialProducts(material, room);

@@ -10,10 +10,11 @@ import BrowseProductCard from "./BrowseProductCard";
 const PREVIEW_COUNT = 8;
 
 // Same material list/order as BrowseEditsScreen — kept as its own constant
-// here rather than shared, since this preview intentionally skips the
-// category sub-filter and the not-yet-live "notify me" modal that the full
-// /browse page has.
-const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "Ceramic"];
+// here rather than shared, since this preview still intentionally skips the
+// not-yet-live "notify me" modal and URL sync that the full /browse page
+// has. It does now mirror BrowseEditsScreen's category sub-filter (see
+// categoryTags below), so material + category filtering matches exactly.
+const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Metal", "Ceramic", "Lighting"];
 
 // Same fixed category order as BrowseEditsScreen, so the preview grid
 // clusters products in the identical sequence as the full /browse page
@@ -30,7 +31,7 @@ const CATEGORY_ORDER = [
   "Bench",
   "Desk",
   "Storage",
-  "Table Lamps",
+  "Lamps",
   "Pendants",
   "Lighting",
   "Decor",
@@ -44,7 +45,7 @@ function categoryRank(category: string): number {
 
 // Same synonym map as BrowseEditsScreen — see the comment there for why
 // this exists and why it targets the display *label* (tabLabelFor()'s
-// output, e.g. "Table Lamps"/"Throws") rather than the raw Supabase
+// output, e.g. "Lamps"/"Throws") rather than the raw Supabase
 // category column.
 const SEARCH_SYNONYMS: Record<string, string[]> = {
   sofa: ["seating"],
@@ -56,8 +57,8 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   pouf: ["seating"],
   stool: ["seating"],
   recliner: ["seating"],
-  sconce: ["table lamps", "pendants"],
-  chandelier: ["table lamps", "pendants"],
+  sconce: ["lamps", "pendants"],
+  chandelier: ["lamps", "pendants"],
   nightstand: ["side table", "side tables"],
   vase: ["decor"],
   bowl: ["decor"],
@@ -95,6 +96,7 @@ export default function HomeBrowsePreview() {
   const [products, setProducts] = useState<BrowseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
   const [fading, setFading] = useState(false);
@@ -112,12 +114,26 @@ export default function HomeBrowsePreview() {
     };
   }, []);
 
+  // Category is a *secondary* filter that only makes sense once a material
+  // is chosen — scoped to that material's own products, same as
+  // BrowseEditsScreen's categoryTags.
+  const categoryTags = useMemo(() => {
+    if (!selectedMaterial) return [];
+    const present = Array.from(new Set(products.filter((p) => p.material === selectedMaterial).map((p) => p.category)));
+    return present.sort((a, b) => {
+      const ai = categoryRank(a);
+      const bi = categoryRank(b);
+      return ai === bi ? a.localeCompare(b) : ai - bi;
+    });
+  }, [products, selectedMaterial]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return products
       .filter(
         (p) =>
           (!selectedMaterial || p.material === selectedMaterial) &&
+          (!selectedCategory || p.category === selectedCategory) &&
           (!q ||
             p.name.toLowerCase().includes(q) ||
             p.category.toLowerCase().includes(q) ||
@@ -129,13 +145,19 @@ export default function HomeBrowsePreview() {
         const bi = categoryRank(b.category);
         return ai === bi ? a.name.localeCompare(b.name) : ai - bi;
       });
-  }, [products, selectedMaterial, search]);
+  }, [products, selectedMaterial, selectedCategory, search]);
 
   const visible = filtered.slice(pageIndex * PREVIEW_COUNT, pageIndex * PREVIEW_COUNT + PREVIEW_COUNT);
   const hasMore = filtered.length > (pageIndex + 1) * PREVIEW_COUNT;
 
   function selectMaterial(m: string | null) {
     setSelectedMaterial(m);
+    setSelectedCategory(null);
+    setPageIndex(0);
+  }
+
+  function selectCategory(c: string) {
+    setSelectedCategory((prev) => (prev === c ? null : c));
     setPageIndex(0);
   }
 
@@ -196,6 +218,20 @@ export default function HomeBrowsePreview() {
           </svg>
         </div>
       </div>
+
+      {selectedMaterial && categoryTags.length > 0 && (
+        <div className="browse-tags browse-tags-secondary">
+          {categoryTags.map((c) => (
+            <button
+              key={c}
+              className={`browse-tag ${selectedCategory === c ? "active" : ""}`}
+              onClick={() => selectCategory(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div

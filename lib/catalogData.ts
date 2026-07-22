@@ -64,7 +64,7 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
   }
   if (room === "Home Office") {
     // Office keeps a single "Lighting" tab (task lighting) rather than
-    // splitting into Table Lamps/Pendants like Living/Dining Room do.
+    // splitting into Lamps/Pendants like Living/Dining Room do.
     const cat = row.category.trim().toLowerCase();
     if (cat === "desk") return "Desk";
     if (cat === "seating") return "Seating";
@@ -97,7 +97,7 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
       return "Throws";
     case "Lighting": {
       const n = row.name.toLowerCase();
-      return n.includes("pendant") || n.includes("ceiling") ? "Pendants" : "Table Lamps";
+      return n.includes("pendant") || n.includes("ceiling") ? "Pendants" : "Lamps";
     }
     default:
       return row.category;
@@ -190,14 +190,14 @@ async function fetchRoomMaterialRows(room: string, materialKey: string): Promise
 
 // Powers "The table setting" priority-piece pick: a curated dining-tabletop
 // edit (plates, napkins, tablecloths) that spans two materials (Ceramic +
-// Natural Materials) rather than living under a single material bucket, so
+// Natural Fibers) rather than living under a single material bucket, so
 // it's fetched directly instead of through fetchRoomMaterialRows.
 async function fetchTabletopEdit(): Promise<ViewRow[]> {
   const { data: products, error } = await supabase
     .from("products")
     .select("id, name, category, price, budget_tier, description, affiliate_url, sort_order, is_active")
     .eq("room", "Dining Room")
-    .in("material", ["Ceramic", "Natural Materials"])
+    .in("material", ["Ceramic", "Natural Fibers"])
     .in("category", ["Side Plate", "Dinner Plate", "Dessert Plate", "Napkin", "Tablecloth"])
     .eq("is_active", true)
     .order("sort_order");
@@ -237,7 +237,7 @@ function resolveMaterialKey(material: string): string {
   if (m.includes("walnut")) return "Walnut";
   if (m.includes("oak")) return "Oak";
   if (m.includes("stone") || m.includes("marble")) return "Stone";
-  if (m.includes("linen") || m.includes("natural")) return "Natural Materials";
+  if (m.includes("linen") || m.includes("natural")) return "Natural Fibers";
   if (m.includes("metal")) return "Metal";
   return "Walnut";
 }
@@ -245,13 +245,13 @@ function resolveMaterialKey(material: string): string {
 // Tab categories that always render with something, regardless of which
 // material was chosen, because getEditCatalogFromDB unconditionally merges
 // them in from a universal or cross-material source rather than filtering
-// by the room+material combination: Living Room's Table Lamps and Throws,
+// by the room+material combination: Living Room's Lamps and Throws,
 // Dining Room's Tabletop, and Bedroom's Lighting (falls back to the
 // universal Light Edit whenever no room-tagged product fills it). Home
 // Office's Lighting has no such fallback, so it's deliberately left out —
 // it can genuinely be empty for a given material.
 const ALWAYS_AVAILABLE_CATEGORIES: Record<string, string[]> = {
-  "Living Room": ["Table Lamps", "Throws"],
+  "Living Room": ["Lamps", "Throws"],
   "Dining Room": ["Tabletop"],
   Bedroom: ["Lighting"],
   "Home Office": [],
@@ -324,13 +324,13 @@ async function withThrows(base: ProductGroup, room: string, budget?: string): Pr
 
 // Marble/Stone has real Dining Tables but no real dining chairs of its own
 // yet. Rather than leave the "Dining Chairs" tab empty, Liz's call was to
-// curate a mix of real chairs pulled from Natural Materials, Oak, and
+// curate a mix of real chairs pulled from Natural Fibers, Oak, and
 // Walnut's Dining Room seating — same spirit as the Throws merge below, just
 // pulling from three materials instead of one. Stone/Marble-specific; remove
 // once real marble/stone dining chairs are sourced.
 async function withStoneDiningChairs(base: ProductGroup, budget?: string): Promise<ProductGroup> {
   const [naturalRows, oakRows, walnutRows] = await Promise.all([
-    fetchRoomMaterialRows("Dining Room", "Natural Materials"),
+    fetchRoomMaterialRows("Dining Room", "Natural Fibers"),
     fetchRoomMaterialRows("Dining Room", "Oak"),
     fetchRoomMaterialRows("Dining Room", "Walnut"),
   ]);
@@ -341,16 +341,16 @@ async function withStoneDiningChairs(base: ProductGroup, budget?: string): Promi
   return { ...base, "Dining Chairs": grouped["Dining Chairs"] || [] };
 }
 
-// Merges the Table Lamps tab into a Living Room result for any material path
-// that doesn't already have one. Walnut and Oak already get Table Lamps via
-// their own cross-material mix below; this covers Stone, Natural Materials,
-// and Metal, which previously had no Table Lamps data at all — the tab
+// Merges the Lamps tab into a Living Room result for any material path
+// that doesn't already have one. Walnut and Oak already get Lamps via
+// their own cross-material mix below; this covers Stone, Natural Fibers,
+// and Metal, which previously had no Lamps data at all — the tab
 // didn't just come up empty, it silently disappeared from the results page
 // entirely since Living Room's tab bar only shows tabs with a data key.
-async function withTableLamps(base: ProductGroup, room: string, budget?: string): Promise<ProductGroup> {
-  if (room !== "Living Room" || base["Table Lamps"]) return base;
+async function withLamps(base: ProductGroup, room: string, budget?: string): Promise<ProductGroup> {
+  if (room !== "Living Room" || base["Lamps"]) return base;
   const grouped = groupByTab(await fetchView("the_light_edit"), "Living Room", budget);
-  return { ...base, "Table Lamps": grouped["Table Lamps"] || [] };
+  return { ...base, "Lamps": grouped["Lamps"] || [] };
 }
 
 // Merges the Tabletop tab (plates, napkins, tablecloths) into every Dining
@@ -401,19 +401,19 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
       return withStoneDiningChairs(grouped, budget);
     }
     const grouped = await withThrows(groupByTab(await fetchView("stone_living_room"), "Living Room", budget), "Living Room", budget);
-    return withTableLamps(grouped, "Living Room", budget);
+    return withLamps(grouped, "Living Room", budget);
   }
   if (material.toLowerCase().includes("linen") || material.toLowerCase().includes("natural")) {
     if (isDining) {
-      // Real Dining Room Natural Materials products exist (e.g. dining
+      // Real Dining Room Natural Fibers products exist (e.g. dining
       // seating) — use them directly instead of forcing Living Room.
-      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Natural Materials"), "Dining Room", budget);
+      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Natural Fibers"), "Dining Room", budget);
     }
-    // Natural Materials Living Room already includes the Throw-category rows
+    // Natural Fibers Living Room already includes the Throw-category rows
     // directly (same underlying view), so no separate Throws merge needed —
-    // still needs Table Lamps merged in, though.
+    // still needs Lamps merged in, though.
     const grouped = groupByTab(await fetchView("natural_materials_living_room"), "Living Room", budget);
-    return withTableLamps(grouped, "Living Room", budget);
+    return withLamps(grouped, "Living Room", budget);
   }
   if (material.toLowerCase().includes("metal")) {
     if (isDining) {
@@ -426,13 +426,13 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
       "Living Room",
       budget
     );
-    return withTableLamps(grouped, "Living Room", budget);
+    return withLamps(grouped, "Living Room", budget);
   }
   // Ceramic is intentionally not handled here — it's a decor-only category
   // reachable from Browse Our Edit, not one of the quiz's material options,
   // so getMaterialProductsFromDB should never be called with it.
   const grouped = await withThrows(groupByTab(await fetchView("walnut_living_room"), "Living Room", budget), "Living Room", budget);
-  return withTableLamps(grouped, "Living Room", budget);
+  return withLamps(grouped, "Living Room", budget);
 }
 
 export async function getEditCatalogFromDB(
@@ -450,16 +450,25 @@ export async function getEditCatalogFromDB(
 
   if (isLighting) {
     // The Light Edit is a room-agnostic universal lighting collection —
-    // always split into Table Lamps / Pendants regardless of chosen room.
+    // always split into Lamps / Pendants regardless of chosen room.
     // Still merge in Throws when the actual room is Living Room, so picking
     // "Lighting" as the priority piece doesn't drop the supporting edit.
     const grouped = groupByTab(await fetchView("the_light_edit"), "Living Room", budget);
-    return withThrows(grouped, room, budget);
+    const withLighting = await withThrows(grouped, room, budget);
+    // Both tabs always show, even if the current budget filter happens to
+    // leave one of them empty (e.g. neither pendant is tagged "Under
+    // $200") — same reasoning as fillRoomTabs below: a tab disappearing
+    // outright reads as "this edit has no pendants" rather than "none at
+    // this budget," and EmptyTabNotify already renders a graceful
+    // coming-soon state for the zero-results case.
+    if (!withLighting["Lamps"]) withLighting["Lamps"] = [];
+    if (!withLighting["Pendants"]) withLighting["Pendants"] = [];
+    return withLighting;
   }
 
   if (isTableSetting) {
     // Same pattern as Lighting above: the table-setting pieces (plates,
-    // napkins, tablecloths) span Ceramic and Natural Materials, so this
+    // napkins, tablecloths) span Ceramic and Natural Fibers, so this
     // priority overrides whatever material was chosen and pulls the whole
     // dining tabletop edit into one "Tabletop" tab instead of splitting it
     // by category.
@@ -508,7 +517,7 @@ export async function getEditCatalogFromDB(
         "Coffee Tables": walnut["Coffee Tables"] || [],
         "Side Tables": oak["Side Tables"] || [],
         Seating: walnut["Seating"] || [],
-        "Table Lamps": light["Table Lamps"] || [],
+        "Lamps": light["Lamps"] || [],
         Throws: throws["Throws"] || [],
       },
       room
@@ -531,7 +540,7 @@ export async function getEditCatalogFromDB(
         "Coffee Tables": oak["Coffee Tables"] || [],
         "Side Tables": walnut["Side Tables"] || [],
         Seating: oak["Seating"] || [],
-        "Table Lamps": light["Table Lamps"] || [],
+        "Lamps": light["Lamps"] || [],
         Throws: throws["Throws"] || [],
       },
       room
@@ -548,7 +557,7 @@ export async function getEditCatalogFromDB(
 export type BrowseCatalog = Record<string, ProductGroup>;
 export type BrowseProduct = Product & { material: string; category: string };
 
-const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "Ceramic"];
+const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Metal", "Ceramic"];
 
 type BrowseRow = {
   id: string;
@@ -561,19 +570,39 @@ type BrowseRow = {
 };
 
 async function fetchBrowseRows(): Promise<(BrowseRow & { images: string[]; label: string })[]> {
-  const { data: products, error } = await supabase
-    .from("products")
-    .select("id, name, material, room, category, affiliate_url, sort_order")
-    .eq("is_active", true)
-    .in("material", BROWSE_MATERIALS)
-    .order("sort_order");
+  // Lighting products are room/material-agnostic in Supabase (their
+  // `material` column is null — see the_light_edit view/ALWAYS_AVAILABLE_
+  // CATEGORIES), so they'd never match the `.in("material", BROWSE_
+  // MATERIALS)` filter below. Fetch them separately by category instead,
+  // and stamp a synthetic "Lighting" material label onto them so Browse Our
+  // Edit can show Lighting as its own tag (with Lamps/Pendants sub-tags via
+  // the existing browseTabLabelFor Lighting branch) alongside the real
+  // per-material tags.
+  const [materialsRes, lightingRes] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id, name, material, room, category, affiliate_url, sort_order")
+      .eq("is_active", true)
+      .in("material", BROWSE_MATERIALS)
+      .order("sort_order"),
+    supabase
+      .from("products")
+      .select("id, name, material, room, category, affiliate_url, sort_order")
+      .eq("is_active", true)
+      .eq("category", "Lighting")
+      .order("sort_order"),
+  ]);
 
-  if (error || !products || products.length === 0) {
-    if (error) console.error("Error fetching browse catalog:", error.message);
-    return [];
-  }
+  if (materialsRes.error) console.error("Error fetching browse catalog:", materialsRes.error.message);
+  if (lightingRes.error) console.error("Error fetching browse lighting rows:", lightingRes.error.message);
 
-  const rows = products as BrowseRow[];
+  const rows: BrowseRow[] = [
+    ...(((materialsRes.data as BrowseRow[]) || [])),
+    ...(((lightingRes.data as BrowseRow[]) || [])).map((r) => ({ ...r, material: "Lighting" })),
+  ];
+
+  if (rows.length === 0) return [];
+
   const ids = rows.map((p) => p.id);
   const { data: images, error: imgError } = await supabase
     .from("product_images")

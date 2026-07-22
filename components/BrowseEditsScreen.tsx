@@ -12,7 +12,7 @@ type Props = {
   onHome: () => void;
 };
 
-const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Materials", "Metal", "Ceramic"];
+const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Metal", "Ceramic", "Lighting"];
 
 // "Discover more" accumulates: each click appends the next PREVIEW_COUNT
 // items below what's already shown, same pattern as ResultsScreen's product
@@ -35,7 +35,7 @@ const CATEGORY_ORDER = [
   "Bench",
   "Desk",
   "Storage",
-  "Table Lamps",
+  "Lamps",
   "Pendants",
   "Lighting",
   "Decor",
@@ -43,7 +43,7 @@ const CATEGORY_ORDER = [
 ];
 
 // Shared rank used to both order the category tag list and to sort the
-// product grid itself, so a filtered view (e.g. Natural Materials) always
+// product grid itself, so a filtered view (e.g. Natural Fibers) always
 // clusters its products by category in this same fixed order — Throws last
 // — instead of showing them in whatever order Supabase happened to return.
 function categoryRank(category: string): number {
@@ -55,7 +55,7 @@ function categoryRank(category: string): number {
 // searches often use a word the catalog itself never uses (nobody searches
 // "Seating" — they search "sofa" or "couch"). `category` here is actually
 // the same display *label* the tab bar and tag filters use (tabLabelFor()'s
-// output, e.g. "Dining Chairs", "Table Lamps", "Throws" — not the raw
+// output, e.g. "Dining Chairs", "Lamps", "Throws" — not the raw
 // Supabase `category` column), so these synonyms target that label text.
 // Checked as a substring both ways so partial typing ("sof") still resolves
 // to the full keyword ("sofa").
@@ -69,8 +69,8 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   pouf: ["seating"],
   stool: ["seating"],
   recliner: ["seating"],
-  sconce: ["table lamps", "pendants"],
-  chandelier: ["table lamps", "pendants"],
+  sconce: ["lamps", "pendants"],
+  chandelier: ["lamps", "pendants"],
   nightstand: ["side table", "side tables"],
   vase: ["decor"],
   bowl: ["decor"],
@@ -92,7 +92,7 @@ function matchesSearchSynonym(category: string, q: string): boolean {
 }
 
 // Matches a `?material=` URL value back to one of ALL_MATERIALS, tolerating
-// case and dash/underscore-for-space variants (e.g. "natural-materials",
+// case and dash/underscore-for-space variants (e.g. "natural-fibers",
 // "OAK") so a hand-typed or Pinterest-shortened link still resolves.
 function matchMaterialParam(raw: string | null): string | null {
   if (!raw) return null;
