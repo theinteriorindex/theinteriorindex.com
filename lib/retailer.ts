@@ -18,6 +18,8 @@ const RETAILER_HOSTS: Record<string, string> = {
   "noguchi.org": "Noguchi",
   "coyuchi.com": "Coyuchi",
   "1stdibs.com": "1stDibs",
+  "ralphlauren.com": "Ralph Lauren",
+  "chiarastellacattana.com": "Chiara Stella Cattana",
 };
 
 export function extractHostname(link: string): string | null {
