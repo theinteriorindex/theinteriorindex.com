@@ -3,7 +3,6 @@
 import { useState } from "react";
 import HomeBrowsePreview from "./HomeBrowsePreview";
 import SubscribeModal from "./SubscribeModal";
-import Footer from "./Footer";
 
 export default function HomeScreen({ onStart }: { onStart: () => void }) {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
@@ -56,7 +55,6 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
         </button>
       </div>
       {subscribeOpen && <SubscribeModal onClose={() => setSubscribeOpen(false)} />}
-      <Footer />
     </div>
   );
 }
