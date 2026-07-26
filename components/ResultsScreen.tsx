@@ -8,6 +8,7 @@ import BrowseProductCard from "./BrowseProductCard";
 import EmailListModal from "./EmailListModal";
 import EmptyTabNotify from "./EmptyTabNotify";
 import SubscribeModal from "./SubscribeModal";
+import Footer from "./Footer";
 
 type Props = {
   answers: Record<string, string>;
@@ -235,6 +236,7 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
         </button>
       </div>
       {subscribeOpen && <SubscribeModal onClose={() => setSubscribeOpen(false)} />}
+      <Footer />
     </div>
   );
 }

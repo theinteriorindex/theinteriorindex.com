@@ -305,3 +305,20 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .results-actions { padding: 2rem; flex-direction: column; align-items: stretch; }
   .results-actions .btn-primary { margin-left: 0 !important; justify-content: center; }
 }
+
+/* ============ Site footer ============ */
+/* Deep-walnut band that bookends the page, shown on the content surfaces
+   (home / results / browse) — not the quiz/chat flow. Links spread edge-to-
+   edge across the full width; copyright tucks bottom-right. */
+.site-footer { position: relative; overflow: hidden; background: var(--bark); color: var(--cream); padding: 2rem 3.5rem 1.6rem; }
+.site-footer::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 0%, rgba(160,113,79,0.26) 0%, transparent 62%), radial-gradient(ellipse at 50% 120%, rgba(92,61,46,0.5) 0%, transparent 60%); }
+.site-footer > * { position: relative; z-index: 1; }
+.site-footer-links { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem 2rem; width: 100%; }
+.site-footer-links a { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,240,232,0.72); text-decoration: none; font-weight: 400; transition: color 0.3s ease; }
+.site-footer-links a:hover { color: var(--clay); }
+.site-footer-rule { height: 1px; width: 100%; margin: 2.5rem 0 1.5rem; background: rgba(245,240,232,0.14); }
+.site-footer-copy { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,240,232,0.38); font-weight: 300; text-align: center; margin-top: 1.35rem; }
+@media (max-width: 640px) {
+  .site-footer { padding: 2.75rem 1.5rem 2rem; }
+  .site-footer-links { justify-content: center; gap: 1rem 1.75rem; }
+}

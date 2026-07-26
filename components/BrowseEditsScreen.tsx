@@ -6,6 +6,7 @@ import { getBrowseProducts, type BrowseProduct } from "@/lib/catalogData";
 import BrowseProductCard from "./BrowseProductCard";
 import NotifyMeModal from "./NotifyMeModal";
 import SubscribeModal from "./SubscribeModal";
+import Footer from "./Footer";
 
 type Props = {
   onBack: () => void;
@@ -357,6 +358,7 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
         </button>
       </div>
       {subscribeOpen && <SubscribeModal onClose={() => setSubscribeOpen(false)} />}
+      <Footer />
     </div>
   );
 }
