@@ -322,3 +322,80 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .site-footer { padding: 2.75rem 1.5rem 2rem; }
   .site-footer-links { justify-content: center; gap: 1rem 1.75rem; }
 }
+
+/* ============ Landing page (2026-07 redesign) ============ */
+/* New home layout: gallery hero + centered statement + Shop Our Edit rail +
+   full-bleed shop band. All classes are namespaced .lp- so nothing here
+   touches the quiz/results/browse surfaces, which keep the old classes. */
+
+.lp { background: var(--warm-white); }
+
+/* -- Nav: spare, plain-text links -- */
+.lp-nav { display: flex; justify-content: space-between; align-items: baseline; padding: 2.2rem 4rem; }
+.lp-nav-links { display: flex; gap: 2.75rem; align-items: baseline; }
+.lp-nav-link { font-family: var(--font-jost), sans-serif; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-mid); text-decoration: none; background: none; border: none; padding: 0; cursor: pointer; font-weight: 300; transition: color 0.3s; }
+.lp-nav-link:hover { color: var(--terracotta); }
+
+/* -- Hero: one oversized image + museum caption -- */
+.lp-hero { padding: 2rem 4rem 0; }
+.lp-hero-frame { position: relative; height: 78vh; background: var(--cream); overflow: hidden; }
+.lp-hero-img { width: 100%; height: 112%; object-fit: cover; object-position: center 62%; transform: translateY(var(--lp-parallax, 0%)); will-change: transform; animation: lpHeroSettle 2.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes lpHeroSettle { from { scale: 1.05; } to { scale: 1; } }
+.lp-hero-caption { display: flex; justify-content: space-between; align-items: baseline; padding: 1.1rem 0 0; }
+.lp-caption-label { font-size: 0.64rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-light); font-weight: 300; }
+.lp-caption-credit { font-family: var(--font-cormorant), serif; font-style: italic; font-size: 0.95rem; color: var(--text-mid); }
+
+/* -- Statement -- */
+.lp-statement { max-width: 900px; margin: 0 auto; padding: 9rem 2rem 8rem; text-align: center; }
+.lp-statement-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: clamp(2.4rem, 4.4vw, 4rem); line-height: 1.18; color: var(--bark); }
+.lp-statement-title em { font-style: italic; color: var(--terracotta); }
+.lp-statement-body { margin: 2.4rem auto 0; max-width: 420px; font-size: 0.85rem; line-height: 1.9; color: var(--text-mid); font-weight: 300; }
+.lp-cta { display: inline-block; margin-top: 3.2rem; font-family: var(--font-jost), sans-serif; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--bark); background: none; border: none; border-bottom: 1px solid var(--bark); padding: 0 0 0.5rem; cursor: pointer; font-weight: 300; transition: color 0.3s, border-color 0.3s; }
+.lp-cta:hover { color: var(--terracotta); border-color: var(--terracotta); }
+
+/* -- Shop Our Edit rail -- */
+.lp-rail { padding: 0 4rem 8rem; }
+.lp-rail-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3rem; }
+.lp-rail-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: 2rem; color: var(--bark); }
+.lp-link { font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-mid); text-decoration: none; border-bottom: 1px solid var(--linen); padding-bottom: 0.3rem; font-weight: 300; transition: color 0.3s, border-color 0.3s; }
+.lp-link:hover { color: var(--terracotta); border-color: var(--terracotta); }
+.lp-rail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.2rem; }
+.lp-rail-card { text-decoration: none; display: block; }
+.lp-rail-card-img { aspect-ratio: 3/4; background: var(--cream); overflow: hidden; margin-bottom: 1.1rem; }
+.lp-rail-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(0.2, 0.6, 0.2, 1); }
+.lp-rail-card:hover .lp-rail-card-img img { transform: scale(1.04); }
+.lp-rail-card h3 { font-family: var(--font-cormorant), serif; font-weight: 400; font-size: 1.15rem; color: var(--bark); }
+.lp-rail-card span { display: block; margin-top: 0.3rem; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-light); font-weight: 300; }
+
+/* -- Shop-the-collection band -- */
+.lp-band { position: relative; height: 74vh; overflow: hidden; background: var(--bark); }
+.lp-band-frame { position: absolute; inset: 0; }
+.lp-band-img { width: 100%; height: 112%; object-fit: cover; opacity: 0.92; transform: translateY(var(--lp-parallax, 0%)); will-change: transform; }
+.lp-band-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4rem; background: rgba(42, 31, 21, 0.32); }
+.lp-band-eyebrow { font-size: 0.64rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--clay); margin-bottom: 1rem; font-weight: 300; }
+.lp-band-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: clamp(1.9rem, 3.2vw, 2.8rem); color: var(--cream); max-width: 640px; line-height: 1.25; }
+.lp-band-link { display: inline-block; margin-top: 2rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); text-decoration: none; border-bottom: 1px solid rgba(250, 247, 242, 0.5); padding-bottom: 0.4rem; width: fit-content; font-weight: 300; transition: border-color 0.3s; }
+.lp-band-link:hover { border-color: var(--cream); }
+
+/* -- Scroll reveals -- */
+/* Elements with data-reveal rise ~28px and fade in when they enter the
+   viewport (class added by HomeScreen's IntersectionObserver). Rail cards
+   add a per-card transition-delay inline for the stagger. */
+.lp [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+.lp .lp-revealed { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .lp-hero-img, .lp-band-img { animation: none; transform: none; }
+  .lp-rail-card-img img { transition: none; }
+}
+
+@media (max-width: 900px) {
+  .lp-nav, .lp-hero, .lp-rail { padding-left: 1.4rem; padding-right: 1.4rem; }
+  .lp-nav-links { gap: 1.4rem; }
+  .lp-hero-frame { height: 56vh; }
+  .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
+  .lp-statement { padding: 6rem 1.4rem 5rem; }
+  .lp-band-overlay { padding: 2rem 1.4rem; }
+  .lp-hero-caption { flex-direction: column; gap: 0.3rem; }
+}
