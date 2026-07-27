@@ -324,26 +324,40 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 }
 
 /* ============ Landing page (2026-07 redesign) ============ */
-/* New home layout: gallery hero + centered statement + Shop Our Edit rail +
-   full-bleed shop band. All classes are namespaced .lp- so nothing here
-   touches the quiz/results/browse surfaces, which keep the old classes. */
+/* EyeSwoon-inspired: the premium feel is stillness. One full-bleed hero
+   with the nav floating transparently over it and a small title lockup on
+   the image; sections fade in gently, ONCE, and nothing else moves — no
+   parallax, no carousel, no scroll-linked motion. All classes namespaced
+   .lp- so quiz/results/browse are untouched. */
 
 .lp { background: var(--warm-white); }
 
-/* -- Nav: spare, plain-text links -- */
-.lp-nav { display: flex; justify-content: space-between; align-items: baseline; padding: 2.2rem 4rem; }
+/* -- Full-bleed hero with overlaid nav -- */
+.lp-hero { position: relative; height: 100vh; background: var(--bark); overflow: hidden; }
+.lp-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 62%; animation: lpFade 1.6s ease both; }
+.lp-hero-scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(42,31,21,0.34) 0%, transparent 22%, transparent 72%, rgba(42,31,21,0.3) 100%); pointer-events: none; }
+.lp-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: baseline; padding: 2.2rem 4rem; animation: lpFade 1.4s ease 0.3s both; border-bottom: 1px solid rgba(250, 247, 242, 0.28); background: transparent; transition: background-color 0.25s linear, border-bottom-color 0.25s linear; }
+.lp-nav-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: var(--font-cormorant), serif; font-size: 1.05rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); font-weight: 400; white-space: nowrap; opacity: 0; transition: opacity 0.25s linear; pointer-events: none; }
+.lp-nav-logo em { font-style: italic; color: var(--walnut); }
+/* Scrolled state: solid warm-white bar, dark text, centered logo fades in */
+.lp-nav-solid { background: var(--warm-white); border-bottom-color: var(--linen); }
+.lp-nav-solid .lp-nav-logo { opacity: 1; }
+.lp-nav-solid .lp-nav-tag { color: var(--stone); }
+.lp-nav-solid .lp-nav-link { color: var(--text-mid); }
+.lp-nav-solid .lp-nav-link:hover { color: var(--terracotta); }
+.lp-nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(250, 247, 242, 0.7); font-weight: 300; }
+.lp-nav .logo { color: var(--cream); }
+.lp-nav .logo span { color: var(--clay); }
 .lp-nav-links { display: flex; gap: 2.75rem; align-items: baseline; }
-.lp-nav-link { font-family: var(--font-jost), sans-serif; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-mid); text-decoration: none; background: none; border: none; padding: 0; cursor: pointer; font-weight: 300; transition: color 0.3s; }
-.lp-nav-link:hover { color: var(--terracotta); }
-
-/* -- Hero: one oversized image + museum caption -- */
-.lp-hero { padding: 2rem 4rem 0; }
-.lp-hero-frame { position: relative; height: 78vh; background: var(--cream); overflow: hidden; }
-.lp-hero-img { width: 100%; height: 112%; object-fit: cover; object-position: center 62%; transform: translateY(var(--lp-parallax, 0%)); will-change: transform; animation: lpHeroSettle 2.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
-@keyframes lpHeroSettle { from { scale: 1.05; } to { scale: 1; } }
-.lp-hero-caption { display: flex; justify-content: space-between; align-items: baseline; padding: 1.1rem 0 0; }
-.lp-caption-label { font-size: 0.64rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-light); font-weight: 300; }
-.lp-caption-credit { font-family: var(--font-cormorant), serif; font-style: italic; font-size: 0.95rem; color: var(--text-mid); }
+.lp-nav-link { font-family: var(--font-jost), sans-serif; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(250, 247, 242, 0.85); text-decoration: none; background: none; border: none; padding: 0; cursor: pointer; font-weight: 300; transition: color 0.3s; }
+.lp-nav-link:hover { color: var(--cream); }
+/* Same type treatment as the site's original header logo (.logo) — just
+   scaled up and set in cream for the photo: Cormorant, 0.2em tracking,
+   uppercase, weight 400, italic terracotta accent. */
+.lp-hero-lockup { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; font-family: var(--font-cormorant), serif; font-size: clamp(1.45rem, 2.7vw, 2.7rem); letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); font-weight: 400; white-space: nowrap; animation: lpFade 1.8s ease 0.6s both; }
+.lp-hero-lockup em { font-style: italic; color: var(--walnut); }
+.lp-hero-credit { position: absolute; left: 4rem; bottom: 1.8rem; z-index: 2; font-family: var(--font-cormorant), serif; font-style: italic; font-size: 0.95rem; color: rgba(250, 247, 242, 0.75); animation: lpFade 1.8s ease 0.9s both; }
+@keyframes lpFade { from { opacity: 0; } to { opacity: 1; } }
 
 /* -- Statement -- */
 .lp-statement { max-width: 900px; margin: 0 auto; padding: 9rem 2rem 8rem; text-align: center; }
@@ -369,33 +383,36 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 
 /* -- Shop-the-collection band -- */
 .lp-band { position: relative; height: 74vh; overflow: hidden; background: var(--bark); }
-.lp-band-frame { position: absolute; inset: 0; }
-.lp-band-img { width: 100%; height: 112%; object-fit: cover; opacity: 0.92; transform: translateY(var(--lp-parallax, 0%)); will-change: transform; }
+.lp-band-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.92; }
 .lp-band-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4rem; background: rgba(42, 31, 21, 0.32); }
 .lp-band-eyebrow { font-size: 0.64rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--clay); margin-bottom: 1rem; font-weight: 300; }
 .lp-band-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: clamp(1.9rem, 3.2vw, 2.8rem); color: var(--cream); max-width: 640px; line-height: 1.25; }
 .lp-band-link { display: inline-block; margin-top: 2rem; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); text-decoration: none; border-bottom: 1px solid rgba(250, 247, 242, 0.5); padding-bottom: 0.4rem; width: fit-content; font-weight: 300; transition: border-color 0.3s; }
 .lp-band-link:hover { border-color: var(--cream); }
 
-/* -- Scroll reveals -- */
-/* Elements with data-reveal rise ~28px and fade in when they enter the
-   viewport (class added by HomeScreen's IntersectionObserver). Rail cards
-   add a per-card transition-delay inline for the stagger. */
-.lp [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
-.lp .lp-revealed { opacity: 1; transform: translateY(0); }
+/* -- Gentle once-only reveals -- */
+/* Elements with data-reveal fade up 14px, once, when they enter the
+   viewport (class added by a simple scroll check in HomeScreen). Hidden
+   states only exist while .lp-anim is set by JS, so nothing can ever be
+   stuck invisible without JS. No reversal, no trailing. */
+.lp [data-reveal] { transition: opacity 1.1s cubic-bezier(0.22, 1, 0.36, 1), transform 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+.lp-anim [data-reveal]:not(.lp-in) { opacity: 0; transform: translateY(14px); }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .lp-hero-img, .lp-band-img { animation: none; transform: none; }
+  .lp-hero-img, .lp-nav, .lp-hero-lockup, .lp-hero-credit { animation: none; }
+  .lp [data-reveal] { transition: none; }
+  .lp-anim [data-reveal]:not(.lp-in) { opacity: 1; transform: none; }
   .lp-rail-card-img img { transition: none; }
 }
 
 @media (max-width: 900px) {
-  .lp-nav, .lp-hero, .lp-rail { padding-left: 1.4rem; padding-right: 1.4rem; }
+  .lp-nav, .lp-rail { padding-left: 1.4rem; padding-right: 1.4rem; }
   .lp-nav-links { gap: 1.4rem; }
-  .lp-hero-frame { height: 56vh; }
+  .lp-nav-tag { display: none; }
+  .lp-nav-logo { display: none; }
+  .lp-hero { height: 86vh; }
+  .lp-hero-credit { left: 1.4rem; }
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
   .lp-statement { padding: 6rem 1.4rem 5rem; }
   .lp-band-overlay { padding: 2rem 1.4rem; }
-  .lp-hero-caption { flex-direction: column; gap: 0.3rem; }
 }

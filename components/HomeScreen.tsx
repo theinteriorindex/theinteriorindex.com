@@ -5,15 +5,15 @@ import Link from "next/link";
 import SubscribeModal from "./SubscribeModal";
 
 // ── Landing page imagery ──
-// Both hero images were 2x-upscaled via Magnific (precision/photo mode).
-// Until the upscaled files are uploaded to Supabase Storage, these point at
-// the original 1x Storage files — swap the filenames below once the @2x
-// versions land in the product-images bucket (they'll render soft at
-// full-bleed sizes until then).
+// Both full-bleed photos are 2x Magnific upscales (precision/photo mode) of
+// styled Storage shots, uploaded to the product-images bucket as sitephoto1
+// (hero — Alessio Bench, 1168x1576) and sitephoto2 (band — August travertine
+// table, 1792x2400). The 1x originals ("Alessio Bench01.png" / "August
+// Rectangle...01.png") remain in Storage as product photos.
 const HERO_IMAGE =
-  "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Alessio%20Bench01.png";
+  "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/sitephoto1.png";
 const BAND_IMAGE =
-  "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/August%20Rectangle%20Travertine%20Dining%20Table%20with%20Block%20Legs01.png";
+  "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/sitephoto2.png";
 
 // The four edits shown on the rail. `material` must match the /browse page's
 // ALL_MATERIALS values exactly (see BrowseEditsScreen) so the pinned links
@@ -45,109 +45,102 @@ const EDITS = [
   },
 ];
 
-// Reveal-on-scroll: any element carrying data-reveal starts hidden (see the
-// .lp [data-reveal] rules in globals.css) and gets .lp-revealed once ~15% of
-// it enters the viewport. Elements are unobserved after revealing — the
-// animation plays once, no re-trigger on scroll-up, which keeps the page
-// calm. prefers-reduced-motion users skip the whole thing (everything is
-// revealed immediately, and the CSS also zeroes the transitions).
-function useScrollReveal(rootRef: React.RefObject<HTMLDivElement | null>) {
+// Gentle once-only reveals (EyeSwoon-style stillness): elements with
+// data-reveal get .lp-in the first time they enter the viewport and keep it
+// — a single soft fade-up per element, no reversal, no scroll-linked
+// trailing. The hidden initial state only exists while .lp-anim is set here
+// at mount, so without JS (or with reduced motion) everything is simply
+// visible.
+function useRevealOnce(rootRef: React.RefObject<HTMLDivElement | null>) {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-reveal]"));
+    const els = Array.from(root.querySelectorAll<HTMLElement>("[data-reveal]"));
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      targets.forEach((el) => el.classList.add("lp-revealed"));
+      els.forEach((el) => el.classList.add("lp-in"));
       return;
     }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("lp-revealed");
-            observer.unobserve(entry.target);
-          }
-        }
-      },
-      { threshold: 0.15 }
-    );
-    targets.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [rootRef]);
-}
-
-// Soft parallax on the two full-bleed images: each frame is overflow:hidden
-// with the image sized ~112% tall, and scroll position nudges the image
-// within the frame via a CSS variable (--lp-parallax). rAF-throttled, and
-// skipped entirely under prefers-reduced-motion.
-function useParallax(rootRef: React.RefObject<HTMLDivElement | null>) {
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const frames = Array.from(root.querySelectorAll<HTMLElement>("[data-parallax]"));
-    if (frames.length === 0) return;
+    root.classList.add("lp-anim");
+    let pending = new Set(els);
     let ticking = false;
-    function update() {
+    function check() {
       ticking = false;
       const vh = window.innerHeight;
-      for (const frame of frames) {
-        const rect = frame.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > vh) continue;
-        // -1 (frame just entered from bottom) → 1 (about to leave off top)
-        const progress = (rect.top + rect.height / 2 - vh / 2) / (vh / 2 + rect.height / 2);
-        frame.style.setProperty("--lp-parallax", `${(-progress * 4).toFixed(2)}%`);
+      for (const el of Array.from(pending)) {
+        if (el.getBoundingClientRect().top < vh * 0.88) {
+          el.classList.add("lp-in");
+          pending.delete(el);
+        }
       }
     }
     function onScroll() {
-      if (!ticking) {
+      if (!ticking && pending.size > 0) {
         ticking = true;
-        requestAnimationFrame(update);
+        requestAnimationFrame(check);
       }
     }
-    update();
+    // Double-rAF so the hidden initial state paints before the first check —
+    // otherwise above-the-fold elements reveal without their transition.
+    requestAnimationFrame(() => requestAnimationFrame(check));
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    document.addEventListener("visibilitychange", onScroll);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      document.removeEventListener("visibilitychange", onScroll);
     };
   }, [rootRef]);
 }
 
 export default function HomeScreen({ onStart }: { onStart: () => void }) {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
+  const [navSolid, setNavSolid] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
-  useScrollReveal(rootRef);
-  useParallax(rootRef);
+  useRevealOnce(rootRef);
+
+  // EyeSwoon-style header: fixed, transparent while over the hero photo,
+  // switching to a solid warm-white bar (dark text, small centered logo)
+  // once the page scrolls past the hero. 0.25s linear, both directions.
+  useEffect(() => {
+    function onScroll() {
+      setNavSolid(window.scrollY > window.innerHeight - 90);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <div className="screen active lp" ref={rootRef}>
-      <nav className="lp-nav">
-        <div className="logo">
-          The Interior <span>Index</span>
-        </div>
-        <div className="lp-nav-links">
-          <button className="lp-nav-link" onClick={onStart}>
-            The Quiz
-          </button>
-          <Link className="lp-nav-link" href="/browse">
-            Shop Our Edit
-          </Link>
-          <button className="lp-nav-link" onClick={() => setSubscribeOpen(true)}>
-            Join the Edit
-          </button>
-        </div>
-      </nav>
-
+      {/* Full-bleed hero: image edge-to-edge, nav floating transparently
+          over it, a small title lockup on the image (links to the featured
+          edit), and an italic credit bottom-left. Load-in is a slow
+          staggered fade (CSS animations) — after that, the hero is still. */}
       <section className="lp-hero">
-        <div className="lp-hero-frame" data-parallax>
-          <img className="lp-hero-img" src={HERO_IMAGE} alt="Alessio Bench in honed travertine" />
+        <img className="lp-hero-img" src={HERO_IMAGE} alt="Alessio Bench in honed travertine" />
+        <div className="lp-hero-scrim" />
+        <nav className={`lp-nav${navSolid ? " lp-nav-solid" : ""}`}>
+          <div className="lp-nav-tag">A material-based design concierge</div>
+          <div className="lp-nav-logo">
+            The Interior <em>Index</em>
+          </div>
+          <div className="lp-nav-links">
+            <button className="lp-nav-link" onClick={onStart}>
+              The Quiz
+            </button>
+            <Link className="lp-nav-link" href="/browse">
+              Shop Our Edit
+            </Link>
+            <button className="lp-nav-link" onClick={() => setSubscribeOpen(true)}>
+              Join the Edit
+            </button>
+          </div>
+        </nav>
+        <div className="lp-hero-lockup">
+          The Interior <em>Index</em>
         </div>
-        <div className="lp-hero-caption">
-          <span className="lp-caption-label">The Stone Edit — No. 04</span>
-          <span className="lp-caption-credit">Alessio Bench, honed travertine</span>
-        </div>
+        <span className="lp-hero-credit">The Stone Edit — Alessio Bench, honed travertine</span>
       </section>
 
       <section className="lp-statement">
@@ -156,11 +149,11 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           <br />
           by material
         </h1>
-        <p className="lp-statement-body" data-reveal>
+        <p className="lp-statement-body" data-reveal style={{ transitionDelay: "0.15s" }}>
           Tell us how you want your space to feel. We&rsquo;ll identify your material palette, curate the right
           pieces, and connect you with finds that fit your aesthetic and your budget.
         </p>
-        <button className="lp-cta" data-reveal onClick={onStart}>
+        <button className="lp-cta" data-reveal style={{ transitionDelay: "0.3s" }} onClick={onStart}>
           Begin the style quiz
         </button>
       </section>
@@ -179,7 +172,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
               className="lp-rail-card"
               href={`/browse?material=${encodeURIComponent(edit.material)}`}
               data-reveal
-              style={{ transitionDelay: `${i * 0.12}s` }}
+              style={{ transitionDelay: `${i * 0.1}s` }}
             >
               <div className="lp-rail-card-img">
                 <img src={edit.img} alt={edit.name} loading="lazy" />
@@ -192,17 +185,15 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
       </section>
 
       <section className="lp-band">
-        <div className="lp-band-frame" data-parallax>
-          <img className="lp-band-img" src={BAND_IMAGE} alt="August travertine dining table" loading="lazy" />
-        </div>
+        <img className="lp-band-img" src={BAND_IMAGE} alt="August travertine dining table" loading="lazy" />
         <div className="lp-band-overlay">
           <div className="lp-band-eyebrow" data-reveal>
             The complete index
           </div>
-          <h2 className="lp-band-title" data-reveal>
+          <h2 className="lp-band-title" data-reveal style={{ transitionDelay: "0.15s" }}>
             Shop the collection
           </h2>
-          <Link className="lp-band-link" href="/browse" data-reveal>
+          <Link className="lp-band-link" href="/browse" data-reveal style={{ transitionDelay: "0.3s" }}>
             View all pieces
           </Link>
         </div>
