@@ -21,10 +21,10 @@ const BAND_IMAGE =
 // value, not display copy. `img` is the rail photo further down the page and
 // `menuImg` the nav panel's, deliberately different shots of the same edit so
 // the same four pictures do not appear twice on one screen.
-// `label` is what a visitor actually reads, which
-// is why Metal shows as "Chrome": the catalog, the quiz and /browse's own
-// filter all still say Metal, and renaming those would be a data migration
-// rather than a copy change.
+// `label` is what a visitor actually reads. It used to differ from
+// `material` for this edit — the page said "Chrome" while the catalog, the
+// quiz and /browse all still said "Metal" — but that split was migrated away
+// on 2026-07-28, so the two now agree everywhere.
 const EDITS = [
   {
     name: "The Walnut Edit",
@@ -54,7 +54,7 @@ const EDITS = [
     name: "The Chrome Edit",
     label: "Chrome",
     sub: "Chrome · Steel",
-    material: "Metal",
+    material: "Chrome",
     img: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Corbusier%20Basculant%20Sling%20Chair01.jpeg",
     menuImg: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Wassily%20Chair%20-%20Chrome%20Frame03.png",
   },

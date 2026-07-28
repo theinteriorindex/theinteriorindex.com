@@ -12,7 +12,7 @@ type Props = {
   onHome: () => void;
 };
 
-const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Metal", "Ceramic", "Lighting"];
+const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Chrome", "Ceramic", "Lighting"];
 
 // "Discover more" accumulates: each click appends the next PREVIEW_COUNT
 // items below what's already shown, same pattern as ResultsScreen's product
@@ -91,13 +91,23 @@ function matchesSearchSynonym(category: string, q: string): boolean {
   return false;
 }
 
+// Older names for a material, kept resolving permanently. "Metal" was this
+// edit's real name until the 2026-07-28 rename to "Chrome", so every pin,
+// bookmark and shared /browse?material=Metal link predates it — and those
+// live on indefinitely once they are out on Pinterest.
+const LEGACY_MATERIAL_ALIASES: Record<string, string> = { metal: "Chrome" };
+
 // Matches a `?material=` URL value back to one of ALL_MATERIALS, tolerating
 // case and dash/underscore-for-space variants (e.g. "natural-fibers",
 // "OAK") so a hand-typed or Pinterest-shortened link still resolves.
 function matchMaterialParam(raw: string | null): string | null {
   if (!raw) return null;
   const cleaned = raw.replace(/[-_]+/g, " ").trim().toLowerCase();
-  return ALL_MATERIALS.find((m) => m.toLowerCase() === cleaned) || null;
+  return (
+    ALL_MATERIALS.find((m) => m.toLowerCase() === cleaned) ||
+    LEGACY_MATERIAL_ALIASES[cleaned] ||
+    null
+  );
 }
 
 export default function BrowseEditsScreen({ onBack, onHome }: Props) {

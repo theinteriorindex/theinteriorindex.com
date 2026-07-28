@@ -76,7 +76,7 @@ const MATERIAL_OPTIONS = {
   oak: { title: "Oak & Light Wood", desc: "Airy, Scandinavian, versatile" },
   stone: { title: "Marble & Stone", desc: "Cool, refined, timeless" },
   natural: { title: "Natural Fibers", desc: "Soft, tactile, calming" },
-  metal: { title: "Metal & Sculptural Forms", desc: "Cool, tactile, sculptural accents" },
+  chrome: { title: "Chrome & Sculptural Forms", desc: "Cool, tactile, sculptural accents" },
 } satisfies Record<string, QuizOption>;
 type MaterialKey = keyof typeof MATERIAL_OPTIONS;
 
@@ -84,10 +84,10 @@ type MaterialKey = keyof typeof MATERIAL_OPTIONS;
 // one reads tonally off for that direction, so Question 03 always feels
 // consistent with the Question 02 answer instead of listing every material.
 const MATERIALS_BY_AESTHETIC: Record<string, MaterialKey[]> = {
-  "Wabi-Sabi": ["walnut", "oak", "stone", "natural"], // Metal reads too polished/industrial for Wabi-Sabi
-  Japandi: ["oak", "stone", "natural", "metal"], // Walnut reads too heavy/traditional for Japandi
-  "Organic Modern": ["oak", "stone", "natural", "metal"],
-  "Quiet Luxury": ["oak", "stone", "natural", "metal"],
+  "Wabi-Sabi": ["walnut", "oak", "stone", "natural"], // Chrome reads too polished/industrial for Wabi-Sabi
+  Japandi: ["oak", "stone", "natural", "chrome"], // Walnut reads too heavy/traditional for Japandi
+  "Organic Modern": ["oak", "stone", "natural", "chrome"],
+  "Quiet Luxury": ["oak", "stone", "natural", "chrome"],
 };
 const DEFAULT_MATERIAL_KEYS: MaterialKey[] = ["walnut", "oak", "stone", "natural"];
 
@@ -98,22 +98,22 @@ function getMaterialOptions(aesthetic?: string, room?: string): QuizOption[] {
   // silently falls through to Oak product data) but real Walnut inventory
   // (Desk, Storage) — swap Stone out for Walnut here specifically rather
   // than offering a material that's guaranteed to be a mislabeled duplicate
-  // of Oak. Falls back to swapping in Metal on the aesthetics that already
+  // of Oak. Falls back to swapping in Chrome on the aesthetics that already
   // include Walnut alongside Stone (Wabi-Sabi, and the pre-Question-02
   // default), so the option count stays at 4 either way.
   if (room === "Home Office") {
-    keys = keys.map((k) => (k === "stone" ? (keys.includes("walnut") ? "metal" : "walnut") : k));
+    keys = keys.map((k) => (k === "stone" ? (keys.includes("walnut") ? "chrome" : "walnut") : k));
   }
   // Bedroom's real inventory is Walnut and Oak only (per Supabase) — its
   // catalog fetch, same as Home Office, only ever branches Walnut vs. Oak.
-  // Metal has zero Bedroom inventory too, so unlike Home Office it's never
-  // swapped in as a Stone replacement — both Stone and Metal collapse to
+  // Chrome has zero Bedroom inventory too, so unlike Home Office it's never
+  // swapped in as a Stone replacement — both Stone and Chrome collapse to
   // Walnut here, then get deduped. That means Bedroom shows 3 options
   // (Walnut, Oak, Natural) instead of 4, consistently across every
   // aesthetic, rather than surfacing a material guaranteed to be a
   // mislabeled duplicate of Oak.
   if (room === "Bedroom") {
-    const mapped = keys.map((k) => (k === "stone" || k === "metal" ? "walnut" : k));
+    const mapped = keys.map((k) => (k === "stone" || k === "chrome" ? "walnut" : k));
     keys = Array.from(new Set(mapped)) as MaterialKey[];
   }
   return keys.map((k) => MATERIAL_OPTIONS[k]);

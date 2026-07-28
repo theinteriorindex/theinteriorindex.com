@@ -156,12 +156,42 @@ function groupByTab(rows: ViewRow[], room: string, budget?: string): ProductGrou
 // Bedroom (and any future room without a dedicated Supabase view) is read
 // directly from the products + product_images tables rather than a
 // per-room view, since RLS already restricts reads to is_active rows.
+// ---- "Metal" is a permanent alias for "Chrome" ----
+// This edit was renamed from "Metal" to "Chrome" on 2026-07-28 and every
+// Supabase row was migrated, so "Chrome" is the canonical value and the one
+// to use for anything new. "Metal" stays readable on purpose, and is not
+// leftover migration scaffolding:
+//   1. it let the code change and the data flip land separately, with no
+//      window where the edit was live but empty; and
+//   2. product intake is a hand-filled Google Sheet, so a row can still
+//      arrive tagged "Metal" long after the rename — this makes that show up
+//      in the right edit instead of vanishing into an unreachable material.
+// Worth knowing: because of (2) a mistagged row is silently absorbed rather
+// than surfacing as a visible gap, so audit the raw `material` column rather
+// than the rendered site when checking whether intake is tagging correctly.
+const LEGACY_MATERIAL_VALUE = "Metal";
+const MATERIAL_QUERY_ALIASES: Record<string, string[]> = {
+  Chrome: ["Chrome", LEGACY_MATERIAL_VALUE],
+};
+function canonicalMaterial(m: string): string {
+  return m === LEGACY_MATERIAL_VALUE ? "Chrome" : m;
+}
+// Every `products.material` query must go through this, never a bare
+// .eq("material", key) — otherwise it silently misses rows stored under the
+// alias. That is exactly what broke Question 04 during the rename: the quiz's
+// catalog fetch had been updated but getAvailablePriorityTitles' own separate
+// query had not, so the priority list collapsed to just its always-available
+// entries with no error anywhere.
+function materialValues(materialKey: string): string[] {
+  return MATERIAL_QUERY_ALIASES[materialKey] ?? [materialKey];
+}
+
 async function fetchRoomMaterialRows(room: string, materialKey: string): Promise<ViewRow[]> {
   const { data: products, error } = await supabase
     .from("products")
     .select("id, name, category, price, budget_tier, description, affiliate_url, sort_order, is_active")
     .eq("room", room)
-    .eq("material", materialKey)
+    .in("material", materialValues(materialKey))
     .eq("is_active", true)
     .order("sort_order");
   if (error || !products || products.length === 0) {
@@ -238,7 +268,9 @@ function resolveMaterialKey(material: string): string {
   if (m.includes("oak")) return "Oak";
   if (m.includes("stone") || m.includes("marble")) return "Stone";
   if (m.includes("linen") || m.includes("natural")) return "Natural Fibers";
-  if (m.includes("metal")) return "Metal";
+  // "chrome" is the canonical label; "metal" is a permanent alias for it
+  // (see the LEGACY_MATERIAL_VALUE note above).
+  if (m.includes("chrome") || m.includes("metal")) return "Chrome";
   return "Walnut";
 }
 
@@ -278,7 +310,12 @@ export async function getAvailablePriorityTitles(room: string, material: string)
   }
 
   const presentCategories = new Set<string>();
-  const { data, error } = await supabase.from("products").select("category, name").eq("room", room).eq("material", materialKey).eq("is_active", true);
+  const { data, error } = await supabase
+    .from("products")
+    .select("category, name")
+    .eq("room", room)
+    .in("material", materialValues(materialKey))
+    .eq("is_active", true);
   if (!error && data) {
     for (const row of data as { category: string; name: string }[]) presentCategories.add(tabLabelFor(row, room));
   }
@@ -291,7 +328,7 @@ export async function getAvailablePriorityTitles(room: string, material: string)
       .from("products")
       .select("category, name")
       .eq("room", room)
-      .eq("material", complementKey)
+      .in("material", materialValues(complementKey))
       .eq("is_active", true);
     if (compData) {
       for (const row of compData as { category: string; name: string }[]) {
@@ -344,7 +381,7 @@ async function withStoneDiningChairs(base: ProductGroup, budget?: string): Promi
 // Merges the Lamps tab into a Living Room result for any material path
 // that doesn't already have one. Walnut and Oak already get Lamps via
 // their own cross-material mix below; this covers Stone, Natural Fibers,
-// and Metal, which previously had no Lamps data at all — the tab
+// and Chrome, which previously had no Lamps data at all — the tab
 // didn't just come up empty, it silently disappeared from the results page
 // entirely since Living Room's tab bar only shows tabs with a data key.
 async function withLamps(base: ProductGroup, room: string, budget?: string): Promise<ProductGroup> {
@@ -415,14 +452,16 @@ export async function getMaterialProductsFromDB(material: string, room: string, 
     const grouped = groupByTab(await fetchView("natural_materials_living_room"), "Living Room", budget);
     return withLamps(grouped, "Living Room", budget);
   }
-  if (material.toLowerCase().includes("metal")) {
+  // Accepts "chrome" (canonical) and "metal" (permanent alias), so a quiz
+  // answer from either era routes to the same catalog.
+  if (material.toLowerCase().includes("chrome") || material.toLowerCase().includes("metal")) {
     if (isDining) {
-      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Metal"), "Dining Room", budget);
+      return groupByTab(await fetchRoomMaterialRows("Dining Room", "Chrome"), "Dining Room", budget);
     }
-    // Real Living Room Metal inventory now exists (side tables) — use it
-    // directly instead of forcing the Dining Room Metal catalog.
+    // Real Living Room Chrome inventory now exists (side tables) — use it
+    // directly instead of forcing the Dining Room Chrome catalog.
     const grouped = await withThrows(
-      groupByTab(await fetchRoomMaterialRows("Living Room", "Metal"), "Living Room", budget),
+      groupByTab(await fetchRoomMaterialRows("Living Room", "Chrome"), "Living Room", budget),
       "Living Room",
       budget
     );
@@ -557,7 +596,7 @@ export async function getEditCatalogFromDB(
 export type BrowseCatalog = Record<string, ProductGroup>;
 export type BrowseProduct = Product & { material: string; category: string };
 
-const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Metal", "Ceramic"];
+const BROWSE_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Chrome", "Ceramic"];
 
 type BrowseRow = {
   id: string;
@@ -583,7 +622,7 @@ async function fetchBrowseRows(): Promise<(BrowseRow & { images: string[]; label
       .from("products")
       .select("id, name, material, room, category, affiliate_url, sort_order")
       .eq("is_active", true)
-      .in("material", BROWSE_MATERIALS)
+      .in("material", [...BROWSE_MATERIALS, LEGACY_MATERIAL_VALUE])
       .order("sort_order"),
     supabase
       .from("products")
@@ -597,7 +636,13 @@ async function fetchBrowseRows(): Promise<(BrowseRow & { images: string[]; label
   if (lightingRes.error) console.error("Error fetching browse lighting rows:", lightingRes.error.message);
 
   const rows: BrowseRow[] = [
-    ...(((materialsRes.data as BrowseRow[]) || [])),
+    // canonicalMaterial folds any "Metal"-tagged row into "Chrome" so it
+    // matches the Chrome filter chip rather than showing up as an orphan
+    // material with no chip of its own.
+    ...(((materialsRes.data as BrowseRow[]) || [])).map((r) => ({
+      ...r,
+      material: canonicalMaterial(r.material),
+    })),
     ...(((lightingRes.data as BrowseRow[]) || [])).map((r) => ({ ...r, material: "Lighting" })),
   ];
 

@@ -14,7 +14,7 @@ const PREVIEW_COUNT = 8;
 // not-yet-live "notify me" modal and URL sync that the full /browse page
 // has. It does now mirror BrowseEditsScreen's category sub-filter (see
 // categoryTags below), so material + category filtering matches exactly.
-const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Metal", "Ceramic", "Lighting"];
+const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Chrome", "Ceramic", "Lighting"];
 
 // Same fixed category order as BrowseEditsScreen, so the preview grid
 // clusters products in the identical sequence as the full /browse page
