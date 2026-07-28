@@ -307,20 +307,36 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 }
 
 /* ============ Site footer ============ */
-/* Deep-walnut band that bookends the page, shown on the content surfaces
-   (home / results / browse) — not the quiz/chat flow. Links spread edge-to-
-   edge across the full width; copyright tucks bottom-right. */
-.site-footer { position: relative; overflow: hidden; background: var(--bark); color: var(--cream); padding: 2rem 3.5rem 1.6rem; }
-.site-footer::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 0%, rgba(160,113,79,0.26) 0%, transparent 62%), radial-gradient(ellipse at 50% 120%, rgba(92,61,46,0.5) 0%, transparent 60%); }
-.site-footer > * { position: relative; z-index: 1; }
-.site-footer-links { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem 2rem; width: 100%; }
-.site-footer-links a { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,240,232,0.72); text-decoration: none; font-weight: 400; transition: color 0.3s ease; }
-.site-footer-links a:hover { color: var(--clay); }
-.site-footer-rule { height: 1px; width: 100%; margin: 2.5rem 0 1.5rem; background: rgba(245,240,232,0.14); }
-.site-footer-copy { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,240,232,0.38); font-weight: 300; text-align: center; margin-top: 1.35rem; }
+/* Site footer — "The Endpaper". Light, centred and symmetrical so the page
+   closes the way the landing page opens: still, quiet, no motion. Shown on
+   the content surfaces (home / results / browse / legal) — not the quiz or
+   chat flow. Replaces the earlier deep-walnut link band. */
+.ft { background: var(--warm-white); border-top: 1px solid var(--linen); padding: 4.5rem 2rem 2.4rem; text-align: center; }
+.ft-logo { display: inline-block; font-family: var(--font-cormorant), serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); text-decoration: none; }
+.ft-logo em { font-style: italic; color: var(--walnut); }
+.ft-tag { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--stone); font-weight: 300; margin-top: 0.85rem; }
+
+.ft-nav { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.9rem 1.6rem; margin-top: 2.9rem; }
+/* .ft-link-btn is the home page's "The Quiz" control — a real button (it
+   starts client state, not a navigation) styled to sit inside the same row
+   as the links without looking like a button. */
+.ft-nav a, .ft-nav .ft-link-btn { font-size: 0.66rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-mid); text-decoration: none; font-weight: 300; transition: color 0.3s ease; }
+.ft-nav .ft-link-btn { font-family: var(--font-jost), sans-serif; background: none; border: none; padding: 0; cursor: pointer; line-height: inherit; }
+.ft-nav a:hover, .ft-nav .ft-link-btn:hover { color: var(--terracotta); }
+.ft-dot { width: 2px; height: 2px; border-radius: 50%; background: var(--linen); }
+
+.ft-rule { height: 1px; background: var(--linen); max-width: 1000px; margin: 2.9rem auto 1.7rem; }
+.ft-fine { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.7rem 1.5rem; }
+.ft-fine a { font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-light); text-decoration: none; font-weight: 300; transition: color 0.3s ease; }
+.ft-fine a:hover { color: var(--terracotta); }
+.ft-copy { font-size: 0.56rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-light); font-weight: 300; margin-top: 1.9rem; }
+
 @media (max-width: 640px) {
-  .site-footer { padding: 2.75rem 1.5rem 2rem; }
-  .site-footer-links { justify-content: center; gap: 1rem 1.75rem; }
+  .ft { padding: 3.25rem 1.5rem 2rem; }
+  /* The nav wraps on a phone, which strands a separator dot at the start of
+     the second line — drop the dots and let the gap do the separating. */
+  .ft-nav { margin-top: 2.4rem; gap: 0.9rem 1.5rem; }
+  .ft-dot { display: none; }
 }
 
 /* ============ Landing page (2026-07 redesign) ============ */
@@ -345,6 +361,31 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .lp-nav-solid .lp-nav-tag { color: var(--stone); }
 .lp-nav-solid .lp-nav-link { color: var(--text-mid); }
 .lp-nav-solid .lp-nav-link:hover { color: var(--terracotta); }
+/* While the edits panel is open the bar takes the same solid treatment as
+   the scrolled state, so bar and panel read as one surface — but without
+   fading in the small centered logo, which would duplicate the big lockup
+   still sitting on the hero underneath. */
+.lp-nav-menuopen { background: var(--warm-white); border-bottom-color: var(--linen); }
+.lp-nav-menuopen .lp-nav-tag { color: var(--stone); }
+.lp-nav-menuopen .lp-nav-link { color: var(--text-mid); }
+.lp-nav-menuopen .lp-nav-link:hover { color: var(--terracotta); }
+
+/* The "Shop Our Edit" hover panel. Sits directly under the bar, full width,
+   and is hidden with opacity/visibility rather than unmounted so its photos
+   are cached before the first open. */
+.lp-menu { position: absolute; top: 100%; left: 0; right: 0; background: var(--warm-white); border-bottom: 1px solid var(--linen); padding: 2.6rem 4rem 2.9rem; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: opacity 0.25s linear, transform 0.25s cubic-bezier(0.2, 0.6, 0.2, 1), visibility 0s linear 0.25s; }
+.lp-menu-open { opacity: 1; visibility: visible; transform: translateY(0); transition: opacity 0.25s linear, transform 0.25s cubic-bezier(0.2, 0.6, 0.2, 1), visibility 0s; }
+.lp-menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.8rem; max-width: 1080px; margin: 0 auto; }
+.lp-menu-card { text-decoration: none; display: block; }
+.lp-menu-card-img { aspect-ratio: 4/5; background: var(--cream); overflow: hidden; margin-bottom: 0.9rem; }
+.lp-menu-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(0.2, 0.6, 0.2, 1); }
+.lp-menu-card:hover .lp-menu-card-img img { transform: scale(1.04); }
+/* Same type treatment as the rail card titles below (.lp-rail-card h3) —
+   Cormorant at its natural case, no tracking — so the two sets of edit
+   labels read as one voice rather than two. */
+.lp-menu-card span { display: block; text-align: center; font-family: var(--font-cormorant), serif; font-size: 1.15rem; color: var(--bark); font-weight: 400; }
+.lp-menu-card:hover span { color: var(--terracotta); }
+
 .lp-nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(250, 247, 242, 0.7); font-weight: 300; }
 .lp-nav .logo { color: var(--cream); }
 .lp-nav .logo span { color: var(--clay); }
@@ -403,6 +444,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .lp [data-reveal] { transition: none; }
   .lp-anim [data-reveal]:not(.lp-in) { opacity: 1; transform: none; }
   .lp-rail-card-img img { transition: none; }
+  .lp-menu, .lp-menu-card-img img { transition: none; }
 }
 
 @media (max-width: 900px) {
@@ -410,6 +452,9 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .lp-nav-links { gap: 1.4rem; }
   .lp-nav-tag { display: none; }
   .lp-nav-logo { display: none; }
+  /* No hover on a phone — the panel never opens, and "Shop Our Edit" just
+     navigates to /browse as it did before. */
+  .lp-menu { display: none; }
   .lp-hero { height: 86vh; }
   .lp-hero-credit { left: 1.4rem; }
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }

@@ -15,33 +15,48 @@ const HERO_IMAGE =
 const BAND_IMAGE =
   "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/sitephoto2.png";
 
-// The four edits shown on the rail. `material` must match the /browse page's
-// ALL_MATERIALS values exactly (see BrowseEditsScreen) so the pinned links
-// land pre-filtered.
+// The four edits shown on the rail and in the nav's hover panel. `material`
+// must match the /browse page's ALL_MATERIALS values exactly (see
+// BrowseEditsScreen) so the pinned links land pre-filtered — it is a data
+// value, not display copy. `img` is the rail photo further down the page and
+// `menuImg` the nav panel's, deliberately different shots of the same edit so
+// the same four pictures do not appear twice on one screen.
+// `label` is what a visitor actually reads, which
+// is why Metal shows as "Chrome": the catalog, the quiz and /browse's own
+// filter all still say Metal, and renaming those would be a data migration
+// rather than a copy change.
 const EDITS = [
   {
     name: "The Walnut Edit",
+    label: "Walnut",
     sub: "Solid & veneered walnut",
     material: "Walnut",
     img: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Baggio%20Modern%20Fluted%20Electric%20Adjustable%20Standing%20Desk01.png",
+    menuImg: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/0a336757-c3f7-4e47-8bfb-e7869673bcb3/7f2ffd80-59cf-46f6-8386-ce70e3896501.jpg",
   },
   {
     name: "The Stone Edit",
+    label: "Stone",
     sub: "Travertine · Marble",
     material: "Stone",
     img: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Dario%20Round%20Stone%20Dining%20Table%20with%20Conical%20Pedestal%20Base01%20(1).png",
+    menuImg: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Cava%20Fluted%20Round%20Beige%20Travertine%20Drum%20Side%20Table01.png",
   },
   {
     name: "The Natural Fibers Edit",
+    label: "Natural Fibers",
     sub: "Rattan · Cane · Seagrass",
     material: "Natural Fibers",
     img: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Bali%20%26%20pari%20Sebalio%20Tortoise%20Natural%20Rattan%20Coffee%20Table%20with%20Open%20Shelf%2001.png",
+    menuImg: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Alessio%20Bench01.png",
   },
   {
-    name: "The Metal Edit",
+    name: "The Chrome Edit",
+    label: "Chrome",
     sub: "Chrome · Steel",
     material: "Metal",
     img: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Corbusier%20Basculant%20Sling%20Chair01.jpeg",
+    menuImg: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Wassily%20Chair%20-%20Chrome%20Frame03.png",
   },
 ];
 
@@ -96,8 +111,20 @@ function useRevealOnce(rootRef: React.RefObject<HTMLDivElement | null>) {
 export default function HomeScreen({ onStart }: { onStart: () => void }) {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [navSolid, setNavSolid] = useState(false);
+  const [editsOpen, setEditsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
   useRevealOnce(rootRef);
+
+  // Escape closes the edits panel — the only way out for someone who opened
+  // it by tabbing to the link rather than hovering.
+  useEffect(() => {
+    if (!editsOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setEditsOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editsOpen]);
 
   // EyeSwoon-style header: fixed, transparent while over the hero photo,
   // switching to a solid warm-white bar (dark text, small centered logo)
@@ -120,7 +147,12 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
       <section className="lp-hero">
         <img className="lp-hero-img" src={HERO_IMAGE} alt="Alessio Bench in honed travertine" />
         <div className="lp-hero-scrim" />
-        <nav className={`lp-nav${navSolid ? " lp-nav-solid" : ""}`}>
+        <nav
+          className={`lp-nav${navSolid ? " lp-nav-solid" : ""}${
+            editsOpen ? " lp-nav-menuopen" : ""
+          }`}
+          onMouseLeave={() => setEditsOpen(false)}
+        >
           <div className="lp-nav-tag">A material-based design concierge</div>
           <div className="lp-nav-logo">
             The Interior <em>Index</em>
@@ -129,12 +161,45 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
             <button className="lp-nav-link" onClick={onStart}>
               The Quiz
             </button>
-            <Link className="lp-nav-link" href="/browse">
+            <Link
+              className="lp-nav-link"
+              href="/browse"
+              onMouseEnter={() => setEditsOpen(true)}
+              onFocus={() => setEditsOpen(true)}
+              aria-expanded={editsOpen}
+            >
               Shop Our Edit
             </Link>
             <button className="lp-nav-link" onClick={() => setSubscribeOpen(true)}>
               Join the Edit
             </button>
+          </div>
+
+          {/* Hovering "Shop Our Edit" drops a full-width panel of the four
+              material edits under the bar. The panel lives inside .lp-nav so
+              the nav's own onMouseLeave covers both — moving the cursor down
+              into the panel never leaves the hover region. It stays mounted
+              and is hidden with opacity/visibility rather than unmounted, so
+              its four photos are already in cache the first time it opens.
+              Hidden below 900px, where there is no hover and the link just
+              navigates. */}
+          <div className={`lp-menu${editsOpen ? " lp-menu-open" : ""}`} aria-hidden={!editsOpen}>
+            <div className="lp-menu-grid">
+              {EDITS.map((edit) => (
+                <Link
+                  key={edit.material}
+                  className="lp-menu-card"
+                  href={`/browse?material=${encodeURIComponent(edit.material)}`}
+                  tabIndex={editsOpen ? 0 : -1}
+                  onClick={() => setEditsOpen(false)}
+                >
+                  <div className="lp-menu-card-img">
+                    <img src={edit.menuImg} alt="" />
+                  </div>
+                  <span>{edit.label}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </nav>
         <div className="lp-hero-lockup">

@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ResultsScreen from "@/components/ResultsScreen";
+import Footer from "@/components/Footer";
 import { queryToAnswers, answersToQuery } from "@/lib/resultsUrl";
 
 // A real route so a finished quiz result is bookmarkable, shareable, and
@@ -15,15 +16,18 @@ function ResultsPageInner() {
   const answers = queryToAnswers(searchParams);
 
   return (
-    <ResultsScreen
-      answers={answers}
-      onRestart={() => router.push("/")}
-      onRetakeQuiz={() => {
-        const qs = answersToQuery(answers);
-        router.push(qs ? `/?${qs}` : "/");
-      }}
-      onBrowseEdits={() => router.push("/browse")}
-    />
+    <>
+      <ResultsScreen
+        answers={answers}
+        onRestart={() => router.push("/")}
+        onRetakeQuiz={() => {
+          const qs = answersToQuery(answers);
+          router.push(qs ? `/?${qs}` : "/");
+        }}
+        onBrowseEdits={() => router.push("/browse")}
+      />
+      <Footer />
+    </>
   );
 }
 

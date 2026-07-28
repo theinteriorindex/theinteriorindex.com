@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import HomeScreen from "@/components/HomeScreen";
 import QuizScreen from "@/components/QuizScreen";
 import ChatScreen from "@/components/ChatScreen";
+import Footer from "@/components/Footer";
 import { questions } from "@/lib/quiz";
 import { answersToQuery, queryToAnswers } from "@/lib/resultsUrl";
 
@@ -58,6 +59,19 @@ function HomeInner() {
     return () => window.removeEventListener("popstate", onPopState);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The footer's "The Quiz" link points at /?start=1 instead of "/", since a
+  // bare "/" does nothing when you're already on the home page. This watches
+  // the param rather than reading it once on mount, so the link works both
+  // from another route (fresh mount) and from home itself (Next just swaps
+  // the query string on an already-mounted page).
+  useEffect(() => {
+    if (searchParams.get("start") !== "1") return;
+    setAnswers({});
+    setCurrentQuestion(0);
+    setScreen("quiz");
+    pushHistory({ screen: "quiz", currentQuestion: 0, answers: {} });
+  }, [searchParams, pushHistory]);
 
   function startQuiz() {
     // "Begin the Style Quiz" is the fresh-start entry point — always clears
@@ -120,7 +134,14 @@ function HomeInner() {
 
   return (
     <>
-      {screen === "home" && <HomeScreen onStart={startQuiz} />}
+      {/* Footer rides with the home screen only — the quiz and chat own the
+          whole viewport, so a footer under either reads as a stray band. */}
+      {screen === "home" && (
+        <>
+          <HomeScreen onStart={startQuiz} />
+          <Footer onQuizClick={startQuiz} />
+        </>
+      )}
       {screen === "quiz" && (
         <QuizScreen
           currentQuestion={currentQuestion}
