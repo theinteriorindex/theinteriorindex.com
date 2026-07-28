@@ -1,14 +1,22 @@
 @import "tailwindcss";
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; }
+/* clip, NOT hidden. `overflow-x: hidden` on the root makes html/body a
+   scrolling box, and on iOS Safari a position: fixed element then stops
+   being reliably fixed — the landing page's nav bar drifted out of the top
+   of the visual viewport on scroll, opening a strip about the height of the
+   status bar where the page showed through above the bar. `clip` gives the
+   same "no sideways scrolling" guard without creating a scroll container,
+   so fixed (and sticky) keep working. Same trap that broke position: sticky
+   during the 2026-07 landing build. */
+html { overflow-x: clip; }
 :root {
   --cream: #F5F0E8; --warm-white: #FAF7F2; --sand: #E8DFD0;
   --clay: #C4A882; --terracotta: #A0714F; --walnut: #5C3D2E;
   --bark: #3A2518; --sage: #8A9B7E; --stone: #9B9189;
   --linen: #D4C9B8; --text-dark: #2A1F15; --text-mid: #6B5A4E; --text-light: #9B8E84;
 }
-body { font-family: var(--font-jost), sans-serif; background: var(--warm-white); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+body { font-family: var(--font-jost), sans-serif; background: var(--warm-white); color: var(--text-dark); min-height: 100vh; overflow-x: clip; }
 body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
 .screen { display: none; min-height: 100vh; }
 .screen.active { display: flex; flex-direction: column; }
@@ -449,8 +457,22 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 
 @media (max-width: 900px) {
   .lp-nav, .lp-rail { padding-left: 1.4rem; padding-right: 1.4rem; }
-  .lp-nav-links { gap: 1.4rem; }
-  .lp-nav-tag { display: none; }
+  /* The mobile bar carries the tagline INSTEAD of the three links. Three
+     labels this long wrap mid-phrase ("SHOP OUR / EDIT") on a narrow
+     phone, and a stack of ragged link text is the opposite of the still
+     hero this page is built around. The quiz, the edits and the shop are
+     all still reachable from the rail and the footer below.
+     .lp-nav is space-between and the tagline is now its only in-flow
+     child (the logo is absolutely positioned), so centre it explicitly —
+     space-between would otherwise park it against the left edge. */
+  .lp-nav { justify-content: center; }
+  .lp-nav-links { display: none; }
+  /* Smaller than the desktop tagline: standing alone and centred on the
+     photograph it carries the whole bar, so it wants to read as a quiet
+     caption rather than a headline. */
+  .lp-nav-tag { display: block; text-align: center; font-size: 0.62rem; }
+  /* Stays hidden: it is absolutely centred, so once the bar goes solid it
+     would land on top of the tagline. */
   .lp-nav-logo { display: none; }
   /* No hover on a phone — the panel never opens, and "Shop Our Edit" just
      navigates to /browse as it did before. */
@@ -460,4 +482,42 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
   .lp-statement { padding: 6rem 1.4rem 5rem; }
   .lp-band-overlay { padding: 2rem 1.4rem; }
+
+  /* Past the hero the bar goes away entirely on a phone, rather than turning
+     solid. iOS starts the layout viewport below the status bar while painting
+     the scrolling page edge to edge behind it, and clips position: fixed
+     elements to that viewport — so a solid bar always had a strip of page
+     showing above it that nothing on the bar could cover (a background bleed,
+     a taller bar and a negative top offset were all tried and all clipped).
+     Over the hero photo that strip is invisible, photo above and photo below;
+     it only reads as broken against the pale sections. And since the mobile
+     bar carries just the tagline and no links, removing it there costs no
+     navigation at all — the quiz, the edits and the shop are all in the rail
+     and the footer.
+     Fades rather than pops, on the same 0.25s the bar already used to change
+     colour. Desktop is untouched: it keeps its solid bar and its links. */
+  .lp-nav {
+    transition: background-color 0.25s linear, border-bottom-color 0.25s linear,
+      opacity 0.25s linear, visibility 0s;
+  }
+  .lp-nav-solid {
+    /* lpFade (the load-in) animates opacity with fill-mode: both, so it pins
+       opacity to 1 forever and would override the fade-out below — the bar
+       would pop instead of fading. Clearing the animation on this state lets
+       the declared opacity win. */
+    animation: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: background-color 0.25s linear, border-bottom-color 0.25s linear,
+      opacity 0.25s linear, visibility 0s linear 0.25s;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The lockup is nowrap, so at the 1.45rem clamp floor it measures ~309px
+     — five pixels of margin either side on a 320px phone, which reads as
+     an accident rather than a decision. Lower the floor rather than let it
+     break: one line is the treatment. */
+  .lp-hero-lockup { font-size: clamp(1.15rem, 5.6vw, 1.45rem); }
 }
