@@ -359,21 +359,32 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 /* -- Full-bleed hero with overlaid nav -- */
 .lp-hero { position: relative; height: 100vh; background: var(--bark); overflow: hidden; }
 .lp-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 62%; animation: lpFade 1.6s ease both; }
-.lp-hero-scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(42,31,21,0.34) 0%, transparent 22%, transparent 72%, rgba(42,31,21,0.3) 100%); pointer-events: none; }
+/* Edge scrim as before, plus a soft centre ellipse behind the statement —
+   cream copy needs a touch of depth against the pale plaster mid-photo,
+   same legibility problem the old lockup had (which is why its italic was
+   walnut, not terracotta). Kept subtle so the photo still reads. */
+.lp-hero-scrim { position: absolute; inset: 0; background: radial-gradient(ellipse 66% 54% at 50% 50%, rgba(42, 31, 21, 0.3) 0%, rgba(42, 31, 21, 0.14) 55%, transparent 82%), linear-gradient(to bottom, rgba(42,31,21,0.34) 0%, transparent 22%, transparent 72%, rgba(42,31,21,0.3) 100%); pointer-events: none; }
 .lp-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: baseline; padding: 2.2rem 4rem; animation: lpFade 1.4s ease 0.3s both; border-bottom: 1px solid rgba(250, 247, 242, 0.28); background: transparent; transition: background-color 0.25s linear, border-bottom-color 0.25s linear; }
-.lp-nav-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: var(--font-cormorant), serif; font-size: 1.05rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); font-weight: 400; white-space: nowrap; opacity: 0; transition: opacity 0.25s linear; pointer-events: none; }
+/* The title lockup lives centred in the bar itself now (it used to sit big
+   in the middle of the hero photo — moved when the quiz took over the
+   middle of the page). Always visible: cream while the bar is transparent
+   over the photo, bark once the bar goes solid or the edits panel opens.
+   The italic Index stays walnut in both states — dark enough on the pale
+   photo, warm enough on the warm-white bar. */
+.lp-nav-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: var(--font-cormorant), serif; font-size: clamp(1.05rem, 1.5vw, 1.35rem); letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); font-weight: 400; white-space: nowrap; transition: color 0.25s linear; pointer-events: none; }
 .lp-nav-logo em { font-style: italic; color: var(--walnut); }
-/* Scrolled state: solid warm-white bar, dark text, centered logo fades in */
+/* Scrolled state: solid warm-white bar, dark text and logo */
 .lp-nav-solid { background: var(--warm-white); border-bottom-color: var(--linen); }
-.lp-nav-solid .lp-nav-logo { opacity: 1; }
+.lp-nav-solid .lp-nav-logo { color: var(--bark); }
 .lp-nav-solid .lp-nav-tag { color: var(--stone); }
 .lp-nav-solid .lp-nav-link { color: var(--text-mid); }
 .lp-nav-solid .lp-nav-link:hover { color: var(--terracotta); }
 /* While the edits panel is open the bar takes the same solid treatment as
-   the scrolled state, so bar and panel read as one surface — but without
-   fading in the small centered logo, which would duplicate the big lockup
-   still sitting on the hero underneath. */
+   the scrolled state, so bar and panel read as one surface — including the
+   logo going dark (there is no lockup on the hero underneath any more, so
+   nothing duplicates). */
 .lp-nav-menuopen { background: var(--warm-white); border-bottom-color: var(--linen); }
+.lp-nav-menuopen .lp-nav-logo { color: var(--bark); }
 .lp-nav-menuopen .lp-nav-tag { color: var(--stone); }
 .lp-nav-menuopen .lp-nav-link { color: var(--text-mid); }
 .lp-nav-menuopen .lp-nav-link:hover { color: var(--terracotta); }
@@ -394,30 +405,67 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .lp-menu-card span { display: block; text-align: center; font-family: var(--font-cormorant), serif; font-size: 1.15rem; color: var(--bark); font-weight: 400; }
 .lp-menu-card:hover span { color: var(--terracotta); }
 
+/* The "Join the Edit" subscribe dropdown — same surface, same show/hide
+   mechanics as .lp-menu above, holding a slim inline email capture
+   (editorial treatment: hairline underline input, tracked uppercase Join)
+   instead of the SubscribeModal overlay, which Results/Browse keep. */
+.lp-join { position: absolute; top: 100%; left: 0; right: 0; background: var(--warm-white); border-bottom: 1px solid var(--linen); padding: 2.4rem 4rem 2.7rem; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: opacity 0.25s linear, transform 0.25s cubic-bezier(0.2, 0.6, 0.2, 1), visibility 0s linear 0.25s; }
+.lp-join-open { opacity: 1; visibility: visible; transform: translateY(0); transition: opacity 0.25s linear, transform 0.25s cubic-bezier(0.2, 0.6, 0.2, 1), visibility 0s; }
+.lp-join-inner { max-width: 520px; margin: 0 auto; text-align: center; }
+.lp-join-title { font-family: var(--font-cormorant), serif; font-size: 1.45rem; font-weight: 400; color: var(--bark); }
+.lp-join-body { margin: 0.6rem auto 0; max-width: 420px; font-size: 0.75rem; line-height: 1.8; color: var(--text-mid); font-weight: 300; }
+.lp-join-form { display: flex; flex-direction: column; gap: 1.05rem; margin-top: 1.4rem; }
+.lp-join-row { display: flex; align-items: flex-end; gap: 1.4rem; }
+.lp-join-row .lp-join-input { flex: 1; min-width: 0; }
+.lp-join-input { flex: 1; background: none; border: none; border-bottom: 1px solid var(--linen); border-radius: 0; padding: 0.5rem 0.1rem; font-family: var(--font-jost), sans-serif; font-size: 0.85rem; font-weight: 300; color: var(--bark); transition: border-color 0.3s; }
+.lp-join-input::placeholder { color: var(--text-light); }
+.lp-join-input:focus { outline: none; border-bottom-color: var(--walnut); }
+.lp-join-btn { font-family: var(--font-jost), sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); background: none; border: none; border-bottom: 1px solid var(--bark); padding: 0 0 0.45rem; cursor: pointer; font-weight: 300; transition: color 0.3s, border-color 0.3s; white-space: nowrap; }
+.lp-join-btn:hover { color: var(--terracotta); border-color: var(--terracotta); }
+.lp-join-btn:disabled { opacity: 0.55; cursor: default; }
+.lp-join-error { margin-top: 0.9rem; font-size: 0.72rem; color: var(--terracotta); font-weight: 300; }
+
 .lp-nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(250, 247, 242, 0.7); font-weight: 300; }
 .lp-nav .logo { color: var(--cream); }
 .lp-nav .logo span { color: var(--clay); }
 .lp-nav-links { display: flex; gap: 2.75rem; align-items: baseline; }
 .lp-nav-link { font-family: var(--font-jost), sans-serif; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(250, 247, 242, 0.85); text-decoration: none; background: none; border: none; padding: 0; cursor: pointer; font-weight: 300; transition: color 0.3s; }
 .lp-nav-link:hover { color: var(--cream); }
-/* Same type treatment as the site's original header logo (.logo) — just
-   scaled up and set in cream for the photo: Cormorant, 0.2em tracking,
-   uppercase, weight 400, italic terracotta accent. */
-.lp-hero-lockup { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; font-family: var(--font-cormorant), serif; font-size: clamp(1.45rem, 2.7vw, 2.7rem); letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); font-weight: 400; white-space: nowrap; animation: lpFade 1.8s ease 0.6s both; }
-.lp-hero-lockup em { font-style: italic; color: var(--walnut); }
+/* (The big .lp-hero-lockup that sat centred on the hero photo is gone —
+   the lockup moved into the nav bar, .lp-nav-logo above.) */
 .lp-hero-credit { position: absolute; left: 4rem; bottom: 1.8rem; z-index: 2; font-family: var(--font-cormorant), serif; font-style: italic; font-size: 0.95rem; color: rgba(250, 247, 242, 0.75); animation: lpFade 1.8s ease 0.9s both; }
 @keyframes lpFade { from { opacity: 0; } to { opacity: 1; } }
 
-/* -- Statement -- */
-.lp-statement { max-width: 900px; margin: 0 auto; padding: 9rem 2rem 8rem; text-align: center; }
-.lp-statement-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: clamp(2.4rem, 4.4vw, 4rem); line-height: 1.18; color: var(--bark); }
-.lp-statement-title em { font-style: italic; color: var(--terracotta); }
-.lp-statement-body { margin: 2.4rem auto 0; max-width: 420px; font-size: 0.85rem; line-height: 1.9; color: var(--text-mid); font-weight: 300; }
-.lp-cta { display: inline-block; margin-top: 3.2rem; font-family: var(--font-jost), sans-serif; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--bark); background: none; border: none; border-bottom: 1px solid var(--bark); padding: 0 0 0.5rem; cursor: pointer; font-weight: 300; transition: color 0.3s, border-color 0.3s; }
-.lp-cta:hover { color: var(--terracotta); border-color: var(--terracotta); }
+/* -- Statement, centred on the hero -- */
+/* The statement + "Begin the style quiz" CTA moved from its own section
+   below the hero to the centre of the hero photo (2026-08-03, per Liz) —
+   same copy, same type scale, recoloured for the photograph: cream title
+   and body, walnut italic (terracotta is illegible on the pale plaster —
+   the old lockup learned this the hard way). Fades in on the hero's load
+   stagger like the lockup used to. */
+.lp-hero-statement { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; width: min(900px, calc(100% - 2.8rem)); text-align: center; }
+/* The statement's load-in: each piece (title line 1, title line 2, body,
+   CTA) rises 16px on a slow soft curve, staggered by inline
+   animation-delay in HomeScreen — the same once-on-load motion language
+   as lpFade, never scroll-linked. fill-mode: both keeps each piece
+   hidden until its delay comes up, then pins it visible. */
+.lp-rise { animation: lpRise 1.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.lp-statement-title .lp-rise { display: block; }
+@keyframes lpRise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.lp-statement-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: clamp(2.4rem, 4.4vw, 4rem); line-height: 1.18; color: var(--cream); }
+.lp-statement-title em { font-style: italic; color: var(--walnut); }
+.lp-statement-body { margin: 2.4rem auto 0; max-width: 420px; font-size: 0.85rem; line-height: 1.9; color: rgba(250, 247, 242, 0.88); font-weight: 300; }
+.lp-cta { display: inline-block; margin-top: 3.2rem; font-family: var(--font-jost), sans-serif; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cream); background: none; border: none; border-bottom: 1px solid rgba(250, 247, 242, 0.65); padding: 0 0 0.5rem; cursor: pointer; font-weight: 300; transition: color 0.3s, border-color 0.3s; }
+.lp-cta:hover { color: var(--clay); border-color: var(--clay); }
 
 /* -- Shop Our Edit rail -- */
-.lp-rail { padding: 0 4rem 8rem; }
+/* Top padding carries the breathing room the statement section used to
+   provide between the hero and the rail, now that the statement lives on
+   the hero itself. */
+.lp-rail { padding: 7rem 4rem 8rem; }
 .lp-rail-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3rem; }
 .lp-rail-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: 2rem; color: var(--bark); }
 .lp-link { font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-mid); text-decoration: none; border-bottom: 1px solid var(--linen); padding-bottom: 0.3rem; font-weight: 300; transition: color 0.3s, border-color 0.3s; }
@@ -448,39 +496,43 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .lp-anim [data-reveal]:not(.lp-in) { opacity: 0; transform: translateY(14px); }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-hero-img, .lp-nav, .lp-hero-lockup, .lp-hero-credit { animation: none; }
+  .lp-hero-img, .lp-nav, .lp-hero-statement, .lp-hero-credit { animation: none; }
+  .lp-rise { animation: none; opacity: 1; }
   .lp [data-reveal] { transition: none; }
   .lp-anim [data-reveal]:not(.lp-in) { opacity: 1; transform: none; }
   .lp-rail-card-img img { transition: none; }
-  .lp-menu, .lp-menu-card-img img { transition: none; }
+  .lp-menu, .lp-menu-card-img img, .lp-join { transition: none; }
 }
 
 @media (max-width: 900px) {
   .lp-nav, .lp-rail { padding-left: 1.4rem; padding-right: 1.4rem; }
-  /* The mobile bar carries the tagline INSTEAD of the three links. Three
-     labels this long wrap mid-phrase ("SHOP OUR / EDIT") on a narrow
-     phone, and a stack of ragged link text is the opposite of the still
-     hero this page is built around. The quiz, the edits and the shop are
-     all still reachable from the rail and the footer below.
-     .lp-nav is space-between and the tagline is now its only in-flow
-     child (the logo is absolutely positioned), so centre it explicitly —
-     space-between would otherwise park it against the left edge. */
-  .lp-nav { justify-content: center; }
+  /* The mobile bar carries the lockup and the tagline INSTEAD of the three
+     links. Three labels this long wrap mid-phrase ("SHOP OUR / EDIT") on a
+     narrow phone, and a stack of ragged link text is the opposite of the
+     still hero this page is built around. The quiz, the edits and the shop
+     are all still reachable from the rail and the footer below.
+     Stacked and centred: with the big hero lockup gone (it moved into the
+     bar), the bar is the only place the name appears on a phone, so the
+     logo comes out of its absolute centring into the flow, above the
+     tagline. */
+  .lp-nav { justify-content: center; flex-direction: column; align-items: center; gap: 0.45rem; padding-top: 1.5rem; padding-bottom: 1.1rem; }
   .lp-nav-links { display: none; }
-  /* Smaller than the desktop tagline: standing alone and centred on the
-     photograph it carries the whole bar, so it wants to read as a quiet
-     caption rather than a headline. */
+  /* Smaller than the desktop tagline: it wants to read as a quiet caption
+     under the lockup rather than a headline. */
   .lp-nav-tag { display: block; text-align: center; font-size: 0.62rem; }
-  /* Stays hidden: it is absolutely centred, so once the bar goes solid it
-     would land on top of the tagline. */
-  .lp-nav-logo { display: none; }
-  /* No hover on a phone — the panel never opens, and "Shop Our Edit" just
-     navigates to /browse as it did before. */
-  .lp-menu { display: none; }
+  .lp-nav-logo { position: static; transform: none; font-size: 1.05rem; }
+  /* No hover on a phone — the panels never open ("Shop Our Edit" just
+     navigates to /browse; the links, including Join the Edit, are hidden
+     below 900px anyway). */
+  .lp-menu, .lp-join { display: none; }
   .lp-hero { height: 86vh; }
   .lp-hero-credit { left: 1.4rem; }
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
-  .lp-statement { padding: 6rem 1.4rem 5rem; }
+  .lp-rail { padding-top: 4.5rem; }
+  /* The statement is centred inside an 86vh hero with the stacked bar
+     above it — keep it clear of both the bar and the credit line. */
+  .lp-hero-statement { width: calc(100% - 2.8rem); }
+  .lp-statement-body { max-width: 340px; }
   .lp-band-overlay { padding: 2rem 1.4rem; }
 
   /* Past the hero the bar goes away entirely on a phone, rather than turning
@@ -515,9 +567,13 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 }
 
 @media (max-width: 640px) {
-  /* The lockup is nowrap, so at the 1.45rem clamp floor it measures ~309px
-     — five pixels of margin either side on a 320px phone, which reads as
-     an accident rather than a decision. Lower the floor rather than let it
-     break: one line is the treatment. */
-  .lp-hero-lockup { font-size: clamp(1.15rem, 5.6vw, 1.45rem); }
+  /* The lockup is nowrap; at 1.05rem it measures ~225px, comfortable even
+     on a 320px phone. Guard the floor anyway so a very narrow viewport
+     never lets it kiss the edges. */
+  .lp-nav-logo { font-size: clamp(0.9rem, 4.2vw, 1.05rem); }
+  /* "Your space, curated" is the long line; let the title track the
+     viewport below the clamp floor so it never kisses the edges of a
+     narrow phone. */
+  .lp-statement-title { font-size: clamp(1.9rem, 7.2vw, 2.4rem); }
 }
+

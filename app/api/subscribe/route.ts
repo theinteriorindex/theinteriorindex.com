@@ -12,13 +12,28 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, source } = (await req.json()) as { email?: string; source?: string };
+    const { email, source, firstName, lastName } = (await req.json()) as {
+      email?: string;
+      source?: string;
+      firstName?: string;
+      lastName?: string;
+    };
 
     if (!email || typeof email !== "string" || !EMAIL_RE.test(email)) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
 
-    const { error: dbError } = await supabase.from("newsletter_subscribers").insert({ email, source: source || null });
+    // Names are optional (the landing nav dropdown sends them; the
+    // SubscribeModal on Results/Browse doesn't) — normalise to null, cap
+    // length so the columns can't be abused as a free-text dump.
+    const clean = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 80) : null);
+
+    const { error: dbError } = await supabase.from("newsletter_subscribers").insert({
+      email,
+      source: source || null,
+      first_name: clean(firstName),
+      last_name: clean(lastName),
+    });
     // Ignore duplicate-signup conflicts (unique on lower(email)) — still
     // send the confirmation so it feels like it worked.
     if (dbError && dbError.code !== "23505") {
@@ -67,3 +82,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unexpected server error." }, { status: 500 });
   }
 }
+

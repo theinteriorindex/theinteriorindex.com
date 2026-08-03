@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import SubscribeModal from "./SubscribeModal";
 
 // ── Landing page imagery ──
 // Both full-bleed photos are 2x Magnific upscales (precision/photo mode) of
@@ -108,23 +107,64 @@ function useRevealOnce(rootRef: React.RefObject<HTMLDivElement | null>) {
   }, [rootRef]);
 }
 
+type JoinStatus = "idle" | "sending" | "sent" | "error";
+
 export default function HomeScreen({ onStart }: { onStart: () => void }) {
-  const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [navSolid, setNavSolid] = useState(false);
   const [editsOpen, setEditsOpen] = useState(false);
+  // "Join the Edit" opens a dropdown panel under the bar (same surface as
+  // the Shop Our Edit panel) with an inline subscribe form, instead of the
+  // SubscribeModal overlay (which Results/Browse still use).
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinEmail, setJoinEmail] = useState("");
+  const [joinFirst, setJoinFirst] = useState("");
+  const [joinLast, setJoinLast] = useState("");
+  const [joinStatus, setJoinStatus] = useState<JoinStatus>("idle");
+  const [joinError, setJoinError] = useState("");
+  // While the email field has focus, the panel ignores the nav's
+  // onMouseLeave — typing with the cursor drifted off the bar must not
+  // close the form mid-entry.
+  const joinFocusRef = useRef(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
   useRevealOnce(rootRef);
 
-  // Escape closes the edits panel — the only way out for someone who opened
-  // it by tabbing to the link rather than hovering.
+  // Escape closes either panel — the only way out for someone who opened
+  // one by tabbing to the link rather than hovering.
   useEffect(() => {
-    if (!editsOpen) return;
+    if (!editsOpen && !joinOpen) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setEditsOpen(false);
+      if (e.key === "Escape") {
+        setEditsOpen(false);
+        setJoinOpen(false);
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editsOpen]);
+  }, [editsOpen, joinOpen]);
+
+  async function handleJoinSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setJoinStatus("sending");
+    setJoinError("");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: joinEmail,
+          firstName: joinFirst,
+          lastName: joinLast,
+          source: "landing_nav_dropdown",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Something went wrong.");
+      setJoinStatus("sent");
+    } catch (err) {
+      setJoinStatus("error");
+      setJoinError(err instanceof Error ? err.message : "Something went wrong.");
+    }
+  }
 
   // EyeSwoon-style header: fixed, transparent while over the hero photo,
   // switching to a solid warm-white bar (dark text, small centered logo)
@@ -149,28 +189,46 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
         <div className="lp-hero-scrim" />
         <nav
           className={`lp-nav${navSolid ? " lp-nav-solid" : ""}${
-            editsOpen ? " lp-nav-menuopen" : ""
+            editsOpen || joinOpen ? " lp-nav-menuopen" : ""
           }`}
-          onMouseLeave={() => setEditsOpen(false)}
+          onMouseLeave={() => {
+            setEditsOpen(false);
+            if (!joinFocusRef.current) setJoinOpen(false);
+          }}
         >
           <div className="lp-nav-tag">A material-based design concierge</div>
           <div className="lp-nav-logo">
             The Interior <em>Index</em>
           </div>
+          {/* No "The Quiz" link up here — the "Begin the style quiz" CTA
+              sits centred on the hero right below (and the footer still
+              carries a quiz link for every other page). */}
           <div className="lp-nav-links">
-            <button className="lp-nav-link" onClick={onStart}>
-              The Quiz
-            </button>
             <Link
               className="lp-nav-link"
               href="/browse"
-              onMouseEnter={() => setEditsOpen(true)}
+              onMouseEnter={() => {
+                setEditsOpen(true);
+                if (!joinFocusRef.current) setJoinOpen(false);
+              }}
               onFocus={() => setEditsOpen(true)}
               aria-expanded={editsOpen}
             >
               Shop Our Edit
             </Link>
-            <button className="lp-nav-link" onClick={() => setSubscribeOpen(true)}>
+            <button
+              className="lp-nav-link"
+              onMouseEnter={() => {
+                setJoinOpen(true);
+                setEditsOpen(false);
+              }}
+              onFocus={() => {
+                setJoinOpen(true);
+                setEditsOpen(false);
+              }}
+              onClick={() => setJoinOpen(true)}
+              aria-expanded={joinOpen}
+            >
               Join the Edit
             </button>
           </div>
@@ -201,26 +259,117 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
               ))}
             </div>
           </div>
+
+          {/* Hovering "Join the Edit" drops a slim subscribe panel under
+              the bar — same surface and same open/close mechanics as the
+              edits panel above (lives inside .lp-nav so the nav's
+              onMouseLeave covers it; stays mounted, hidden with
+              opacity/visibility). Posts to the same /api/subscribe as
+              SubscribeModal, which Results and Browse still use. Hidden
+              below 900px along with the links. */}
+          <div className={`lp-join${joinOpen ? " lp-join-open" : ""}`} aria-hidden={!joinOpen}>
+            <div className="lp-join-inner">
+              {joinStatus === "sent" ? (
+                <>
+                  <div className="lp-join-title">
+                    Welcome to the Edit{joinFirst.trim() ? `, ${joinFirst.trim()}` : ""}
+                  </div>
+                  <p className="lp-join-body">
+                    New material edits, curated finds, and the occasional round-up — sent to {joinEmail}.
+                  </p>
+                </>
+              ) : (
+                <>
+                  {/* No "Join the Edit" heading — the nav link the cursor
+                      is already on says it; the panel goes straight to the
+                      pitch line and the form. */}
+                  <p className="lp-join-body">
+                    New material edits, curated finds, and the occasional round-up. No spam, unsubscribe
+                    anytime.
+                  </p>
+                  <form className="lp-join-form" onSubmit={handleJoinSubmit}>
+                    <div className="lp-join-row">
+                      <input
+                        type="text"
+                        autoComplete="given-name"
+                        placeholder="First name"
+                        className="lp-join-input"
+                        value={joinFirst}
+                        onChange={(e) => setJoinFirst(e.target.value)}
+                        onFocus={() => (joinFocusRef.current = true)}
+                        onBlur={() => (joinFocusRef.current = false)}
+                        tabIndex={joinOpen ? 0 : -1}
+                      />
+                      <input
+                        type="text"
+                        autoComplete="family-name"
+                        placeholder="Last name"
+                        className="lp-join-input"
+                        value={joinLast}
+                        onChange={(e) => setJoinLast(e.target.value)}
+                        onFocus={() => (joinFocusRef.current = true)}
+                        onBlur={() => (joinFocusRef.current = false)}
+                        tabIndex={joinOpen ? 0 : -1}
+                      />
+                    </div>
+                    <div className="lp-join-row">
+                      <input
+                        type="email"
+                        required
+                        autoComplete="email"
+                        placeholder="you@email.com"
+                        className="lp-join-input"
+                        value={joinEmail}
+                        onChange={(e) => setJoinEmail(e.target.value)}
+                        onFocus={() => (joinFocusRef.current = true)}
+                        onBlur={() => (joinFocusRef.current = false)}
+                        tabIndex={joinOpen ? 0 : -1}
+                      />
+                      <button
+                        type="submit"
+                        className="lp-join-btn"
+                        disabled={joinStatus === "sending"}
+                        tabIndex={joinOpen ? 0 : -1}
+                      >
+                        {joinStatus === "sending" ? "Joining…" : "Join"}
+                      </button>
+                    </div>
+                  </form>
+                  {joinStatus === "error" && <div className="lp-join-error">{joinError}</div>}
+                </>
+              )}
+            </div>
+          </div>
         </nav>
-        <div className="lp-hero-lockup">
-          The Interior <em>Index</em>
+        {/* The statement + quiz CTA sits centred on the hero now — same
+            copy as ever, moved up from its own section below (2026-08-03,
+            per Liz). The big title lockup that used to occupy this spot
+            moved into the centre of the nav bar (.lp-nav-logo, always
+            visible: cream over the photo, bark once the bar goes solid).
+            Fades in with the hero's load stagger, like the lockup did —
+            not a scroll reveal, it is above the fold. */}
+        {/* Load-in: the two title lines, the body and the CTA rise in a
+            slow soft stagger (lpRise), joining the hero's existing load
+            sequence — once, on load, then still. Each line is its own
+            span so the stagger can run per line. */}
+        <div className="lp-hero-statement">
+          <h1 className="lp-statement-title">
+            <span className="lp-rise" style={{ animationDelay: "0.55s" }}>
+              Your space, <em>curated</em>
+            </span>
+            <span className="lp-rise" style={{ animationDelay: "0.75s" }}>
+              by material
+            </span>
+          </h1>
+          <p className="lp-statement-body lp-rise" style={{ animationDelay: "1.05s" }}>
+            Tell us how you want your space to feel. We&rsquo;ll identify your material palette, curate the right
+            pieces, and connect you with finds that fit your aesthetic and your budget.
+          </p>
+          <button className="lp-cta lp-rise" style={{ animationDelay: "1.3s" }} onClick={onStart}>
+            Begin the style quiz
+          </button>
         </div>
         <span className="lp-hero-credit">The Stone Edit — Alessio Bench, honed travertine</span>
-      </section>
-
-      <section className="lp-statement">
-        <h1 className="lp-statement-title" data-reveal>
-          Your space, <em>curated</em>
-          <br />
-          by material
-        </h1>
-        <p className="lp-statement-body" data-reveal style={{ transitionDelay: "0.15s" }}>
-          Tell us how you want your space to feel. We&rsquo;ll identify your material palette, curate the right
-          pieces, and connect you with finds that fit your aesthetic and your budget.
-        </p>
-        <button className="lp-cta" data-reveal style={{ transitionDelay: "0.3s" }} onClick={onStart}>
-          Begin the style quiz
-        </button>
       </section>
 
       <section className="lp-rail">
@@ -263,8 +412,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           </Link>
         </div>
       </section>
-
-      {subscribeOpen && <SubscribeModal onClose={() => setSubscribeOpen(false)} />}
     </div>
   );
 }
+
