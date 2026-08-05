@@ -661,8 +661,18 @@ html:has(.lp) { background: #0B140D; }
   .lp-statement-claim br { display: none; }
   .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 18px 0 0; }
   .lp-cta { margin-top: 30px; }
-  .lp-hero-video, .lp-hero-img { object-position: 42% 30%; }
-  .lp-hero-scrim { background: linear-gradient(to bottom, rgba(7, 15, 10, 0.55) 0%, rgba(7, 15, 10, 0) 18%, rgba(7, 15, 10, 0) 40%, rgba(7, 15, 10, 0.5) 56%, rgba(7, 15, 10, 0.78) 76%, rgba(7, 15, 10, 0.85) 100%); }
+  /* Split hero (variant C, chosen by Liz 2026-08-05): the video occupies
+     the top ~56% of the first screen and FADES INTO solid canopy-dark
+     ground; the whole copy block — opener included — sits on that solid
+     ground, so legibility is structural, not scrim-dependent. Pulled
+     back this far, the entire house fits the phone frame: the video
+     reads as a framed picture window above the statement. */
+  .lp-hero { background: #0B140D; }
+  .lp-hero-video, .lp-hero-img { height: 56svh; object-position: 42% 30%; }
+  .lp-hero-scrim { height: 56svh; inset: 0 0 auto 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.55) 0%, rgba(7, 15, 10, 0) 22%, rgba(7, 15, 10, 0) 62%, rgba(11, 20, 13, 0.92) 96%, #0B140D 100%); }
+  .lp-statement-process { margin-top: 16px; }
+  .lp-cta { margin-top: 28px; }
+  .lp-hero-statement { bottom: 4svh; }
   .lp-band-overlay { padding: 2rem 1.4rem; }
 
   /* Past the hero the bar goes away entirely on a phone, rather than turning
