@@ -628,12 +628,14 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .lp-hero-credit { left: 1.4rem; }
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
   .lp-rail { padding-top: 4.5rem; }
-  /* On a phone the statement recentres inside the hero (clear of the
-     stacked bar and the credit line) and the video's framing shifts so
-     the house sits right of centre with the darker foliage behind the
-     copy — per Liz's landing-house-left reference, which keeps the
-     directional scrim on mobile rather than swapping to a vertical one. */
-  .lp-hero-statement { left: 50%; top: 46%; transform: translate(-50%, -50%); text-align: center; width: 86vw; max-width: none; }
+  /* Mobile composition (reworked 2026-08-05): the copy holds the darker
+     canopy in the upper half and the lit house is revealed in the lower
+     third, below the CTA — the glow becomes the reward under the button
+     instead of fighting the paragraph. The desktop's left-axis scrim
+     gives way to a top-weighted vertical one (there is no copy side on
+     a phone), fading out over the house and returning slightly at the
+     bottom edge for depth. */
+  .lp-hero-statement { left: 50%; top: 40%; transform: translate(-50%, -50%); text-align: center; width: 86vw; max-width: none; }
   .lp-statement-rule { margin-left: auto; margin-right: auto; }
   .lp-statement-body { max-width: 340px; margin-left: auto; margin-right: auto; }
   .lp-statement-claim { font-size: clamp(1.35rem, 6vw, 1.7rem); margin: 0 auto; }
@@ -641,7 +643,9 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
      claim wrap naturally below 900px. */
   .lp-statement-claim br { display: none; }
   .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 20px auto 0; }
-  .lp-hero-video, .lp-hero-img { object-position: 62% 46%; }
+  .lp-cta { margin-top: 44px; }
+  .lp-hero-video, .lp-hero-img { object-position: 56% 30%; }
+  .lp-hero-scrim { background: linear-gradient(to bottom, rgba(7, 15, 10, 0.66) 0%, rgba(7, 15, 10, 0.5) 40%, rgba(7, 15, 10, 0.16) 60%, rgba(7, 15, 10, 0) 76%, rgba(7, 15, 10, 0.4) 100%); }
   .lp-band-overlay { padding: 2rem 1.4rem; }
 
   /* Past the hero the bar goes away entirely on a phone, rather than turning

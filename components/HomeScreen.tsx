@@ -430,13 +430,16 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           {/* Liz's copy, 2026-08-05 ("go with this"). Brand name in caps
               inside a sentence-case claim, one woven italic. */}
           <h1 className="lp-statement-claim lp-rise" style={{ animationDelay: "0.8s" }}>
+            {/* The {" "} after each <br /> matters: the breaks are hidden
+                below 900px (phones wrap naturally), and without an explicit
+                space JSX leaves none between the segments — the words fuse
+                ("INDEXis a … peoplewho"). Caught on the 2026-08-05 mobile
+                pass. */}
             <span className="lp-claim-brand">
               The Interior <em>Index</em>
             </span>
-            <br />
-            is a design concierge for people
-            <br />
-            who value <em>thoughtful spaces</em>.
+            <br />{" "}is a design concierge for people
+            <br />{" "}who value <em>thoughtful spaces</em>.
           </h1>
           <p className="lp-statement-process lp-rise" style={{ animationDelay: "1s" }}>
             Beautiful homes are built through thoughtful choices. From everyday finds to heirloom pieces.
