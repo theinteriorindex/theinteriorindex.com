@@ -357,17 +357,35 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .lp { background: var(--warm-white); }
 
 /* -- Full-bleed hero with overlaid nav -- */
-.lp-hero { position: relative; height: 100vh; background: var(--bark); overflow: hidden; }
-/* No load fade on the photo itself — fading it in revealed the bark base
-   colour underneath first, so the whole page appeared to surface out of
-   brown (flagged by Liz 2026-08-03). The photo is simply there; only the
-   type over it fades. */
-.lp-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 62%; }
-/* Edge scrim as before, plus a soft centre ellipse behind the statement —
-   cream copy needs a touch of depth against the pale plaster mid-photo,
-   same legibility problem the old lockup had (which is why its italic was
-   walnut, not terracotta). Kept subtle so the photo still reads. */
-.lp-hero-scrim { position: absolute; inset: 0; background: radial-gradient(ellipse 66% 54% at 50% 50%, rgba(42, 31, 21, 0.3) 0%, rgba(42, 31, 21, 0.14) 55%, transparent 82%), linear-gradient(to bottom, rgba(42,31,21,0.34) 0%, transparent 22%, transparent 72%, rgba(42,31,21,0.3) 100%); pointer-events: none; }
+/* Base colour is a deep green-black matching the video's darkest foliage,
+   not bark — any first-paint flash before the video's first frame should
+   match the scene it becomes (same lesson as the old photo's no-load-fade
+   rule: the page must not appear to surface out of a wrong colour). */
+.lp-hero { position: relative; height: 100vh; background: #0B140D; overflow: hidden; }
+/* No load fade on the video — it is simply there; only the type over it
+   fades (no-load-fade rule, 2026-08-03). The .lp-hero-img is the poster
+   frame, hidden by default and shown only under prefers-reduced-motion
+   (block further down), where it replaces the video entirely. */
+.lp-hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* The one-shot lights-on intro plays above the ambient loop and hides
+   itself on ended (class toggled in HomeScreen); the two match at the
+   handoff frame, so the swap is invisible. */
+.lp-hero-video-intro { z-index: 1; }
+.lp-hero-video-hidden { visibility: hidden; }
+.lp-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+/* Directional scrim, one axis only (craft rule from the 2026-08-04 comp
+   sessions: never a symmetric veil over a directional image). The copy
+   sits in the empty left third, so the left-to-right gradient flattens
+   that side into an even field and reaches zero before the house; the
+   top/bottom pair holds the nav and the credit. Retuned green for this
+   scene. Built against the brightest moment in the loop — safe here
+   because the loop's luma is near-flat (YAVG 302–305/1023 across all 75
+   frames) and the window glow, the brightest point, never moves. */
+.lp-hero-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(7, 15, 10, 0.88) 0%, rgba(7, 15, 10, 0.72) 30%, rgba(7, 15, 10, 0.3) 48%, rgba(7, 15, 10, 0) 68%), linear-gradient(to bottom, rgba(7, 15, 10, 0.58) 0%, rgba(7, 15, 10, 0.1) 14%, rgba(7, 15, 10, 0) 24%, rgba(7, 15, 10, 0) 64%, rgba(7, 15, 10, 0.52) 100%); pointer-events: none; }
+/* z-index: 1 (same level as the intro video, later in the DOM) keeps the
+   scrim above BOTH videos at all times — without it the intro's z-index
+   stacked the video over the scrim, so the gradient only became visible
+   at the loop handoff and read as a pop (flagged by Liz 2026-08-04). */
 /* No load fade on the bar (removed 2026-08-03 with the other landing
    load fades) — it is simply there from the first frame. */
 .lp-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: baseline; padding: 2.2rem 4rem; border-bottom: 1px solid rgba(250, 247, 242, 0.28); background: transparent; transition: background-color 0.25s linear, border-bottom-color 0.25s linear; }
@@ -378,7 +396,16 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
    The italic Index stays walnut in both states — dark enough on the pale
    photo, warm enough on the warm-white bar. */
 .lp-nav-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: var(--font-cormorant), serif; font-size: clamp(1.05rem, 1.5vw, 1.35rem); letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); font-weight: 400; white-space: nowrap; transition: color 0.25s linear; pointer-events: none; }
-.lp-nav-logo em { font-style: italic; color: var(--walnut); }
+/* Over the video the walnut italic vanishes into the dark foliage — the
+   italic inherits cream while the bar is transparent (per Liz's
+   landing-house-left reference), returning to walnut once the bar goes
+   solid or a panel opens. The bar's type also carries a soft shadow over
+   the video, cleared in the solid states. */
+.lp-nav-logo em { font-style: italic; color: inherit; }
+.lp-nav-solid .lp-nav-logo em, .lp-nav-menuopen .lp-nav-logo em { color: var(--walnut); }
+.lp-nav-tag, .lp-nav-logo, .lp-nav-link { text-shadow: 0 1px 14px rgba(6, 14, 9, 0.75); }
+.lp-nav-solid .lp-nav-tag, .lp-nav-solid .lp-nav-logo, .lp-nav-solid .lp-nav-link,
+.lp-nav-menuopen .lp-nav-tag, .lp-nav-menuopen .lp-nav-logo, .lp-nav-menuopen .lp-nav-link { text-shadow: none; }
 /* Scrolled state: solid warm-white bar, dark text and logo */
 .lp-nav-solid { background: var(--warm-white); border-bottom-color: var(--linen); }
 .lp-nav-solid .lp-nav-logo { color: var(--bark); }
@@ -439,17 +466,54 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .lp-nav-link:hover { color: var(--cream); }
 /* (The big .lp-hero-lockup that sat centred on the hero photo is gone —
    the lockup moved into the nav bar, .lp-nav-logo above.) */
-.lp-hero-credit { position: absolute; left: 4rem; bottom: 1.8rem; z-index: 2; font-family: var(--font-cormorant), serif; font-style: italic; font-size: 0.95rem; color: rgba(250, 247, 242, 0.75); animation: lpFade 1.8s ease 0.9s both; }
+.lp-hero-credit { position: absolute; left: 4rem; bottom: 1.8rem; z-index: 2; font-family: var(--font-cormorant), serif; font-style: italic; font-size: 0.9rem; color: rgba(246, 241, 233, 0.86); text-shadow: 0 1px 12px rgba(6, 14, 9, 0.95); animation: lpFade 1.8s ease 0.9s both; }
 @keyframes lpFade { from { opacity: 0; } to { opacity: 1; } }
 
-/* -- Statement, centred on the hero -- */
-/* The statement + "Begin the style quiz" CTA moved from its own section
-   below the hero to the centre of the hero photo (2026-08-03, per Liz) —
-   same copy, same type scale, recoloured for the photograph: cream title
-   and body, walnut italic (terracotta is illegible on the pale plaster —
-   the old lockup learned this the hard way). Fades in on the hero's load
-   stagger like the lockup used to. */
-.lp-hero-statement { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; width: min(900px, calc(100% - 2.8rem)); text-align: center; }
+/* -- Statement, left on the hero -- */
+/* The statement + "Begin the style quiz" CTA sits in the empty left third
+   of the video frame, vertically centred — not centred on the image
+   (2026-08-04 video-hero pass; craft rule from the comp sessions: a
+   centred type block fights a directional composition, and the house
+   occupies the centre-right). Same copy as ever. Recoloured for the
+   scene: cream title and body, amber italic pulled from the lit window
+   (walnut vanishes on dark foliage — same class of lesson as terracotta
+   on pale plaster). Fades in on the hero's load stagger, as before. */
+.lp-hero-statement { position: absolute; left: 8%; top: 47%; transform: translateY(-50%); z-index: 2; width: min(780px, 84vw); text-align: left; }
+/* -- About-manifesto treatment (2026-08-04; refs: TMD / Sample House) -- */
+/* Refinement pass (2026-08-05, "premium, less rough"). The kicker is a
+   quiet overline now — it was competing with its own paragraph and
+   doubling the brand name that opens it. The manifesto is the statement:
+   finer tracking, taller leading, balanced rag (text-wrap), softened
+   cream (pure white reads harsh over the dark video), and a whisper of
+   shadow instead of a smear. */
+.lp-statement-kicker { font-family: var(--font-jost), sans-serif; font-weight: 300; text-transform: uppercase; letter-spacing: 0.42em; font-size: 0.72rem; line-height: 1.2; color: rgba(246, 241, 233, 0.66); text-shadow: 0 1px 10px rgba(6, 14, 9, 0.5); }
+/* Athena Calderone register (2026-08-05, per Liz's reference PDF): a
+   microscopic wide-tracked label, a deliberate pause of air, then the
+   body in Cormorant at ONE size across two short paragraphs (definition
+   / practice). Hierarchy comes from the label↔body contrast, the
+   whitespace and the paragraph break — no size-mixing inside the text.
+   One woven italic accent ("made of") in the window amber. */
+/* EyeSwoon headline register (2026-08-05, per Liz's refs): micro-label,
+   then the claim as display serif CAPS with lowercase italic words woven
+   mid-sentence — roman caps as architecture, italics as the hand. Single
+   ink (cream) throughout, like the references: the craft is in the form,
+   not in colour. Small Jost utility block for the process. */
+.lp-statement-label { font-family: var(--font-jost), sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0.48em; font-size: 0.6rem; color: rgba(246, 241, 233, 0.72); text-shadow: 0 1px 8px rgba(6, 14, 9, 0.6); }
+/* Claim large / process small (restored 2026-08-05 after the inversion
+   didn't work), with the size CONTRAST softened per Liz: claim capped
+   at 2.5rem instead of 3, process up to 0.95rem instead of 0.82. Liz's
+   casing in the claim (brand caps inside sentence case) is
+   authoritative — no text-transform. */
+.lp-statement-claim { margin: 0; max-width: 780px; font-family: var(--font-cormorant), serif; font-weight: 400; letter-spacing: 0.012em; font-size: clamp(1.7rem, 2.9vw, 2.8rem); line-height: 1.36; color: var(--cream); text-shadow: 0 2px 24px rgba(6, 14, 9, 0.55); }
+/* Line breaks in the claim are hand-set in the markup (per Liz) —
+   text-wrap: balance removed so it can't fight them. */
+.lp-statement-claim em { font-style: italic; letter-spacing: 0.01em; color: inherit; }
+/* The brand name inside the claim takes the wordmark's treatment —
+   uppercase with tracking toward the lockup's 0.2em — so the two brand
+   mentions on screen (nav + claim) read as one identity, not two fonts
+   (flagged by Liz 2026-08-05). */
+.lp-claim-brand { text-transform: uppercase; letter-spacing: 0.11em; }
+.lp-statement-process { margin: 46px 0 0; max-width: 480px; font-family: var(--font-jost), sans-serif; font-weight: 300; font-size: 1.05rem; letter-spacing: 0.035em; line-height: 2.05; color: rgba(246, 241, 233, 0.9); text-shadow: 0 1px 12px rgba(6, 14, 9, 0.7); text-wrap: pretty; }
 /* The statement's load-in: each piece (title line 1, title line 2, body,
    CTA) fades in on a slow soft curve, staggered by inline animation-delay
    in HomeScreen — the same once-on-load motion language as lpFade, never
@@ -463,11 +527,31 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   from { opacity: 0; }
   to { opacity: 1; }
 }
-.lp-statement-title { font-family: var(--font-cormorant), serif; font-weight: 300; font-size: clamp(2.4rem, 4.4vw, 4rem); line-height: 1.18; color: var(--cream); }
-.lp-statement-title em { font-style: italic; color: var(--walnut); }
-.lp-statement-body { margin: 2.4rem auto 0; max-width: 420px; font-size: 0.85rem; line-height: 1.9; color: rgba(250, 247, 242, 0.88); font-weight: 300; }
-.lp-cta { display: inline-block; margin-top: 3.2rem; font-family: var(--font-jost), sans-serif; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cream); background: none; border: none; border-bottom: 1px solid rgba(250, 247, 242, 0.65); padding: 0 0 0.5rem; cursor: pointer; font-weight: 300; transition: color 0.3s, border-color 0.3s; }
-.lp-cta:hover { color: var(--clay); border-color: var(--clay); }
+/* Register shift (2026-08-04, per Liz: the serif statement read "too
+   cinematic and shy" — refs: samplehouse.nyc, themillennialdecorator).
+   The statement is now a DECLARATION: uppercase Jost, heavy, near-
+   viewport scale, sitting on the image as a graphic layer rather than
+   floating in it as a caption. "curated" stays Cormorant italic
+   lowercase in the window amber — the one soft word in a hard sentence,
+   which is the brand's whole idea in a single typographic move. Body
+   stays tiny and utilitarian (Sample House contrast-of-scale: one
+   enormous statement, everything else small). */
+/* Back to the reference block layout (Liz's landing-house-left file) with
+   ONE change kept from the register exploration: the title is caps —
+   uppercase Cormorant in the wordmark's voice, modest tracking. Original
+   scale, hairline rule restored, small body, underline CTA. "curated"
+   stays lowercase italic in the window amber, mirroring the lockup's
+   italic "Index". */
+.lp-statement-title { font-family: var(--font-cormorant), serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0.12em; font-size: clamp(1.9rem, 3.6vw, 3.2rem); line-height: 1.22; color: var(--cream); text-shadow: 0 2px 30px rgba(6, 14, 9, 0.7); }
+.lp-statement-title em { font-style: italic; font-weight: 400; text-transform: lowercase; letter-spacing: 0.02em; font-size: 1.05em; color: #E9C48F; }
+/* Short hairline between title and body — from Liz's landing-house-left
+   reference. Fades in with the body (same delay). */
+.lp-statement-rule { display: block; width: 44px; height: 1px; background: rgba(246, 241, 233, 0.5); margin: 28px 0 0; }
+.lp-statement-body { margin: 24px 0 0; max-width: 420px; font-size: 0.8125rem; line-height: 2.05; letter-spacing: 0.035em; color: var(--cream); font-weight: 300; text-shadow: 0 1px 16px rgba(6, 14, 9, 0.85); }
+/* Solid cream-box CTA (per Liz, 2026-08-04; refined 08-05): exact brand
+   cream rather than white, generous proportions, tracked like the nav. */
+.lp-cta { display: inline-block; margin-top: 72px; font-family: var(--font-jost), sans-serif; font-size: 0.68rem; letter-spacing: 0.3em; text-transform: uppercase; color: #10180F; background: var(--cream); border: none; padding: 1.15rem 2.7rem 1.1rem; cursor: pointer; font-weight: 400; transition: background 0.3s; }
+.lp-cta:hover { background: #E9C48F; }
 
 /* -- Shop Our Edit rail -- */
 /* Top padding carries the breathing room the statement section used to
@@ -507,6 +591,10 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .lp-anim [data-reveal]:not(.lp-in) { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
+  /* The hero video gives way to its own poster frame — a still of the
+     same scene, so nothing else (scrim, statement, credit) changes. */
+  .lp-hero-video { display: none; }
+  .lp-hero-img { display: block; }
   .lp-hero-statement, .lp-hero-credit { animation: none; }
   .lp-rise { animation: none; opacity: 1; }
   .lp [data-reveal] { transition: none; }
@@ -540,10 +628,20 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .lp-hero-credit { left: 1.4rem; }
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
   .lp-rail { padding-top: 4.5rem; }
-  /* The statement is centred inside an 86vh hero with the stacked bar
-     above it — keep it clear of both the bar and the credit line. */
-  .lp-hero-statement { width: calc(100% - 2.8rem); }
-  .lp-statement-body { max-width: 340px; }
+  /* On a phone the statement recentres inside the hero (clear of the
+     stacked bar and the credit line) and the video's framing shifts so
+     the house sits right of centre with the darker foliage behind the
+     copy — per Liz's landing-house-left reference, which keeps the
+     directional scrim on mobile rather than swapping to a vertical one. */
+  .lp-hero-statement { left: 50%; top: 46%; transform: translate(-50%, -50%); text-align: center; width: 86vw; max-width: none; }
+  .lp-statement-rule { margin-left: auto; margin-right: auto; }
+  .lp-statement-body { max-width: 340px; margin-left: auto; margin-right: auto; }
+  .lp-statement-claim { font-size: clamp(1.35rem, 6vw, 1.7rem); margin: 0 auto; }
+  /* The hand-set desktop line breaks don't fit a phone measure — let the
+     claim wrap naturally below 900px. */
+  .lp-statement-claim br { display: none; }
+  .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 20px auto 0; }
+  .lp-hero-video, .lp-hero-img { object-position: 62% 46%; }
   .lp-band-overlay { padding: 2rem 1.4rem; }
 
   /* Past the hero the bar goes away entirely on a phone, rather than turning
@@ -585,6 +683,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   /* "Your space, curated" is the long line; let the title track the
      viewport below the clamp floor so it never kisses the edges of a
      narrow phone. */
-  .lp-statement-title { font-size: clamp(1.9rem, 7.2vw, 2.4rem); }
+  .lp-statement-title { font-size: clamp(1.6rem, 6.8vw, 2.1rem); }
 }
+
 

@@ -4,13 +4,30 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 // ── Landing page imagery ──
-// Both full-bleed photos are 2x Magnific upscales (precision/photo mode) of
-// styled Storage shots, uploaded to the product-images bucket as sitephoto1
-// (hero — Alessio Bench, 1168x1576) and sitephoto2 (band — August travertine
-// table, 1792x2400). The 1x originals ("Alessio Bench01.png" / "August
-// Rectangle...01.png") remain in Storage as product photos.
-const HERO_IMAGE =
-  "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/sitephoto1.png";
+// The hero is now a 3.1s video loop (Liz's generated house-in-jungle scene,
+// 2026-08-04) — transcoded from the 130MB ProRes master (site/landing
+// page/03.mov, kept as source of truth) to a 2.2MB 1920px H.264 with a
+// poster frame, both served as static assets from /public/landing/. Under
+// prefers-reduced-motion the video is hidden and the poster shows instead
+// (see globals.css). The old Alessio Bench hero photo (Storage sitephoto1)
+// is no longer referenced but remains in Storage.
+// The band photo is a 2x Magnific upscale of a styled Storage shot,
+// uploaded to the product-images bucket as sitephoto2 (August travertine
+// table, 1792x2400).
+// The lights-on moment (2026-08-04, Liz's 04_lightson.mov): the hero
+// plays a one-shot intro — the dark house holds for 1.3s, then the
+// interior lights ramp up over 0.8s (a crossfade between the two
+// pixel-aligned masters, which reads as the lights coming on), timed so
+// the ramp starts exactly as the CTA fades in (its 1.3s stagger delay).
+// On ended, playback hands off to a seamless ambient loop of the lit
+// state (rain and foliage only); the loop file is the lit master
+// rotated to start at the intro's exit frame, so the two match at the
+// seam. The moment plays once per visit — looping a light turning on
+// would read as a fault, not an arrival.
+const HERO_INTRO = "/landing/hero-intro-1920.mp4"; // dark → lit, plays once
+const HERO_LOOP = "/landing/hero-loop-1920.mp4"; // lit ambient, loops
+const HERO_POSTER = "/landing/hero-03-poster.jpg"; // dark — matches intro start
+const HERO_POSTER_LIT = "/landing/hero-04-poster.jpg"; // lit — reduced-motion still
 const BAND_IMAGE =
   "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/sitephoto2.png";
 
@@ -111,6 +128,10 @@ type JoinStatus = "idle" | "sending" | "sent" | "error";
 
 export default function HomeScreen({ onStart }: { onStart: () => void }) {
   const [navSolid, setNavSolid] = useState(false);
+  // Lights-on hero: the one-shot intro hides itself on ended, revealing
+  // the ambient loop underneath (see the hero markup below).
+  const [heroIntroDone, setHeroIntroDone] = useState(false);
+  const heroLoopRef = useRef<HTMLVideoElement | null>(null);
   const [editsOpen, setEditsOpen] = useState(false);
   // "Join the Edit" opens a dropdown panel under the bar (same surface as
   // the Shop Our Edit panel) with an inline subscribe form, instead of the
@@ -180,12 +201,52 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
 
   return (
     <div className="screen active lp" ref={rootRef}>
-      {/* Full-bleed hero: image edge-to-edge, nav floating transparently
-          over it, a small title lockup on the image (links to the featured
-          edit), and an italic credit bottom-left. Load-in is a slow
-          staggered fade (CSS animations) — after that, the hero is still. */}
+      {/* Full-bleed hero: video loop edge-to-edge, nav floating
+          transparently over it, and an italic credit bottom-left. The video
+          is decorative (aria-hidden); the poster doubles as the
+          reduced-motion still, toggled in CSS. Load-in is a slow staggered
+          fade on the type only (CSS animations) — the video is simply
+          there from the first frame, same no-load-fade rule as the photo
+          it replaced. */}
       <section className="lp-hero">
-        <img className="lp-hero-img" src={HERO_IMAGE} alt="Alessio Bench in honed travertine" />
+        {/* Loop sits underneath, preloaded and paused; the intro plays on
+            top and hides itself on ended, revealing the already-playing
+            loop at the matching frame. If JS or autoplay fails, the intro
+            freezes on its last frame — which equals the loop's first, so
+            the failure state is just the still, lit house. */}
+        <video
+          ref={heroLoopRef}
+          className="lp-hero-video"
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          onPlaying={() => setHeroIntroDone(true)}
+        >
+          <source src={HERO_LOOP} type="video/mp4" />
+        </video>
+        <video
+          className={`lp-hero-video lp-hero-video-intro${heroIntroDone ? " lp-hero-video-hidden" : ""}`}
+          autoPlay
+          muted
+          playsInline
+          poster={HERO_POSTER}
+          aria-hidden="true"
+          onEnded={() => {
+            // Do NOT hide the intro here — it stays frozen on its last
+            // frame until the loop underneath fires onPlaying (i.e. is
+            // actually rendering frames). Hiding synchronously opened a
+            // gap where neither video had a frame, flashing the hero's
+            // dark background + scrim (the "black gradient pop", flagged
+            // by Liz 2026-08-04). The freeze and the loop's first frame
+            // match, so the deferred handoff is invisible.
+            heroLoopRef.current?.play();
+          }}
+        >
+          <source src={HERO_INTRO} type="video/mp4" />
+        </video>
+        <img className="lp-hero-img" src={HERO_POSTER_LIT} alt="" aria-hidden="true" />
         <div className="lp-hero-scrim" />
         <nav
           className={`lp-nav${navSolid ? " lp-nav-solid" : ""}${
@@ -352,24 +413,42 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
             slow soft stagger (lpRise), joining the hero's existing load
             sequence — once, on load, then still. Each line is its own
             span so the stagger can run per line. */}
+        {/* The hero statement is now an about-manifesto (2026-08-04, per
+            Liz — refs: TMD's "THE TMD WAY...", Sample House's about
+            paragraph). The "Your space, curated by material" tagline is
+            replaced by a kicker + the same body copy promoted to display
+            treatment, with the quiz CTA as a solid white box. */}
+        {/* The manifesto in the EyeSwoon headline register (2026-08-05,
+            per Liz's references — Athena Calderone / EyeSwoon): a
+            microscopic tracked label, then the claim as display serif in
+            CAPS with lowercase italic words woven through mid-sentence
+            (the roman caps are the architecture, the italics the human
+            hand — "type treated like art"), then a small utility process
+            block and the cream CTA. */}
+        {/* No label — "About" removed per Liz (2026-08-05). */}
         <div className="lp-hero-statement">
-          <h1 className="lp-statement-title">
-            <span className="lp-rise" style={{ animationDelay: "0.55s" }}>
-              Your space, <em>curated</em>
+          {/* Liz's copy, 2026-08-05 ("go with this"). Brand name in caps
+              inside a sentence-case claim, one woven italic. */}
+          <h1 className="lp-statement-claim lp-rise" style={{ animationDelay: "0.8s" }}>
+            <span className="lp-claim-brand">
+              The Interior <em>Index</em>
             </span>
-            <span className="lp-rise" style={{ animationDelay: "0.75s" }}>
-              by material
-            </span>
+            <br />
+            is a design concierge for people
+            <br />
+            who value <em>thoughtful spaces</em>.
           </h1>
-          <p className="lp-statement-body lp-rise" style={{ animationDelay: "1.05s" }}>
-            Tell us how you want your space to feel. We&rsquo;ll identify your material palette, curate the right
-            pieces, and connect you with finds that fit your aesthetic and your budget.
+          <p className="lp-statement-process lp-rise" style={{ animationDelay: "1s" }}>
+            Beautiful homes are built through thoughtful choices. From everyday finds to heirloom pieces.
+            We curate across styles, brands, materials and budget. Helping you discover pieces worth bringing home.
           </p>
-          <button className="lp-cta lp-rise" style={{ animationDelay: "1.3s" }} onClick={onStart}>
+          <button className="lp-cta lp-rise" style={{ animationDelay: "1.25s" }} onClick={onStart}>
             Begin the style quiz
           </button>
         </div>
-        <span className="lp-hero-credit">The Stone Edit — Alessio Bench, honed travertine</span>
+        {/* No credit line on the video hero — removed per Liz (2026-08-04).
+            The .lp-hero-credit styles remain for any future hero that
+            carries one. */}
       </section>
 
       <section className="lp-rail">
@@ -415,4 +494,5 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
     </div>
   );
 }
+
 
