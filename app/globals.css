@@ -655,10 +655,11 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
   /* Left-axis copy on mobile too (per Liz 2026-08-05) — the same left
      alignment as the desktop layout, sitting in the bottom dark zone. */
   .lp-hero-statement { left: 7%; right: 7%; top: auto; bottom: max(5svh, 34px); transform: none; text-align: left; width: auto; max-width: none; }
-  .lp-statement-claim { font-size: clamp(1.35rem, 6vw, 1.7rem); margin: 0; }
-  /* The hand-set desktop line breaks don't fit a phone measure — let the
-     claim wrap naturally below 900px. */
-  .lp-statement-claim br { display: none; }
+  /* The hand-set breaks stay ON for mobile too (per Liz) — same three
+     lines as desktop: wordmark / "is a design concierge for people" /
+     "who value thoughtful spaces." Size tuned so the long middle line
+     fits a 360px phone without double-wrapping. */
+  .lp-statement-claim { font-size: clamp(1.25rem, 5.6vw, 1.6rem); margin: 0; }
   .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 18px 0 0; }
   .lp-cta { margin-top: 30px; }
   /* Split hero (variant C, forest masthead — Liz 2026-08-05): the
