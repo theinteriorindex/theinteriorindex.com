@@ -659,8 +659,10 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
      lines as desktop: wordmark / "is a design concierge for people" /
      "who value thoughtful spaces." Size tuned so the long middle line
      fits a 360px phone without double-wrapping. */
-  .lp-statement-claim { font-size: clamp(1.25rem, 5.6vw, 1.6rem); margin: 0; }
-  .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 18px 0 0; }
+  .lp-statement-claim { font-size: clamp(1.3rem, 6.5vw, 1.85rem); margin: 0; }
+  /* Process tucks inside the claim's measure — same rule as desktop:
+     the smaller text never extends past the larger. */
+  .lp-statement-process { font-size: 0.88rem; max-width: 320px; margin: 18px 0 0; }
   .lp-cta { margin-top: 30px; }
   /* Split hero (variant C, forest masthead — Liz 2026-08-05): the
      status-bar area and the header are FOREST — html goes canopy-dark
