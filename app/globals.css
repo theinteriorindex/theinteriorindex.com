@@ -624,7 +624,11 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
      navigates to /browse; the links, including Join the Edit, are hidden
      below 900px anyway). */
   .lp-menu, .lp-join { display: none; }
-  .lp-hero { height: 86vh; }
+  /* Full first screen on phones (was 86vh from the photo-hero era).
+     100svh = the small viewport, stable while iOS Safari's URL bar is
+     expanded — no layout jump when it collapses; vh fallback for older
+     browsers. */
+  .lp-hero { height: 100vh; height: 100svh; }
   .lp-hero-credit { left: 1.4rem; }
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
   .lp-rail { padding-top: 4.5rem; }
