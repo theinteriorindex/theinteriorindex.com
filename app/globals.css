@@ -661,15 +661,22 @@ html:has(.lp) { background: #0B140D; }
   .lp-statement-claim br { display: none; }
   .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 18px 0 0; }
   .lp-cta { margin-top: 30px; }
-  /* Split hero (variant C, chosen by Liz 2026-08-05): the video occupies
-     the top ~56% of the first screen and FADES INTO solid canopy-dark
-     ground; the whole copy block — opener included — sits on that solid
-     ground, so legibility is structural, not scrim-dependent. Pulled
-     back this far, the entire house fits the phone frame: the video
-     reads as a framed picture window above the statement. */
+  /* Split hero (variant C + cream banner, Liz 2026-08-05): a solid cream
+     header band tops the page — extending up through the iOS status-bar
+     area (html background below) so the clock sits on cream — with the
+     video clip framed beneath it, fading into solid canopy-dark ground
+     that carries the whole copy block. Legibility is structural, not
+     scrim-dependent, and the pulled-back crop fits the entire house. */
+  html:has(.lp) { background: var(--warm-white); }
+  .lp-nav { background: var(--warm-white); border-bottom-color: var(--linen); }
+  .lp-nav-tag { color: var(--stone); text-shadow: none; }
+  .lp-nav-logo { color: var(--bark); text-shadow: none; }
+  .lp-nav-logo em { color: var(--walnut); }
   .lp-hero { background: #0B140D; }
-  .lp-hero-video, .lp-hero-img { height: 56svh; object-position: 42% 30%; }
-  .lp-hero-scrim { height: 56svh; inset: 0 0 auto 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.55) 0%, rgba(7, 15, 10, 0) 22%, rgba(7, 15, 10, 0) 62%, rgba(11, 20, 13, 0.92) 96%, #0B140D 100%); }
+  /* The video sits behind the opaque cream bar, so the visible clip
+     starts at the bar's lower edge; height compensated accordingly. */
+  .lp-hero-video, .lp-hero-img { height: 60svh; object-position: 42% 30%; }
+  .lp-hero-scrim { height: 60svh; inset: 0 0 auto 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.2) 0%, rgba(7, 15, 10, 0) 22%, rgba(7, 15, 10, 0) 62%, rgba(11, 20, 13, 0.92) 96%, #0B140D 100%); }
   .lp-statement-process { margin-top: 16px; }
   .lp-cta { margin-top: 28px; }
   .lp-hero-statement { bottom: 4svh; }
