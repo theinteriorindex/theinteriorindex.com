@@ -360,7 +360,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
    above the hero and in overscroll, so the video reads edge-to-edge
    instead of a cream strip behind the clock (Liz, 2026-08-05). Scoped
    via :has so the quiz and every other screen keep the warm ground. */
-html:has(.lp) { background: #0B140D; }
+html:has(.lp), body:has(.lp) { background: #0B140D; }
 
 /* -- Full-bleed hero with overlaid nav -- */
 /* Base colour is a deep green-black matching the video's darkest foliage,
@@ -668,7 +668,7 @@ html:has(.lp) { background: #0B140D; }
      solid canopy-dark ground that carries the whole copy block —
      legibility is structural, not scrim-dependent, and the pulled-back
      crop fits the entire house in frame. */
-  html:has(.lp) { background: #0B140D; }
+  html:has(.lp), body:has(.lp) { background: #0B140D; }
   .lp-hero { background: #0B140D; }
   .lp-hero-video, .lp-hero-img { height: 56svh; object-position: 42% 30%; }
   .lp-hero-scrim { height: 56svh; inset: 0 0 auto 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.55) 0%, rgba(7, 15, 10, 0) 22%, rgba(7, 15, 10, 0) 62%, rgba(11, 20, 13, 0.92) 96%, #0B140D 100%); }
