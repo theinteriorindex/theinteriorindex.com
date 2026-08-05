@@ -132,6 +132,25 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
   // the ambient loop underneath (see the hero markup below).
   const [heroIntroDone, setHeroIntroDone] = useState(false);
   const heroLoopRef = useRef<HTMLVideoElement | null>(null);
+  // iOS Safari tints the status-bar/clock area from the theme-color
+  // meta, NOT from the page background — so the forest chrome has to be
+  // set here while the landing screen is mounted, and restored on
+  // unmount (quiz/results keep their warm chrome). Liz, 2026-08-05.
+  useEffect(() => {
+    let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    const created = !meta;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    const prev = meta.content;
+    meta.content = "#0B140D";
+    return () => {
+      if (created) meta?.remove();
+      else if (meta) meta.content = prev;
+    };
+  }, []);
   const [editsOpen, setEditsOpen] = useState(false);
   // "Join the Edit" opens a dropdown panel under the bar (same surface as
   // the Shop Our Edit panel) with an inline subscribe form, instead of the
