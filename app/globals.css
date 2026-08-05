@@ -355,6 +355,12 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
    .lp- so quiz/results/browse are untouched. */
 
 .lp { background: var(--warm-white); }
+/* While the landing screen is mounted, the document behind it goes
+   canopy-dark — this is what iOS Safari paints in the status-bar area
+   above the hero and in overscroll, so the video reads edge-to-edge
+   instead of a cream strip behind the clock (Liz, 2026-08-05). Scoped
+   via :has so the quiz and every other screen keep the warm ground. */
+html:has(.lp) { background: #0B140D; }
 
 /* -- Full-bleed hero with overlaid nav -- */
 /* Base colour is a deep green-black matching the video's darkest foliage,
@@ -632,24 +638,25 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .lp-hero-credit { left: 1.4rem; }
   .lp-rail-grid { grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
   .lp-rail { padding-top: 4.5rem; }
-  /* Mobile composition (reworked 2026-08-05): the copy holds the darker
-     canopy in the upper half and the lit house is revealed in the lower
-     third, below the CTA — the glow becomes the reward under the button
-     instead of fighting the paragraph. The desktop's left-axis scrim
-     gives way to a top-weighted vertical one (there is no copy side on
-     a phone), fading out over the house and returning slightly at the
-     bottom edge for depth. */
-  .lp-hero-statement { left: 50%; top: 40%; transform: translate(-50%, -50%); text-align: center; width: 86vw; max-width: none; }
+  /* Mobile composition (v2, 2026-08-05 per Liz on-device review): the
+     copy sits DOWN in the dark lower foliage — bottom-anchored — so the
+     house and its lit glass get the clear middle of the frame to
+     themselves between the nav and the copy. The scrim is
+     bottom-weighted to back the copy there, with a light top band for
+     the bar and a clear window over the house. On tall phones the
+     16:9 video is height-fit (no vertical crop), so only the x of
+     object-position matters. */
+  .lp-hero-statement { left: 50%; top: auto; bottom: max(5svh, 34px); transform: translateX(-50%); text-align: center; width: 86vw; max-width: none; }
   .lp-statement-rule { margin-left: auto; margin-right: auto; }
   .lp-statement-body { max-width: 340px; margin-left: auto; margin-right: auto; }
   .lp-statement-claim { font-size: clamp(1.35rem, 6vw, 1.7rem); margin: 0 auto; }
   /* The hand-set desktop line breaks don't fit a phone measure — let the
      claim wrap naturally below 900px. */
   .lp-statement-claim br { display: none; }
-  .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 20px auto 0; }
-  .lp-cta { margin-top: 44px; }
+  .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 18px auto 0; }
+  .lp-cta { margin-top: 30px; }
   .lp-hero-video, .lp-hero-img { object-position: 56% 30%; }
-  .lp-hero-scrim { background: linear-gradient(to bottom, rgba(7, 15, 10, 0.66) 0%, rgba(7, 15, 10, 0.5) 40%, rgba(7, 15, 10, 0.16) 60%, rgba(7, 15, 10, 0) 76%, rgba(7, 15, 10, 0.4) 100%); }
+  .lp-hero-scrim { background: linear-gradient(to bottom, rgba(7, 15, 10, 0.55) 0%, rgba(7, 15, 10, 0) 18%, rgba(7, 15, 10, 0) 40%, rgba(7, 15, 10, 0.5) 56%, rgba(7, 15, 10, 0.78) 76%, rgba(7, 15, 10, 0.85) 100%); }
   .lp-band-overlay { padding: 2rem 1.4rem; }
 
   /* Past the hero the bar goes away entirely on a phone, rather than turning
