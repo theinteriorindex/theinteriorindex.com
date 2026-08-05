@@ -620,7 +620,13 @@ html:has(.lp) { background: #0B140D; }
      bar), the bar is the only place the name appears on a phone, so the
      logo comes out of its absolute centring into the flow, above the
      tagline. */
-  .lp-nav { justify-content: center; flex-direction: column; align-items: center; gap: 0.45rem; padding-top: 1.5rem; padding-bottom: 1.1rem; }
+  /* On mobile the bar scrolls away WITH the page (per Liz 2026-08-05) —
+     position: absolute anchors it to the hero's top instead of the
+     viewport, so it rides up naturally on scroll. This also sidesteps
+     the iOS fixed-bar clipping strip that the fade-out rules further
+     down were working around; those are now a no-op by the time they
+     fire (the bar is already off-screen). */
+  .lp-nav { position: absolute; justify-content: center; flex-direction: column; align-items: center; gap: 0.45rem; padding-top: 1.5rem; padding-bottom: 1.1rem; }
   .lp-nav-links { display: none; }
   /* Smaller than the desktop tagline: it wants to read as a quiet caption
      under the lockup rather than a headline. */
