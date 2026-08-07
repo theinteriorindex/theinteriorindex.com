@@ -502,38 +502,36 @@ export async function getEditCatalogFromDB(
   const isWalnut = Boolean(material && material.toLowerCase().includes("walnut"));
   const isOak = Boolean(material && material.toLowerCase().includes("oak"));
 
-  // Home Office is deliberately EXCLUDED from this branch. Choosing the
-  // room is what decides the shape of the results; picking "Lighting" as
-  // the priority piece only decides which tab leads. Before this, Home
-  // Office + Lighting fell in here and got the room-agnostic Lamps /
-  // Pendants split instead of Home Office's own Desk / Seating / Storage /
-  // Lighting tabs — the room selection was silently overridden by the
-  // priority. It now falls through to the `room === "Home Office"` branch
-  // below, which fills Lighting from the Light Edit with the task lamps
-  // (sub_category = "Home Office") first. The matching guard lives in
-  // ResultsScreen's orderedTabs — change both together.
-  // NOTE: Bedroom has the same one-combined-Lighting-tab shape and is still
-  // overridden here. Left as-is because it wasn't asked for, but it is the
-  // same latent issue.
-  if (isLighting && room !== "Home Office") {
-    // The Light Edit is a room-agnostic universal lighting collection —
-    // always split into Lamps / Pendants regardless of chosen room.
-    // Still merge in Throws when the actual room is Living Room, so picking
-    // "Lighting" as the priority piece doesn't drop the supporting edit.
-    // Ordering is still room-aware even though the tab split isn't, so any
-    // room with tagged inventory leads with its own pieces.
+  if (isLighting) {
+    // Picking "Lighting" as the priority piece decides which tab LEADS. It
+    // does not decide what the results are — the room does. This branch used
+    // to return the standalone Light Edit and nothing else, so a Bedroom
+    // visitor who said lighting mattered most lost Bedframe / Bench / Side
+    // Tables entirely, and a Dining Room one lost the tables and chairs.
+    // Answering the last question more specifically gave you LESS.
+    //
+    // Now: build the room's normal edit first (recursing with no priority,
+    // which makes isLighting false and terminates), then lead with lighting.
+    const base = await getEditCatalogFromDB(material, room, "", budget);
+
+    // Bedroom and Home Office already carry a single combined "Lighting"
+    // tab, filled from the Light Edit by their own branches below (with
+    // subCategoryFirst applied, so room-tagged lamps lead). Nothing to
+    // merge — the tab already exists and ResultsScreen will float it to
+    // the front. Living Room and Dining Room have no such tab, so they get
+    // the room-agnostic Lamps / Pendants split merged in on top of their
+    // own tabs instead.
+    if (getRoomTabs(room).includes("Lighting")) return base;
+
     const lightRows = subCategoryFirst(await fetchView("the_light_edit"), room);
     const grouped = groupByTab(lightRows, "Living Room", budget);
-    const withLighting = await withThrows(grouped, room, budget);
     // Both tabs always show, even if the current budget filter happens to
     // leave one of them empty (e.g. neither pendant is tagged "Under
     // $200") — same reasoning as fillRoomTabs below: a tab disappearing
     // outright reads as "this edit has no pendants" rather than "none at
     // this budget," and EmptyTabNotify already renders a graceful
     // coming-soon state for the zero-results case.
-    if (!withLighting["Lamps"]) withLighting["Lamps"] = [];
-    if (!withLighting["Pendants"]) withLighting["Pendants"] = [];
-    return withLighting;
+    return { ...base, Lamps: grouped["Lamps"] || [], Pendants: grouped["Pendants"] || [] };
   }
 
   if (isTableSetting) {
@@ -556,7 +554,7 @@ export async function getEditCatalogFromDB(
     // Edit for that tab specifically — real Bedroom lighting products, if
     // added later, take priority since we only fill in when empty.
     if (!grouped["Lighting"] || grouped["Lighting"].length === 0) {
-      grouped["Lighting"] = filterByBudget(lightRows, budget).map(toProduct);
+      grouped["Lighting"] = filterByBudget(subCategoryFirst(lightRows, "Bedroom"), budget).map(toProduct);
     }
     return fillRoomTabs(grouped, room);
   }

@@ -57,11 +57,18 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
 
   const orderedTabs = useMemo(() => {
     const tabs = Object.keys(products);
-    // Home Office keeps its own tab set even when Lighting is the priority
-    // piece — the room decides the shape, the priority only decides which
-    // tab leads (getPriorityCategory maps it to Home Office's "Lighting").
-    // Mirrors the same exclusion in getEditCatalogFromDB — change both.
-    if (isLighting && room !== "Home Office") return ["Lamps", "Pendants"].filter((t) => products[t]);
+    // Lighting LEADS, it doesn't replace. Every room keeps its own tabs as
+    // auxiliaries behind the lighting ones — a Bedroom visitor who picks
+    // Lighting still gets Bedframe / Bench / Side Tables underneath, a
+    // Dining Room one still gets tables and chairs. Bedroom and Home Office
+    // surface one combined "Lighting" tab; Living Room and Dining Room get
+    // the Lamps / Pendants split. Mirrors getEditCatalogFromDB's isLighting
+    // branch — change both together.
+    if (isLighting) {
+      const lightFirst = ["Lighting", "Lamps", "Pendants"].filter((t) => products[t]);
+      const rest = getRoomTabs(room).filter((t) => products[t] && !lightFirst.includes(t));
+      return [...lightFirst, ...rest];
+    }
     if (isTableSetting) return ["Tabletop"].filter((t) => products[t]);
 
     const roomOrder = getRoomTabs(room);
@@ -90,13 +97,12 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
     setPageIndex((p) => p + 1);
   }
 
-  // Home Office keeps its room label and copy: it now renders its own edit
-  // with Lighting leading, not the standalone Light Edit.
-  const isLightEditView = isLighting && room !== "Home Office";
-  const editLabel = isLightEditView ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${room} Edit`;
+  // No room renders the standalone Light Edit any more — picking Lighting
+  // keeps you in your own room's edit, so the label stays room-named.
+  const editLabel = isTableSetting ? "The Table Setting Edit" : `Your ${room} Edit`;
 
   let subCopy = "Curated finds based on your material profile.";
-  if (isLightEditView) subCopy = "Lamps and pendants — the mood pieces that finish a room.";
+  if (isLighting) subCopy = "Lighting first — the mood pieces that finish a room, with the rest of your edit below.";
   else if (isTableSetting) subCopy = "Plates, napkins, and the finishing touches for the dining table.";
   else if (isDiningRoom) subCopy = "Chairs and tables curated for your dining room.";
   else if (room === "Bedroom") subCopy = "Bedframes, benches, and nightstands curated for a quiet, considered bedroom.";
