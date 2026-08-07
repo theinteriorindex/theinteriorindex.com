@@ -279,14 +279,13 @@ function resolveMaterialKey(material: string): string {
 // them in from a universal or cross-material source rather than filtering
 // by the room+material combination: Living Room's Lamps and Throws,
 // Dining Room's Tabletop, and Bedroom's Lighting (falls back to the
-// universal Light Edit whenever no room-tagged product fills it). Home
-// Office's Lighting has no such fallback, so it's deliberately left out —
-// it can genuinely be empty for a given material.
+// universal Light Edit whenever no room-tagged product fills it), and Home
+// Office's Lighting (same Light Edit fallback — see getEditCatalogFromDB).
 const ALWAYS_AVAILABLE_CATEGORIES: Record<string, string[]> = {
   "Living Room": ["Lamps", "Throws"],
   "Dining Room": ["Tabletop"],
   Bedroom: ["Lighting"],
-  "Home Office": [],
+  "Home Office": ["Lighting"],
 };
 
 // Powers the "smart-linked" priority-piece quiz question: once a material
@@ -531,7 +530,23 @@ export async function getEditCatalogFromDB(
   }
 
   if (room === "Home Office") {
-    const grouped = groupByTab(await fetchRoomMaterialRows("Home Office", isWalnut ? "Walnut" : "Oak"), "Home Office", budget);
+    const [officeRows, lightRows] = await Promise.all([
+      fetchRoomMaterialRows("Home Office", isWalnut ? "Walnut" : "Oak"),
+      fetchView("the_light_edit"),
+    ]);
+    const grouped = groupByTab(officeRows, "Home Office", budget);
+    // Same fallback as Bedroom above: no Home Office-tagged Lighting product
+    // exists, so this tab would otherwise always be empty for the Desk /
+    // Seating / Storage priorities (picking "Lighting" as the priority never
+    // reaches here — the isLighting branch at the top catches it first).
+    // Real Home Office lighting, if added later, takes priority since we only
+    // fill in when empty. Note the Light Edit rows are assigned straight to
+    // the Lighting tab rather than passed through groupByTab: Home Office
+    // keeps one combined Lighting tab, whereas groupByTab would split them
+    // into Lamps / Pendants tabs this room doesn't have.
+    if (!grouped["Lighting"] || grouped["Lighting"].length === 0) {
+      grouped["Lighting"] = filterByBudget(lightRows, budget).map(toProduct);
+    }
     return fillRoomTabs(grouped, room);
   }
 
