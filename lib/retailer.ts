@@ -24,6 +24,9 @@ const RETAILER_HOSTS: Record<string, string> = {
   "pratesi.com": "Pratesi",
   "lumens.com": "Lumens",
   "gohar.world": "Gohar World",
+  "quietstonestudio.com": "Quietstone Studio",
+  "vetro.dk": "Vetro",
+  "virginiasin.com": "SIN",
 };
 
 export function extractHostname(link: string): string | null {
