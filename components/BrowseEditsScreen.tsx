@@ -12,7 +12,7 @@ type Props = {
   onHome: () => void;
 };
 
-const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Chrome", "Ceramic", "Lighting"];
+const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Chrome", "Ceramic", "Glass", "Lighting"];
 
 // "Discover more" accumulates: each click appends the next PREVIEW_COUNT
 // items below what's already shown, same pattern as ResultsScreen's product
