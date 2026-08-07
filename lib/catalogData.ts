@@ -13,6 +13,10 @@ type ViewRow = {
   id: string;
   name: string;
   category: string;
+  // Optional refinement under `category`, null on almost every row. Used
+  // only to ORDER results within an edit, never to filter a product out of
+  // it — see subCategoryFirst below.
+  sub_category: string | null;
   price: number | null;
   budget_tier: string | null;
   description: string | null;
@@ -189,7 +193,7 @@ function materialValues(materialKey: string): string[] {
 async function fetchRoomMaterialRows(room: string, materialKey: string): Promise<ViewRow[]> {
   const { data: products, error } = await supabase
     .from("products")
-    .select("id, name, category, price, budget_tier, description, affiliate_url, sort_order, is_active")
+    .select("id, name, category, sub_category, price, budget_tier, description, affiliate_url, sort_order, is_active")
     .eq("room", room)
     .in("material", materialValues(materialKey))
     .eq("is_active", true)
@@ -225,7 +229,7 @@ async function fetchRoomMaterialRows(room: string, materialKey: string): Promise
 async function fetchTabletopEdit(): Promise<ViewRow[]> {
   const { data: products, error } = await supabase
     .from("products")
-    .select("id, name, category, price, budget_tier, description, affiliate_url, sort_order, is_active")
+    .select("id, name, category, sub_category, price, budget_tier, description, affiliate_url, sort_order, is_active")
     .eq("room", "Dining Room")
     .in("material", ["Ceramic", "Natural Fibers"])
     .in("category", ["Side Plate", "Dinner Plate", "Dessert Plate", "Napkin", "Tablecloth"])
@@ -377,6 +381,18 @@ async function withStoneDiningChairs(base: ProductGroup, budget?: string): Promi
   return { ...base, "Dining Chairs": grouped["Dining Chairs"] || [] };
 }
 
+// Floats the rows carrying a given `sub_category` to the front, leaving
+// every other row in its existing sort_order behind them. Nothing is
+// dropped — a sub-category is a within-edit ordering hint, not a filter, so
+// the full edit still renders underneath. Used so Home Office results lead
+// with the task lamps (sub_category = "Home Office") while those same lamps
+// keep their normal place in The Light Edit for every other room.
+function subCategoryFirst(rows: ViewRow[], subCategory: string): ViewRow[] {
+  const first = rows.filter((r) => r.sub_category === subCategory);
+  if (first.length === 0) return rows;
+  return [...first, ...rows.filter((r) => r.sub_category !== subCategory)];
+}
+
 // Merges the Lamps tab into a Living Room result for any material path
 // that doesn't already have one. Walnut and Oak already get Lamps via
 // their own cross-material mix below; this covers Stone, Natural Fibers,
@@ -486,12 +502,28 @@ export async function getEditCatalogFromDB(
   const isWalnut = Boolean(material && material.toLowerCase().includes("walnut"));
   const isOak = Boolean(material && material.toLowerCase().includes("oak"));
 
-  if (isLighting) {
+  // Home Office is deliberately EXCLUDED from this branch. Choosing the
+  // room is what decides the shape of the results; picking "Lighting" as
+  // the priority piece only decides which tab leads. Before this, Home
+  // Office + Lighting fell in here and got the room-agnostic Lamps /
+  // Pendants split instead of Home Office's own Desk / Seating / Storage /
+  // Lighting tabs — the room selection was silently overridden by the
+  // priority. It now falls through to the `room === "Home Office"` branch
+  // below, which fills Lighting from the Light Edit with the task lamps
+  // (sub_category = "Home Office") first. The matching guard lives in
+  // ResultsScreen's orderedTabs — change both together.
+  // NOTE: Bedroom has the same one-combined-Lighting-tab shape and is still
+  // overridden here. Left as-is because it wasn't asked for, but it is the
+  // same latent issue.
+  if (isLighting && room !== "Home Office") {
     // The Light Edit is a room-agnostic universal lighting collection —
     // always split into Lamps / Pendants regardless of chosen room.
     // Still merge in Throws when the actual room is Living Room, so picking
     // "Lighting" as the priority piece doesn't drop the supporting edit.
-    const grouped = groupByTab(await fetchView("the_light_edit"), "Living Room", budget);
+    // Ordering is still room-aware even though the tab split isn't, so any
+    // room with tagged inventory leads with its own pieces.
+    const lightRows = subCategoryFirst(await fetchView("the_light_edit"), room);
+    const grouped = groupByTab(lightRows, "Living Room", budget);
     const withLighting = await withThrows(grouped, room, budget);
     // Both tabs always show, even if the current budget filter happens to
     // leave one of them empty (e.g. neither pendant is tagged "Under
@@ -536,16 +568,21 @@ export async function getEditCatalogFromDB(
     ]);
     const grouped = groupByTab(officeRows, "Home Office", budget);
     // Same fallback as Bedroom above: no Home Office-tagged Lighting product
-    // exists, so this tab would otherwise always be empty for the Desk /
-    // Seating / Storage priorities (picking "Lighting" as the priority never
-    // reaches here — the isLighting branch at the top catches it first).
-    // Real Home Office lighting, if added later, takes priority since we only
-    // fill in when empty. Note the Light Edit rows are assigned straight to
+    // exists, so this tab would otherwise always be empty. This now covers
+    // the Lighting priority too — that branch used to intercept it, and no
+    // longer does for this room. Real Home Office lighting, if added later,
+    // takes priority since we only fill in when empty. Note the Light Edit rows are assigned straight to
     // the Lighting tab rather than passed through groupByTab: Home Office
     // keeps one combined Lighting tab, whereas groupByTab would split them
     // into Lamps / Pendants tabs this room doesn't have.
+    //
+    // Order within that tab leads with the lamps tagged sub_category =
+    // "Home Office" (the task lamps), then the rest of the Light Edit in
+    // its normal sort_order. The whole edit still shows — this is an
+    // ordering hint, not a filter — but the desk-appropriate pieces are on
+    // the first page instead of behind twenty floor lamps and chandeliers.
     if (!grouped["Lighting"] || grouped["Lighting"].length === 0) {
-      grouped["Lighting"] = filterByBudget(lightRows, budget).map(toProduct);
+      grouped["Lighting"] = filterByBudget(subCategoryFirst(lightRows, "Home Office"), budget).map(toProduct);
     }
     return fillRoomTabs(grouped, room);
   }

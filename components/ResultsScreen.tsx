@@ -57,7 +57,11 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
 
   const orderedTabs = useMemo(() => {
     const tabs = Object.keys(products);
-    if (isLighting) return ["Lamps", "Pendants"].filter((t) => products[t]);
+    // Home Office keeps its own tab set even when Lighting is the priority
+    // piece — the room decides the shape, the priority only decides which
+    // tab leads (getPriorityCategory maps it to Home Office's "Lighting").
+    // Mirrors the same exclusion in getEditCatalogFromDB — change both.
+    if (isLighting && room !== "Home Office") return ["Lamps", "Pendants"].filter((t) => products[t]);
     if (isTableSetting) return ["Tabletop"].filter((t) => products[t]);
 
     const roomOrder = getRoomTabs(room);
@@ -86,10 +90,13 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
     setPageIndex((p) => p + 1);
   }
 
-  const editLabel = isLighting ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${room} Edit`;
+  // Home Office keeps its room label and copy: it now renders its own edit
+  // with Lighting leading, not the standalone Light Edit.
+  const isLightEditView = isLighting && room !== "Home Office";
+  const editLabel = isLightEditView ? "The Light Edit" : isTableSetting ? "The Table Setting Edit" : `Your ${room} Edit`;
 
   let subCopy = "Curated finds based on your material profile.";
-  if (isLighting) subCopy = "Lamps and pendants — the mood pieces that finish a room.";
+  if (isLightEditView) subCopy = "Lamps and pendants — the mood pieces that finish a room.";
   else if (isTableSetting) subCopy = "Plates, napkins, and the finishing touches for the dining table.";
   else if (isDiningRoom) subCopy = "Chairs and tables curated for your dining room.";
   else if (room === "Bedroom") subCopy = "Bedframes, benches, and nightstands curated for a quiet, considered bedroom.";
