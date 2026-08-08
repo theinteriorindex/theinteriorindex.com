@@ -174,7 +174,15 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .result-card-body { font-size: 0.8rem; color: var(--text-mid); line-height: 1.7; font-weight: 300; }
 .material-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .material-tag { background: var(--sand); padding: 0.3rem 0.75rem; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--walnut); font-weight: 400; }
-.products-section { background: var(--cream); padding: 3rem 4rem; border-top: 1px solid var(--linen); }
+/* Background matches the page (--warm-white) rather than --cream: the old
+   cream read as a visible band against the warm-white page. The content is
+   inset via max() rather than a max-width wrapper, so the background still
+   runs edge to edge and no band reappears. Below ~1568px the max() resolves
+   to the original 4rem, so laptops are unchanged. */
+.products-section { background: var(--warm-white); padding: 3rem 4rem;
+  padding-left: max(4rem, calc((100% - 1440px) / 2));
+  padding-right: max(4rem, calc((100% - 1440px) / 2));
+  border-top: 1px solid var(--linen); }
 .products-eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 0.5rem; }
 .products-title { font-family: var(--font-cormorant), serif; font-size: 2rem; font-weight: 300; color: var(--bark); margin-bottom: 0.5rem; }
 .products-sub { font-size: 0.82rem; color: var(--text-light); margin-bottom: 2rem; font-weight: 300; }
@@ -203,7 +211,6 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .card-arrow.prev { left: 7px; }
 .card-arrow.next { right: 7px; }
 .product-card:hover .card-arrow { opacity: 1; }
-.affiliate-note { font-size: 0.68rem; color: var(--text-light); margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--linen); font-weight: 300; font-style: italic; }
 .results-actions { padding: 2rem 4rem 3rem; background: var(--warm-white); display: flex; gap: 1rem; border-top: 1px solid var(--linen); }
 .chat-container { flex: 1; display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 80px); }
 .chat-sidebar { background: var(--cream); border-right: 1px solid var(--linen); padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
@@ -244,6 +251,31 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .browse-tag:hover { border-color: var(--clay); color: var(--terracotta); }
 .browse-tag.active { background: var(--bark); border-color: var(--bark); color: var(--cream); }
 .browse-tag-notify { border-style: dashed; }
+/* Secondary (category) chips read as quiet text, not buttons — the material
+   row above keeps its bordered chips so the two levels stay distinguishable.
+   Borderless means the active state can't rely on a filled box, so it uses
+   the terracotta accent plus a hairline underline instead. */
+/* The gap above this row is .browse-toolbar's 2.5rem bottom margin, not
+   anything on the rows themselves — collapse it only when the category
+   row is actually present, so the toolbar keeps its normal spacing when
+   no material is selected and the row is absent. */
+.browse-toolbar:has(+ .browse-tags-secondary) { margin-bottom: 0.6rem; }
+.browse-tags-secondary { gap: 1.25rem; }
+.browse-tags-secondary .browse-tag {
+  border: none;
+  background: transparent;
+  padding: 0.2rem 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: var(--text-mid);
+  border-bottom: 1px solid transparent;
+}
+.browse-tags-secondary .browse-tag:hover { color: var(--terracotta); border-bottom-color: transparent; }
+.browse-tags-secondary .browse-tag.active {
+  background: transparent;
+  color: var(--terracotta);
+  border-bottom-color: var(--clay);
+}
 .browse-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.5rem 0 2.5rem; }
 .browse-search { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--linen); background: var(--cream); padding: 0.55rem 1rem; min-width: 220px; transition: border-color 0.2s; }
 .browse-search:focus-within { border-color: var(--clay); }
@@ -269,6 +301,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .browse-product-title { font-family: var(--font-cormorant), serif; font-size: 0.95rem; font-weight: 400; color: var(--bark); line-height: 1.35; margin-bottom: 0.3rem; }
 .browse-product-card:hover .browse-product-title { color: var(--terracotta); }
 .browse-product-from { font-family: var(--font-jost), sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); font-weight: 300; }
+@media (max-width: 1000px) { .browse-product-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 768px) {
   .browse-product-grid { grid-template-columns: 1fr 1fr; }
 }
@@ -719,5 +752,6 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
      narrow phone. */
   .lp-statement-title { font-size: clamp(1.6rem, 6.8vw, 2.1rem); }
 }
+
 
 

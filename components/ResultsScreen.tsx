@@ -20,7 +20,7 @@ type Props = {
 // — each click reveals the next PREVIEW_COUNT on top of what's already
 // showing, no fade, since a quiz result is a single set to browse through
 // rather than a rotating preview.
-const PREVIEW_COUNT = 8;
+const PREVIEW_COUNT = 12;
 
 export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrowseEdits }: Props) {
   const aesthetic = answers.aesthetic || "Organic Modern";
@@ -224,11 +224,6 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
             </button>
           </div>
         )}
-        <div className="affiliate-note">
-          This edit contains affiliate links. Purchasing through these links supports The Interior Index at no
-          additional cost to you. Every piece is chosen for material quality, proportion, and value — never for
-          commission alone.
-        </div>
       </div>
       <div className="results-actions">
         <button className="btn-primary" onClick={onBrowseEdits}>

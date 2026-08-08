@@ -17,7 +17,7 @@ const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Chrome", "Ce
 // "Discover more" accumulates: each click appends the next PREVIEW_COUNT
 // items below what's already shown, same pattern as ResultsScreen's product
 // grid, rather than replacing the current batch.
-const PREVIEW_COUNT = 8;
+const PREVIEW_COUNT = 12;
 // Fixed display order for category tags — anything not listed falls back to
 // alphabetical, appended after these. Throws is pinned last explicitly
 // (rather than relying on it alphabetizing there) so it always reads as a
@@ -350,10 +350,6 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
           </>
         )}
 
-        <div className="affiliate-note">
-          This edit contains affiliate links. Purchasing through these links supports The Interior Index at no
-          additional cost to you.
-        </div>
       </div>
 
       {notifyMaterial && <NotifyMeModal material={notifyMaterial} onClose={() => setNotifyMaterial(null)} />}
@@ -370,3 +366,4 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     </div>
   );
 }
+
