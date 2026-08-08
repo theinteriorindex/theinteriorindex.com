@@ -174,15 +174,11 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .result-card-body { font-size: 0.8rem; color: var(--text-mid); line-height: 1.7; font-weight: 300; }
 .material-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .material-tag { background: var(--sand); padding: 0.3rem 0.75rem; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--walnut); font-weight: 400; }
-/* Background matches the page (--warm-white) rather than --cream: the old
-   cream read as a visible band against the warm-white page. The content is
-   inset via max() rather than a max-width wrapper, so the background still
-   runs edge to edge and no band reappears. Below ~1568px the max() resolves
-   to the original 4rem, so laptops are unchanged. */
-.products-section { background: var(--warm-white); padding: 3rem 4rem;
-  padding-left: max(4rem, calc((100% - 1440px) / 2));
-  padding-right: max(4rem, calc((100% - 1440px) / 2));
-  border-top: 1px solid var(--linen); }
+/* Keeps the darker --cream tone, and flex:1 makes the section grow to fill
+   whatever height .screen has left (it is a 100vh flex column), so the cream
+   runs all the way down to the footer instead of stopping where the grid
+   ends and leaving a lighter strip of body colour above the footer. */
+.products-section { background: var(--cream); flex: 1 0 auto; padding: 3rem 4rem; border-top: 1px solid var(--linen); }
 .products-eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 0.5rem; }
 .products-title { font-family: var(--font-cormorant), serif; font-size: 2rem; font-weight: 300; color: var(--bark); margin-bottom: 0.5rem; }
 .products-sub { font-size: 0.82rem; color: var(--text-light); margin-bottom: 2rem; font-weight: 300; }
@@ -253,12 +249,11 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .browse-tag-notify { border-style: dashed; }
 /* Secondary (category) chips read as quiet text, not buttons — the material
    row above keeps its bordered chips so the two levels stay distinguishable.
-   Borderless means the active state can't rely on a filled box, so it uses
-   the terracotta accent plus a hairline underline instead. */
-/* The gap above this row is .browse-toolbar's 2.5rem bottom margin, not
-   anything on the rows themselves — collapse it only when the category
-   row is actually present, so the toolbar keeps its normal spacing when
-   no material is selected and the row is absent. */
+   The gap above this row is .browse-toolbar's own bottom margin, not anything
+   on the rows, and it is collapsed only when the category row is actually
+   present so the toolbar keeps normal spacing on ALL. Borderless means the
+   active state can't rely on a filled box, so it uses the terracotta accent
+   plus a hairline underline instead. */
 .browse-toolbar:has(+ .browse-tags-secondary) { margin-bottom: 0.6rem; }
 .browse-tags-secondary { gap: 1.25rem; }
 .browse-tags-secondary .browse-tag {
@@ -301,7 +296,6 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .browse-product-title { font-family: var(--font-cormorant), serif; font-size: 0.95rem; font-weight: 400; color: var(--bark); line-height: 1.35; margin-bottom: 0.3rem; }
 .browse-product-card:hover .browse-product-title { color: var(--terracotta); }
 .browse-product-from { font-family: var(--font-jost), sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); font-weight: 300; }
-@media (max-width: 1000px) { .browse-product-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 768px) {
   .browse-product-grid { grid-template-columns: 1fr 1fr; }
 }
@@ -752,6 +746,11 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
      narrow phone. */
   .lp-statement-title { font-size: clamp(1.6rem, 6.8vw, 2.1rem); }
 }
+
+
+
+
+
 
 
 

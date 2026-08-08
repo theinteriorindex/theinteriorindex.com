@@ -20,7 +20,7 @@ type Props = {
 // — each click reveals the next PREVIEW_COUNT on top of what's already
 // showing, no fade, since a quiz result is a single set to browse through
 // rather than a rotating preview.
-const PREVIEW_COUNT = 12;
+const PREVIEW_COUNT = 8;
 
 export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrowseEdits }: Props) {
   const aesthetic = answers.aesthetic || "Organic Modern";
