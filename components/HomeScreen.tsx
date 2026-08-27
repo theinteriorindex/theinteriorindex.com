@@ -41,7 +41,7 @@ const BAND_IMAGE =
 // `material` for this edit — the page said "Chrome" while the catalog, the
 // quiz and /browse all still said "Metal" — but that split was migrated away
 // on 2026-07-28, so the two now agree everywhere.
-const EDITS = [
+const MENU_EDITS = [
   {
     name: "The Walnut Edit",
     label: "Walnut",
@@ -73,6 +73,62 @@ const EDITS = [
     material: "Chrome",
     img: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Corbusier%20Basculant%20Sling%20Chair01.jpeg",
     menuImg: "https://khtustdchmvurrsmcdbb.supabase.co/storage/v1/object/public/product-images/Wassily%20Chair%20-%20Chrome%20Frame03.png",
+  },
+];
+
+// The four tiles in the front-page "Shop Our Edit" rail. Deliberately a
+// SEPARATE list from MENU_EDITS above: the nav hover panel still shows the
+// original Walnut / Stone / Natural Fibers / Chrome set, and only this rail
+// was re-cut to Light / Oak / Natural Fibers / Chrome (Liz, 2026-08-27).
+// Change one without changing the other.
+//
+// `material` must match /browse's ALL_MATERIALS exactly — it is a data value,
+// not display copy. "Lighting" is a valid chip there even though no product
+// row stores it as a material: lighting rows have material NULL and
+// fetchBrowseRows stamps the synthetic "Lighting" label onto every
+// category="Lighting" row.
+//
+// These are the product shots Liz picked, so they point at the same source
+// CDNs the product cards use (vetro.dk, cdn.shopify.com, 1stdibscdn) rather
+// than our own Supabase Storage bucket. If a merchant rotates one of these
+// URLs the tile goes blank — worth re-hosting into product-images.
+const RAIL_EDITS = [
+  {
+    // Murano Candy Floor Lamp, Yellow/White Swirl (Vetro) — the lit shot on
+    // the black plinth, not the white-background pack shot.
+    name: "The Light Edit",
+    label: "Lighting",
+    sub: "Lamps · Pendants · Sconces",
+    material: "Lighting",
+    img: "https://vetro.dk/cdn/shop/files/5E6DF8A3-ECF1-48B9-903A-38B066C05B53.jpg?v=1764270221",
+  },
+  {
+    // Santa Fe Modern Dresser (Bertu Home). Phrasing mirrors the Walnut
+    // edit's "Solid & veneered walnut". Note the Oak bucket is an edit
+    // bucket rather than a species claim — it also carries ash, acacia,
+    // teak and maple (this dresser is maple) — so keep this label out of
+    // per-product copy, where a species claim has to be accurate.
+    name: "The Oak Edit",
+    label: "Oak",
+    sub: "Solid & veneered oak",
+    material: "Oak",
+    img: "https://cdn.shopify.com/s/files/1/1504/9526/files/Santa-Fe-Modern-Dresser-01.jpg?v=1738696474",
+  },
+  {
+    // R&Y Augousti rattan nesting side table, blue.
+    name: "The Natural Fibers Edit",
+    label: "Natural Fibers",
+    sub: "Rattan · Cane · Seagrass",
+    material: "Natural Fibers",
+    img: "https://a.1stdibscdn.com/rattan-nesting-side-table-with-shell-and-brass-inlay-by-ry-augousti-for-sale-picture-2/f_45491/f_320769721672969972501/NT20_BLUE_7__master.jpg",
+  },
+  {
+    // Fleur Studios SS-DIN03BR stainless dining table, in situ.
+    name: "The Chrome Edit",
+    label: "Chrome",
+    sub: "Chrome · Steel",
+    material: "Chrome",
+    img: "https://cdn.shopify.com/s/files/1/0295/8029/6330/files/SS-DIN03BR120nodiskedit.jpg",
   },
 ];
 
@@ -323,7 +379,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
               navigates. */}
           <div className={`lp-menu${editsOpen ? " lp-menu-open" : ""}`} aria-hidden={!editsOpen}>
             <div className="lp-menu-grid">
-              {EDITS.map((edit) => (
+              {MENU_EDITS.map((edit) => (
                 <Link
                   key={edit.material}
                   className="lp-menu-card"
@@ -481,7 +537,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           </Link>
         </div>
         <div className="lp-rail-grid">
-          {EDITS.map((edit, i) => (
+          {RAIL_EDITS.map((edit, i) => (
             <Link
               key={edit.material}
               className="lp-rail-card"
