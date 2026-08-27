@@ -322,6 +322,10 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           <source src={HERO_INTRO} type="video/mp4" />
         </video>
         <img className="lp-hero-img" src={HERO_POSTER_LIT} alt="" aria-hidden="true" />
+        {/* Scrim, top/bottom only and at roughly half its old strength
+            (Liz, 2026-08-27: "not as dark, but still present"). The 90deg
+            left-to-right veil that used to sit behind the headline is gone
+            for good — that copy no longer exists. */}
         <div className="lp-hero-scrim" />
         <nav
           className={`lp-nav${navSolid ? " lp-nav-solid" : ""}${
@@ -502,25 +506,22 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
             block and the cream CTA. */}
         {/* No label — "About" removed per Liz (2026-08-05). */}
         <div className="lp-hero-statement">
-          {/* Liz's copy, 2026-08-05 ("go with this"). Brand name in caps
-              inside a sentence-case claim, one woven italic. */}
-          <h1 className="lp-statement-claim lp-rise" style={{ animationDelay: "0.8s" }}>
-            {/* The {" "} after each <br /> matters: the breaks are hidden
-                below 900px (phones wrap naturally), and without an explicit
-                space JSX leaves none between the segments — the words fuse
-                ("INDEXis a … peoplewho"). Caught on the 2026-08-05 mobile
-                pass. */}
-            <span className="lp-claim-brand">
-              The Interior <em>Index</em>
-            </span>
-            <br />{" "}is a design concierge for people
-            <br />{" "}who value <em>thoughtful spaces</em>.
-          </h1>
-          <p className="lp-statement-process lp-rise" style={{ animationDelay: "1s" }}>
-            Beautiful homes are built through thoughtful choices. From everyday finds to heirloom pieces.
-            We curate across styles, brands, materials and budget. Helping you discover pieces worth bringing home.
-          </p>
-          <button className="lp-cta lp-rise" style={{ animationDelay: "1.25s" }} onClick={onStart}>
+          {/* Headline and process paragraph removed per Liz (2026-08-27):
+              the hero now carries the CTA alone over the video. The button
+              keeps its original 1.25s rise delay, so it still arrives on the
+              same beat it did when it followed the copy. The
+              .lp-statement-claim / .lp-statement-process styles are left in
+              globals.css for any future hero that carries copy again, the
+              same way .lp-hero-credit was kept. */}
+          {/* No .lp-rise here on purpose (Liz, 2026-08-27): the CTA is on from
+              the first frame rather than fading up behind the lights-on
+              intro. To put the fade back, restore
+              className="lp-cta lp-rise" style={{ animationDelay: "1.25s" }}.
+              Without the class there is no animation at all, so the button
+              renders at full opacity immediately — lpRise uses fill-mode
+              `both`, which is what was holding it invisible until its delay
+              elapsed. */}
+          <button className="lp-cta" onClick={onStart}>
             Begin the style quiz
           </button>
         </div>

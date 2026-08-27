@@ -414,7 +414,16 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
    scene. Built against the brightest moment in the loop — safe here
    because the loop's luma is near-flat (YAVG 302–305/1023 across all 75
    frames) and the window glow, the brightest point, never moves. */
-.lp-hero-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(7, 15, 10, 0.88) 0%, rgba(7, 15, 10, 0.72) 30%, rgba(7, 15, 10, 0.3) 48%, rgba(7, 15, 10, 0) 68%), linear-gradient(to bottom, rgba(7, 15, 10, 0.58) 0%, rgba(7, 15, 10, 0.1) 14%, rgba(7, 15, 10, 0) 24%, rgba(7, 15, 10, 0) 64%, rgba(7, 15, 10, 0.52) 100%); pointer-events: none; }
+/* 2026-08-27. Every stop is the exact midpoint between the version live on
+   main and the lighter pass Liz found too weak — e.g. 0.88 and 0.46 → 0.67
+   at the left edge, 0.58 and 0.38 → 0.48 at the top. Same two gradients and
+   the same stop positions as live; only the alphas moved.
+
+   Why the 90deg wash has to stay: .lp-hero-statement sits at left 8% /
+   top 47%, squarely inside the band the to-bottom ramps leave clear, so the
+   lit foliage behind the CTA can only be settled from this one. It still
+   reaches zero by 68%, leaving the house untouched. */
+.lp-hero-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(7, 15, 10, 0.67) 0%, rgba(7, 15, 10, 0.55) 30%, rgba(7, 15, 10, 0.23) 48%, rgba(7, 15, 10, 0) 68%), linear-gradient(to bottom, rgba(7, 15, 10, 0.48) 0%, rgba(7, 15, 10, 0.08) 14%, rgba(7, 15, 10, 0) 24%, rgba(7, 15, 10, 0) 64%, rgba(7, 15, 10, 0.43) 100%); pointer-events: none; }
 /* z-index: 1 (same level as the intro video, later in the DOM) keeps the
    scrim above BOTH videos at all times — without it the intro's z-index
    stacked the video over the scrim, so the gradient only became visible
@@ -511,7 +520,15 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
    scene: cream title and body, amber italic pulled from the lit window
    (walnut vanishes on dark foliage — same class of lesson as terracotta
    on pale plaster). Fades in on the hero's load stagger, as before. */
-.lp-hero-statement { position: absolute; left: 8%; top: 47%; transform: translateY(-50%); z-index: 2; width: min(780px, 84vw); text-align: left; }
+/* left is the nav's own left padding (4rem) plus the measured width of the
+   .lp-nav-tag ("A material-based design concierge", 254px with the fonts
+   loaded), so the CTA's left edge lines up with the end of "concierge"
+   above it — Liz, 2026-08-27. Both parts are viewport-independent: the tag's
+   font-size is in rem and its letter-spacing in em, so the alignment holds at
+   any desktop width rather than drifting the way the old 8% did. Below 900px
+   the rule further down takes over (left: 7%) and the nav padding drops to
+   1.4rem, so this calc never applies there. */
+.lp-hero-statement { position: absolute; left: calc(4rem + 254px); top: 47%; transform: translateY(-50%); z-index: 2; width: min(780px, 84vw); text-align: left; }
 /* -- About-manifesto treatment (2026-08-04; refs: TMD / Sample House) -- */
 /* Refinement pass (2026-08-05, "premium, less rough"). The kicker is a
    quiet overline now — it was competing with its own paragraph and
@@ -699,7 +716,10 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
   html:has(.lp), body:has(.lp) { background: #0B140D; }
   .lp-hero { background: #0B140D; }
   .lp-hero-video, .lp-hero-img { height: 56svh; object-position: 42% 30%; }
-  .lp-hero-scrim { height: 56svh; inset: 0 0 auto 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.55) 0%, rgba(7, 15, 10, 0) 22%, rgba(7, 15, 10, 0) 62%, rgba(11, 20, 13, 0.92) 96%, #0B140D 100%); }
+    /* Top stop softened to match the desktop halving; the 96%/100% stops are
+     NOT a veil — they are the blend into the next section's #0B140D, so they
+     stay at full strength or the seam shows. */
+  .lp-hero-scrim { height: 56svh; inset: 0 0 auto 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.42) 0%, rgba(7, 15, 10, 0) 22%, rgba(7, 15, 10, 0) 62%, rgba(11, 20, 13, 0.92) 96%, #0B140D 100%); }
   .lp-statement-process { margin-top: 16px; }
   .lp-cta { margin-top: 28px; }
   .lp-hero-statement { bottom: 4svh; }
