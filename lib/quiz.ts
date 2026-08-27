@@ -140,7 +140,7 @@ const DEFAULT_BUDGET_OPTIONS: QuizOption[] = [
 const QUIET_LUXURY_BUDGET_OPTIONS: QuizOption[] = [
   { title: "$200 — $500", desc: "Mid-range with real material quality" },
   { title: "$500 — $1,000", desc: "Investment pieces worth the price" },
-  { title: "$1,000 — $2,500", desc: "Heirloom quality, considered investment" },
+  { title: "$1,000 — $2,500", desc: "Heirloom quality, built to keep" },
   { title: "$2,500+", desc: "No compromise, the piece the room is built around" },
 ];
 

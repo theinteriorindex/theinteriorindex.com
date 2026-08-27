@@ -13,7 +13,7 @@ export default function BrowsePage() {
   const router = useRouter();
   return (
     <Suspense fallback={null}>
-      <BrowseEditsScreen onBack={() => router.back()} onHome={() => router.push("/")} />
+      <BrowseEditsScreen onHome={() => router.push("/")} />
       <Footer />
     </Suspense>
   );

@@ -20,7 +20,16 @@ body { font-family: var(--font-jost), sans-serif; background: var(--warm-white);
 body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
 .screen { display: none; min-height: 100vh; }
 .screen.active { display: flex; flex-direction: column; }
-.site-header { padding: 2rem 3rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--linen); }
+/* The lockup is centred in every header on the site (Liz, 2026-08-27), so
+   that it and the menu mark land in exactly the same place on every page —
+   the landing bar already centred its lockup, and these were the odd ones
+   out. Secondary controls come out of the flex flow (below) rather than
+   sharing it, so the lockup's centre does not shift depending on whether a
+   given page happens to carry one. */
+.site-header { padding: 2rem 3rem; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--linen); }
+/* Absolute so it never displaces the centred lockup. 3rem matches the
+   header's own horizontal padding, including the quiz variant's. */
+.site-header > .btn-secondary { position: absolute; right: 3rem; top: 50%; transform: translateY(-50%); }
 /* Quiz-only variant: a quarter smaller than the standard site-header (2rem
    vertical padding -> 1.5rem), so stepping into the quiz reads as the
    header actually shrinking to make room for the question, not just a
@@ -87,6 +96,19 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
    (the results page inlines its own Subscribe button into .results-actions
    instead), so this floats/hovers there as the page is scrolled. */
 .subscribe-corner { position: fixed; bottom: 2rem; right: 2rem; z-index: 500; }
+/* Smaller than a standard .btn-primary (Liz, 2026-08-27: "covering a lot of
+   surface area"). Everything else wearing that class sits in a section of its
+   own and is the thing you came to that spot to press; this one floats over
+   the product grid permanently, so its footprint is product images it is
+   standing on. Roughly a third off both dimensions — the type comes down,
+   the padding comes in, and the arrow drops from 16px to 13 so it stays in
+   proportion rather than dominating a shorter button. Vertical padding is
+   held at 0.85rem to keep the whole thing around 42px tall, near enough the
+   44px a thumb wants; going smaller would be a legibility problem, not a
+   size win. The class is scoped to this one instance, so the buttons on
+   Results and the landing page are untouched. */
+.subscribe-corner .btn-primary { padding: 0.85rem 1.5rem; font-size: 0.62rem; letter-spacing: 0.14em; gap: 0.5rem; }
+.subscribe-corner .btn-primary svg { width: 13px; height: 13px; }
 @media (max-width: 768px) {
   .subscribe-corner { bottom: 1.25rem; right: 1.25rem; }
 }
@@ -272,17 +294,70 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   border-bottom-color: var(--clay);
 }
 .browse-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.5rem 0 2.5rem; }
-.browse-search { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--linen); background: var(--cream); padding: 0.55rem 1rem; min-width: 220px; transition: border-color 0.2s; }
-.browse-search:focus-within { border-color: var(--clay); }
+/* The toolbar owns the vertical rhythm here, so the tag row inside it drops
+   its own. (Was an inline style on the element; moved into the sheet so the
+   mobile rules below can override it — an inline style cannot be.) */
+.browse-toolbar .browse-tags { margin: 0; }
+/* Title and search on one line, the icon on the right margin level with the
+   heading (Liz, 2026-08-27). */
+.browse-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+
+/* Collapsed by default: no border, no ground, just the icon — the box only
+   exists once the icon is touched. Everything that makes it look like a field
+   (the hairline, the padding, the gap between icon and input) is on the -open
+   state, so closing genuinely removes the box rather than emptying it.
+   The input is width: 0 rather than display: none so the reveal can animate
+   and the element keeps its value across open/close. */
+/* margin-left: auto keeps it on the right whether it shares the heading's
+   line or wraps below it (Liz, 2026-08-27). Without this, a wrapped line
+   holds one item and space-between resolves to flex-start, so opening the
+   field on a narrow screen threw it to the left margin. */
+.browse-search { display: flex; align-items: center; gap: 0; margin-left: auto; border: 1px solid transparent; background: transparent; padding: 0.3rem 0; transition: border-color 0.25s, background-color 0.25s, padding 0.25s, gap 0.25s; }
+/* Exactly the resting .browse-tag treatment below it: a linen hairline on the
+   page's own ground, nothing else. No :focus-within darkening — the field is
+   focused the instant it opens, so a focus colour here is not a state, it is
+   just the box's colour, and clay is a full step darker than the tags it sits
+   above (Liz, 2026-08-27: still "too dark"). */
+.browse-search-open { border-color: var(--linen); background: transparent; padding: 0.55rem 1rem; gap: 0.6rem; }
+.browse-search-toggle { display: flex; align-items: center; border: none; background: none; padding: 0; cursor: pointer; color: inherit; }
 .browse-search-icon { flex-shrink: 0; color: var(--text-light); transition: transform 0.3s ease, color 0.3s ease; }
 .browse-search:hover .browse-search-icon, .browse-search:focus-within .browse-search-icon { color: var(--terracotta); transform: scale(1.15) rotate(-8deg); }
-.browse-search input { border: none; background: none; outline: none; font-family: var(--font-jost), sans-serif; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--text-dark); font-weight: 300; width: 100%; }
+.browse-search input { width: 0; padding: 0; border: none; background: none; outline: none; font-family: var(--font-jost), sans-serif; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--text-dark); font-weight: 300; transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+.browse-search-open input { width: clamp(130px, 34vw, 200px); }
 .browse-search input::placeholder { color: var(--text-light); }
 .browse-search-clear { border: none; background: none; cursor: pointer; color: var(--text-light); font-size: 1.1rem; line-height: 1; padding: 0 0 0 0.2rem; transition: color 0.2s; }
 .browse-search-clear:hover { color: var(--terracotta); }
 @media (max-width: 768px) {
-  .browse-toolbar { flex-direction: column; align-items: stretch; }
-  .browse-search { width: 100%; }
+  /* Plain block now. The column-with-stretch existed to stack the tag row
+     above the search field; the search moved up to .browse-head, so the
+     toolbar has a single child. It also has to stop being a flex container:
+     in a wrapping column, a line's cross-size comes from its content, so the
+     tag row was handed its full 939px min-content width and stretch filled it
+     — min-width: 0 does not help, because the line itself was that wide. */
+  .browse-toolbar { display: block; }
+  /* One straight line that scrolls sideways, instead of wrapping to three
+     stacked rows (Liz, 2026-08-27). Wrapping cost roughly a fifth of the
+     first screen before a single product appeared, and it made the eight
+     materials read as a block of options to work through rather than a rail
+     to skim.
+     The row is pulled out to the screen edges with negative margins and given
+     that same distance back as padding: the first tag still lines up with the
+     heading above it, and the last one runs off the edge instead of stopping
+     short of it — which is what tells you there is more to the right, since
+     the scrollbar is hidden. */
+  /* Both selectors, and .browse-toolbar .browse-tags spelled out, because the
+     `.browse-toolbar .browse-tags { margin: 0 }` rule above is two levels of
+     specificity and would otherwise cancel the negative margins that produce
+     the bleed. */
+  .browse-toolbar .browse-tags, .browse-tags-secondary { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-left: -1.5rem; margin-right: -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem; }
+  .browse-toolbar .browse-tags::-webkit-scrollbar, .browse-tags-secondary::-webkit-scrollbar { display: none; }
+  /* Without this the tags compress to fit rather than overflowing, and there
+     is nothing to scroll. */
+  .browse-tag { flex-shrink: 0; white-space: nowrap; }
+  /* The heading is large and the open field needs room next to it; on a phone
+     the pair wraps rather than squeezing the field down to a slot too narrow
+     to read a product name in. */
+  .browse-head { flex-wrap: wrap; row-gap: 0.4rem; }
 }
 .browse-product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem 1rem; }
 .browse-product-card { display: block; text-decoration: none; opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
@@ -322,6 +397,15 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .results-header { padding: 2rem 1.5rem; }
   .results-title { font-size: 1.9rem; }
   .results-eyebrow { margin-bottom: 0.6rem; }
+  /* The three profile cards — "Your material palette", "Your room", "Start
+     here" — come off the phone entirely (Liz, 2026-08-27). Stacked one per
+     row they run to roughly two full screens of reading between the profile
+     band and the first product, and the edit below them already says the same
+     thing in the form the visitor came for. The band above stays: it names
+     what the quiz decided, in two lines rather than twenty.
+     Hidden rather than unrendered so desktop is untouched and this is one
+     line to reverse. The sizing rules below stay with it for the same reason. */
+  .results-cards { display: none; }
   .results-cards { grid-template-columns: 1fr; padding: 1.25rem; gap: 0.6rem; }
   .result-card { padding: 0.85rem; }
   .result-card-label { margin-bottom: 0.35rem; }
@@ -332,7 +416,12 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .product-grid { grid-template-columns: 1fr 1fr; }
   .products-section { padding: 1.5rem; }
   .chat-container { grid-template-columns: 1fr; } .chat-sidebar { display: none; }
-  .site-header { padding: 1.5rem; flex-direction: column; align-items: center; text-align: center; gap: 0.35rem; }
+  /* The column here existed only to stack the logo above the secondary
+     button; that button is gone on mobile now, so the plain header is a
+     single centred row. The quiz keeps the column — its mobile tagline still
+     sits under the lockup. */
+  .site-header { padding: 1.5rem; text-align: center; }
+  .site-header--quiz { flex-direction: column; align-items: center; gap: 0.35rem; }
   .nav-tag { font-size: 0.55rem; letter-spacing: 0.1em; }
   .quiz-back-btn { display: none; }
   .quiz-nav-tag-mobile { display: block; }
@@ -375,7 +464,16 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   .ft { padding: 2.1rem 1.5rem 1.6rem; }
   /* The nav wraps on a phone, which strands a separator dot at the start of
      the second line — drop the dots and let the gap do the separating. */
-  .ft-nav { margin-top: 1.5rem; gap: 0.9rem 1.5rem; }
+  /* One line on a phone (Liz, 2026-08-27) — Storefront was wrapping to a row
+     of its own, which read as a second, lesser tier of link rather than the
+     fourth of four. Nothing here is long enough to deserve its own row, so
+     the row scales to the viewport instead of wrapping: the type and the gaps
+     both track vw between clamped floors and ceilings, and the tracking comes
+     in from 0.2em, which at this size was costing more width than the letters
+     themselves. Measured to fit four labels at 320px, the narrowest phone
+     worth designing for. */
+  .ft-nav { flex-wrap: nowrap; margin-top: 1.5rem; gap: clamp(0.4rem, 2.2vw, 0.9rem); }
+  .ft-nav a, .ft-nav .ft-link-btn { font-size: clamp(0.5rem, 2.3vw, 0.62rem); letter-spacing: 0.12em; white-space: nowrap; }
   .ft-dot { display: none; }
 }
 
@@ -411,6 +509,11 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
 .lp-hero-video-intro { z-index: 1; }
 .lp-hero-video-hidden { visibility: hidden; }
 .lp-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+/* Set by HomeScreen when video.play() is rejected — iOS Low Power Mode is the
+   common case. Swaps to the poster still rather than leaving Safari's play
+   button sitting over a paused hero. Same swap prefers-reduced-motion makes. */
+.lp-hero-still .lp-hero-video { display: none; }
+.lp-hero-still .lp-hero-img { display: block; }
 /* Directional scrim, one axis only (craft rule from the 2026-08-04 comp
    sessions: never a symmetric veil over a directional image). The copy
    sits in the empty left third, so the left-to-right gradient flattens
@@ -509,6 +612,17 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
 .lp-nav .logo { color: var(--cream); }
 .lp-nav .logo span { color: var(--clay); }
 .lp-nav-links { display: flex; gap: 2.75rem; align-items: baseline; }
+/* Mobile menu (Liz, 2026-08-27) — the three-line mark and the sheet it
+   opens, shared by every header on the site (components/MobileMenu.tsx).
+   All phone-only, turned on in the max-width: 900px block below: above it
+   each header carries its own real links and there is nothing to collapse. */
+.mm-btn { display: none; }
+.mm-panel, .mm-scrim { display: none; }
+/* The mark hangs off the header's left edge, which means the header has to be
+   a positioning context. --mm-inset is that header's own horizontal padding
+   at phone width, so the mark lands on the same axis as everything else in
+   the bar rather than at a hardcoded distance that only suits one of them. */
+.site-header, .about-header, .legal-header { position: relative; }
 .lp-nav-link { font-family: var(--font-jost), sans-serif; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(250, 247, 242, 0.85); text-decoration: none; background: none; border: none; padding: 0; cursor: pointer; font-weight: 300; transition: color 0.3s; }
 .lp-nav-link:hover { color: var(--cream); }
 /* (The big .lp-hero-lockup that sat centred on the hero photo is gone —
@@ -675,12 +789,86 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
      the iOS fixed-bar clipping strip that the fade-out rules further
      down were working around; those are now a no-op by the time they
      fire (the bar is already off-screen). */
-  .lp-nav { position: absolute; justify-content: center; flex-direction: column; align-items: center; gap: 0.45rem; padding-top: 1.5rem; padding-bottom: 1.1rem; }
+  /* One row, not a stacked column: the lockup centred, the menu button hung
+     off the right edge (Liz, 2026-08-27). The column layout existed to stack
+     the tagline under the lockup, and the tagline is gone from the phone —
+     "A material-based design concierge" is a desktop line that on a 390px
+     bar wrapped or shrank to 0.62rem, which is caption size for a claim
+     that is meant to be the first thing read. It stays on desktop. */
+  .lp-nav { position: absolute; justify-content: center; flex-direction: row; align-items: center; gap: 0; padding: 1.5rem 1.4rem 1.1rem; }
   .lp-nav-links { display: none; }
-  /* Smaller than the desktop tagline: it wants to read as a quiet caption
-     under the lockup rather than a headline. */
-  .lp-nav-tag { display: block; text-align: center; font-size: 0.62rem; }
+  .lp-nav-tag { display: none; }
   .lp-nav-logo { position: static; transform: none; font-size: 1.05rem; }
+  /* Three 1px rules in a 22px box, hung off the header's LEFT edge (Liz,
+     2026-08-27) — the same side the panel slides in from, so the mark reads
+     as the panel's handle rather than an unrelated control on the far side.
+     Absolutely positioned so it never pulls the centred lockup off centre the
+     way a flex sibling would. 44px tap target via the padding while the mark
+     itself stays 22px; hairlines rather than the usual 2-3px bars so it reads
+     as drawn. --mm-inset is set per header below. */
+  .mm-btn { display: flex; flex-direction: column; justify-content: center; gap: 4px; position: absolute; left: calc(var(--mm-inset, 1.5rem) - 11px); top: 50%; transform: translateY(-50%); width: 22px; height: 22px; box-sizing: content-box; padding: 11px; background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; z-index: 2; }
+  .mm-btn span { display: block; width: 22px; height: 1px; background: var(--bark); transition: background-color 0.25s linear, opacity 0.2s linear; }
+  /* Landing page only: the bar floats transparently over the video, so the
+     mark is cream there — and switches to bark on the same signal the rest of
+     the bar uses when it goes solid or a hover panel opens. */
+  .lp-nav { --mm-inset: 1.4rem; }
+  .lp-nav .mm-btn span { background: var(--cream); opacity: 0.82; }
+  .lp-nav-solid .mm-btn span, .lp-nav-menuopen .mm-btn span { background: var(--bark); opacity: 1; }
+  /* The other headers sit on warm white; the mark takes their own horizontal
+     padding as its axis (3rem down to 768/640, 1.5rem below — see those
+     blocks) rather than a hardcoded distance. */
+  .site-header, .about-header, .legal-header { --mm-inset: 3rem; }
+  /* Below 768 the standard header drops to 1.5rem of padding, so the mark
+     follows it in. This has to live here, after the 3rem default above and
+     inside its own query — declared up in the 768 block it would be overruled
+     by that default, which appears later in the file and matches every phone
+     too. That bug put the mark ~26px right of where the landing page's sits
+     (Liz, 2026-08-27: "moved to the right ... doesn't match the home page"). */
+  @media (max-width: 768px) {
+    .site-header { --mm-inset: 1.5rem; }
+  }
+  /* The right-hand secondary links go on a phone (Liz, 2026-08-27): "Start
+     over", "← Home" and "← Back to home" are all navigation, and navigation
+     is what the menu now carries. Dropping them is what actually makes the
+     headers identical — with one still in place, that page's header is two
+     rows tall on mobile and its menu mark sits at a different height than
+     every other page's. Desktop keeps them. The quiz keeps its own header
+     (it has no menu mark) and is excluded below. */
+  .site-header:not(.site-header--quiz) > .btn-secondary { display: none; }
+
+  /* The menu panel (ruevintage74 as the reference): a white sheet that slides
+     in from the left over the page, rather than a dropdown hanging off the
+     bar. Sized to leave a strip of the page visible down the right edge —
+     that strip is what tells you the page is still there behind it and that
+     this is a layer, not a navigation. Capped at 380px so a tablet at 900px
+     does not get a half-screen sheet.
+     Transform rather than left/width so the slide runs on the compositor;
+     0.42s is slower than the 0.25s a bar uses because this is a surface
+     arriving, not a state change. Kept mounted and pushed off-screen, with
+     visibility on a delay so it is not a focusable off-screen layer while
+     closed. */
+  .mm-panel { display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 120; width: 86%; max-width: 380px; background: var(--warm-white); padding: 1.5rem 1.6rem 2rem; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateX(-100%); visibility: hidden; transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.42s; }
+  .mm-panel-open { transform: translateX(0); visibility: visible; transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s; }
+  /* Dims the visible strip of page and takes the tap that closes the panel.
+     Fades rather than slides — it is atmosphere behind the sheet, and a scrim
+     that travels reads as a second moving object. */
+  .mm-scrim { display: block; position: fixed; inset: 0; z-index: 110; background: rgba(20, 14, 9, 0.34); opacity: 0; visibility: hidden; transition: opacity 0.42s linear, visibility 0s linear 0.42s; }
+  .mm-scrim-open { opacity: 1; visibility: visible; transition: opacity 0.42s linear, visibility 0s; }
+  /* Close control top-right of the sheet, where the reference puts it and
+     where a right-handed thumb reaches on a panel pinned left. Two crossed
+     hairlines, same weight as the mark it replaces, so the pair reads as one
+     drawn set. */
+  .mm-close { position: relative; align-self: flex-end; width: 20px; height: 20px; box-sizing: content-box; padding: 12px; margin: -12px -12px 0 0; background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .mm-close span { position: absolute; top: 50%; left: 12px; width: 20px; height: 1px; background: var(--bark); }
+  .mm-close span:nth-child(1) { transform: rotate(45deg); }
+  .mm-close span:nth-child(2) { transform: rotate(-45deg); }
+  .mm-nav { display: flex; flex-direction: column; margin-top: 1.9rem; border-top: 1px solid var(--linen); }
+  /* Same tracked caps as the nav links themselves — the reference sets its
+     rows in a serif, but the bar directly above this one is Jost caps and the
+     panel is that bar expanded, not a different voice. Rows are deep enough
+     to be unambiguous thumb targets on a full-height sheet. */
+  .mm-link { display: block; width: 100%; text-align: left; background: none; border: none; border-bottom: 1px solid var(--linen); padding: 1.35rem 0; font-family: var(--font-jost), sans-serif; font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 300; color: var(--bark); text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .mm-link:active { color: var(--terracotta); }
   /* No hover on a phone — the panels never open ("Shop Our Edit" just
      navigates to /browse; the links, including Join the Edit, are hidden
      below 900px anyway). */
@@ -711,23 +899,44 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
   .lp-statement-claim { font-size: clamp(1.25rem, 5.6vw, 1.6rem); margin: 0; }
   .lp-statement-process { font-size: 0.88rem; max-width: 380px; margin: 18px 0 0; }
   .lp-cta { margin-top: 30px; }
-  /* Split hero (variant C, forest masthead — Liz 2026-08-05): the
-     status-bar area and the header are FOREST — html goes canopy-dark
-     so the clock sits on green, and the bar stays transparent cream
-     type over the clip. The video holds the top ~56svh and fades into
-     solid canopy-dark ground that carries the whole copy block —
-     legibility is structural, not scrim-dependent, and the pulled-back
-     crop fits the entire house in frame. */
+  /* Full-bleed hero on mobile (2026-08-27). This used to be the "split
+     hero" — video across the top 56svh fading into solid canopy-dark ground
+     below, and that ground existed for one reason: to carry the headline and
+     process paragraph so their legibility was structural rather than
+     scrim-dependent. That copy moved to /about, which left the lower 44% an
+     empty dark field with the button stranded at its foot. With nothing to
+     carry, the ground goes and the video runs the full height, matching what
+     desktop now does: bare footage, one cream button.
+     html/body stay canopy-dark so the iOS status bar still sits on forest
+     rather than flashing white, and .lp-hero keeps the same colour as the
+     backdrop behind the video while it loads. */
   html:has(.lp), body:has(.lp) { background: #0B140D; }
   .lp-hero { background: #0B140D; }
-  .lp-hero-video, .lp-hero-img { height: 56svh; object-position: 42% 30%; }
-    /* Top stop softened to match the desktop halving; the 96%/100% stops are
-     NOT a veil — they are the blend into the next section's #0B140D, so they
-     stay at full strength or the seam shows. */
-  .lp-hero-scrim { height: 56svh; inset: 0 0 auto 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.42) 0%, rgba(7, 15, 10, 0) 22%, rgba(7, 15, 10, 0) 62%, rgba(11, 20, 13, 0.92) 96%, #0B140D 100%); }
+  /* Height-fit on a portrait phone: the 16:9 source is scaled to cover, so
+     only the x of object-position matters. 57% (was 42%, 2026-08-27 per Liz
+     on-device review) slides the visible window right through the source,
+     which pushes the house toward screen left and brings the poured-cement
+     wall of the right-hand wing into frame — at 42% that wall began exactly
+     one pixel past the right edge. Past ~60% the window starts cutting into
+     the lit double-height glass, which is the thing worth seeing, so this is
+     as far right as the framing goes. */
+  .lp-hero-video, .lp-hero-img { height: 100%; object-position: 57% 30%; }
+  /* Full-height now, and no hard blend to #0B140D at the foot — that stop
+     existed to hand off into the solid ground that no longer exists. Top band
+     for the bar, a clear window over the house, and a weighted foot so the
+     cream button has something to sit against. */
+  .lp-hero-scrim { height: 100%; inset: 0; background: linear-gradient(to bottom, rgba(7, 15, 10, 0.42) 0%, rgba(7, 15, 10, 0.06) 20%, rgba(7, 15, 10, 0) 46%, rgba(7, 15, 10, 0.36) 82%, rgba(7, 15, 10, 0.55) 100%); }
   .lp-statement-process { margin-top: 16px; }
   .lp-cta { margin-top: 28px; }
-  .lp-hero-statement { bottom: 4svh; }
+  /* Lifted off the very bottom edge now that it is alone on the frame, and
+     centred across it (per Liz 2026-08-27). The left-7% axis above was set
+     when this block carried the headline and paragraph, where a left rag is
+     what makes three lines of type read as a column; with the button alone
+     there is no column to align to, and a lone left-hung button against a
+     full-bleed frame reads as an offset rather than a placement. .lp-cta is
+     inline-block, so text-align on the wrapper is what moves it. Desktop
+     keeps its left axis — the CTA is aligned to the nav there. */
+  .lp-hero-statement { bottom: 9svh; text-align: center; }
   .lp-band-overlay { padding: 2rem 1.4rem; }
 
   /* Past the hero the bar goes away entirely on a phone, rather than turning

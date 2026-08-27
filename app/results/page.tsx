@@ -24,7 +24,6 @@ function ResultsPageInner() {
           const qs = answersToQuery(answers);
           router.push(qs ? `/?${qs}` : "/");
         }}
-        onBrowseEdits={() => router.push("/browse")}
       />
       <Footer />
     </>

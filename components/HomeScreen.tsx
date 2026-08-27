@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import SubscribeModal from "./SubscribeModal";
+import { MobileMenuButton, MobileMenuPanel } from "./MobileMenu";
 
 // ── Landing page imagery ──
 // The hero is now a 3.1s video loop (Liz's generated house-in-jungle scene,
@@ -187,6 +189,23 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
   // Lights-on hero: the one-shot intro hides itself on ended, revealing
   // the ambient loop underneath (see the hero markup below).
   const [heroIntroDone, setHeroIntroDone] = useState(false);
+  // iOS refuses to autoplay in Low Power Mode (and some data-saver / older
+  // device cases). Safari's answer is to draw a big play button over the
+  // poster, which is not a hero — it reads as a broken embed. Detect the
+  // rejection and fall back to the same still frame prefers-reduced-motion
+  // already uses, so the failure state is a photograph, not a control.
+  const heroIntroRef = useRef<HTMLVideoElement | null>(null);
+  const [heroVideoBlocked, setHeroVideoBlocked] = useState(false);
+  useEffect(() => {
+    const el = heroIntroRef.current;
+    if (!el) return;
+    // autoPlay on the element covers the normal case; this only catches the
+    // refusal. play() resolves a promise in every browser that matters.
+    const attempt = el.play();
+    if (attempt && typeof attempt.catch === "function") {
+      attempt.catch(() => setHeroVideoBlocked(true));
+    }
+  }, []);
   const heroLoopRef = useRef<HTMLVideoElement | null>(null);
   // iOS Safari tints the status-bar/clock area from the theme-color
   // meta, NOT from the page background — so the forest chrome has to be
@@ -207,6 +226,16 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
       else if (meta) meta.content = prev;
     };
   }, []);
+  // Mobile-only nav. Below 900px the bar carries the lockup and a three-line
+  // menu button instead of the tagline and links (Liz, 2026-08-27); this is
+  // the drawer that button opens. Independent of editsOpen/joinOpen, which
+  // are the desktop hover panels and stay display:none on a phone.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // "Subscribe" in the mobile drawer opens the shared SubscribeModal rather
+  // than the .lp-join dropdown — a dropdown that grows a three-field form
+  // inside a drawer fights the on-screen keyboard on a phone, and the modal
+  // is the pattern Browse and Results already use.
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [editsOpen, setEditsOpen] = useState(false);
   // "Join the Edit" opens a dropdown panel under the bar (same surface as
   // the Shop Our Edit panel) with an inline subscribe form, instead of the
@@ -274,6 +303,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+
   return (
     <div className="screen active lp" ref={rootRef}>
       {/* Full-bleed hero: video loop edge-to-edge, nav floating
@@ -283,7 +313,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           fade on the type only (CSS animations) — the video is simply
           there from the first frame, same no-load-fade rule as the photo
           it replaced. */}
-      <section className="lp-hero">
+      <section className={`lp-hero${heroVideoBlocked ? " lp-hero-still" : ""}`}>
         {/* Loop sits underneath, preloaded and paused; the intro plays on
             top and hides itself on ended, revealing the already-playing
             loop at the matching frame. If JS or autoplay fails, the intro
@@ -302,6 +332,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           <source src={HERO_LOOP} type="video/mp4" />
         </video>
         <video
+          ref={heroIntroRef}
           className={`lp-hero-video lp-hero-video-intro${heroIntroDone ? " lp-hero-video-hidden" : ""}`}
           autoPlay
           muted
@@ -386,6 +417,11 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
               Subscribe
             </button>
           </div>
+
+          {/* Mobile only (hidden above 900px), hung off the LEFT edge (Liz,
+              2026-08-27) so it sits on the same side the panel slides in
+              from. Shared with every other header — see components/MobileMenu.tsx. */}
+          <MobileMenuButton onClick={() => setMobileNavOpen(true)} />
 
           {/* Hovering "Shop Our Edit" drops a full-width panel of the four
               material edits under the bar. The panel lives inside .lp-nav so
@@ -584,6 +620,23 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
           </Link>
         </div>
       </section>
+
+      {/* Mobile menu panel. Lives at page level rather than inside <nav>: the
+          bar is a stacking context and fades to opacity 0 past the hero, which
+          would take a nested panel with it. */}
+      <MobileMenuPanel
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        onSubscribe={() => setSubscribeOpen(true)}
+      />
+
+      {/* Opened by "Subscribe" in the mobile drawer. Desktop keeps the
+          .lp-join dropdown; this is the phone's route to the same
+          /api/subscribe endpoint, tagged with its own source so the two are
+          distinguishable in the subscriber table. */}
+      {subscribeOpen && (
+        <SubscribeModal source="landing_nav_mobile" onClose={() => setSubscribeOpen(false)} />
+      )}
     </div>
   );
 }

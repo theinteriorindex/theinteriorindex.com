@@ -38,10 +38,10 @@ export default function Footer({ onQuizClick }: { onQuizClick?: () => void }) {
       <nav className="ft-nav" aria-label="Footer">
         {onQuizClick ? (
           <button className="ft-link-btn" type="button" onClick={onQuizClick}>
-            The Quiz
+            Style Quiz
           </button>
         ) : (
-          <Link href="/?start=1">The Quiz</Link>
+          <Link href="/?start=1">Style Quiz</Link>
         )}
         <span className="ft-dot" aria-hidden="true" />
         <Link href="/browse">Shop Our Edit</Link>

@@ -106,7 +106,7 @@ export const catalog: Record<string, ProductGroup> = {
 };
 
 export const profileMap: Record<string, { title: string; sub: string }> = {
-  Japandi: { title: "The Japandi Purist", sub: "A considered interior where Japanese restraint meets Scandinavian warmth" },
+  Japandi: { title: "The Japandi Purist", sub: "An interior where Japanese restraint meets Scandinavian warmth" },
   "Wabi-Sabi": { title: "The Wabi-Sabi Edit", sub: "An interior that finds beauty in imperfection and the passage of time" },
   "Organic Modern": { title: "The Organic Modernist", sub: "Clean architecture softened by natural material and honest texture" },
   "Quiet Luxury": { title: "The Quiet Luxurist", sub: "A refined interior where quality speaks louder than decoration" },

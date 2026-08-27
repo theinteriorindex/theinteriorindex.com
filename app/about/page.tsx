@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import MobileMenu from "@/components/MobileMenu";
 
 export const metadata = {
   title: "About — The Interior Index",
@@ -16,9 +17,10 @@ export const metadata = {
 // full at TII/archive/about-page-full-draft-20260827.tsx. This file had
 // never been committed, so that archive is the only copy of that writing.
 const css = `
-.about-header { padding: 2rem 3rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--linen); }
-.about-back { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); font-weight: 300; text-decoration: none; transition: color 0.3s; }
-.about-back:hover { color: var(--terracotta); }
+/* Centred lockup, matching every other header on the site (Liz,
+   2026-08-27). Nothing else sits in this bar now that "Back to home" is
+   gone — the menu carries that. */
+.about-header { padding: 2rem 3rem; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--linen); }
 
 /* Two columns: the words left, one photograph right, the pair centred
    against each other so the image reads as a companion to the claim rather
@@ -100,7 +102,7 @@ const css = `
   .about-figure { max-width: 420px; }
 }
 @media (max-width: 640px) {
-  .about-header { padding: 1.5rem; }
+  .about-header { padding: 1.5rem; --mm-inset: 1.5rem; }
   .about-main { padding: 4.5rem 1.5rem 5.5rem; }
   /* Let the claim wrap naturally on a phone rather than forcing three lines. */
   .about-lead br { display: none; }
@@ -116,11 +118,9 @@ export default function AboutPage() {
     <div className="screen active">
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <header className="about-header">
+        <MobileMenu />
         <Link href="/" className="logo">
           The Interior <span>Index</span>
-        </Link>
-        <Link href="/" className="about-back">
-          ← Back to home
         </Link>
       </header>
 

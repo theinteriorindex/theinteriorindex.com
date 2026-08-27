@@ -8,12 +8,12 @@ import BrowseProductCard from "./BrowseProductCard";
 import EmailListModal from "./EmailListModal";
 import EmptyTabNotify from "./EmptyTabNotify";
 import SubscribeModal from "./SubscribeModal";
+import MobileMenu from "./MobileMenu";
 
 type Props = {
   answers: Record<string, string>;
   onRestart: () => void;
   onRetakeQuiz: () => void;
-  onBrowseEdits: () => void;
 };
 
 // Unlike HomeBrowsePreview's fade-replace, "Discover more" here accumulates
@@ -22,7 +22,7 @@ type Props = {
 // rather than a rotating preview.
 const PREVIEW_COUNT = 8;
 
-export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrowseEdits }: Props) {
+export default function ResultsScreen({ answers, onRestart, onRetakeQuiz }: Props) {
   const aesthetic = answers.aesthetic || "Organic Modern";
   const profile = profileMap[aesthetic] || profileMap["Organic Modern"];
   const material = answers.material || "Walnut & Dark Wood";
@@ -105,12 +105,12 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
   if (isLighting) subCopy = "Lighting first — the mood pieces that finish a room, with the rest of your edit below.";
   else if (isTableSetting) subCopy = "Plates, napkins, and the finishing touches for the dining table.";
   else if (isDiningRoom) subCopy = "Chairs and tables curated for your dining room.";
-  else if (room === "Bedroom") subCopy = "Bedframes, benches, and nightstands curated for a quiet, considered bedroom.";
+  else if (room === "Bedroom") subCopy = "Bedframes, benches, and nightstands curated for a quiet, restful bedroom.";
   else if (room === "Home Office") subCopy = "Desks, seating, and storage curated for a home office that holds up all day.";
   else if (material.toLowerCase().includes("walnut"))
-    subCopy = `${matName} anchors the space. Oak side tables and considered lighting bring contrast and balance.`;
+    subCopy = `${matName} anchors the space. Oak side tables and the right lighting bring contrast and balance.`;
   else if (material.toLowerCase().includes("oak"))
-    subCopy = `${matName} keeps it airy. Walnut side tables and considered lighting add warmth and depth.`;
+    subCopy = `${matName} keeps it airy. Walnut side tables and the right lighting add warmth and depth.`;
 
   return (
     <div className="screen active">
@@ -118,11 +118,9 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
         <EmailListModal editLabel={editLabel} orderedTabs={orderedTabs} products={products} />
       )}
       <header className="site-header">
+        <MobileMenu />
         <button className="logo" onClick={onRestart}>
           The Interior <span>Index</span>
-        </button>
-        <button className="btn-secondary" onClick={onRestart} style={{ fontSize: "0.65rem" }}>
-          Start over
         </button>
       </header>
       <div className="results-header">
@@ -226,12 +224,6 @@ export default function ResultsScreen({ answers, onRestart, onRetakeQuiz, onBrow
         )}
       </div>
       <div className="results-actions">
-        <button className="btn-primary" onClick={onBrowseEdits}>
-          Browse Our Edit{" "}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </button>
         <button className="btn-secondary" onClick={onRetakeQuiz}>
           Retake quiz
         </button>

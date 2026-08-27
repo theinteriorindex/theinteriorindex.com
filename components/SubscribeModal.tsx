@@ -4,6 +4,10 @@ import { useState } from "react";
 
 type Props = {
   onClose: () => void;
+  // Which surface opened this, recorded on the subscriber row. Defaults to
+  // the original Browse/Results value so those two callers are unchanged;
+  // the landing page's mobile nav drawer passes its own.
+  source?: string;
 };
 
 type Status = "idle" | "sending" | "sent" | "error";
@@ -12,7 +16,7 @@ type Status = "idle" | "sending" | "sent" | "error";
 // (public.newsletter_subscribers) — reuses the same email-modal-* styling
 // as NotifyMeModal/EmailListModal so it reads as the same design system,
 // not a bolted-on third pattern.
-export default function SubscribeModal({ onClose }: Props) {
+export default function SubscribeModal({ onClose, source = "browse_corner_button" }: Props) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -25,7 +29,7 @@ export default function SubscribeModal({ onClose }: Props) {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "browse_corner_button" }),
+        body: JSON.stringify({ email, source }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong.");

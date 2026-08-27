@@ -6,9 +6,9 @@ import { getBrowseProducts, type BrowseProduct } from "@/lib/catalogData";
 import BrowseProductCard from "./BrowseProductCard";
 import NotifyMeModal from "./NotifyMeModal";
 import SubscribeModal from "./SubscribeModal";
+import MobileMenu from "./MobileMenu";
 
 type Props = {
-  onBack: () => void;
   onHome: () => void;
 };
 
@@ -116,7 +116,7 @@ function matchMaterialParam(raw: string | null): string | null {
   );
 }
 
-export default function BrowseEditsScreen({ onBack, onHome }: Props) {
+export default function BrowseEditsScreen({ onHome }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -136,6 +136,12 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [search, setSearch] = useState("");
+  // The search field is collapsed to just its icon until asked for (Liz,
+  // 2026-08-27). A permanently open box advertises a feature most visitors
+  // arriving at a browsable grid never use, and it competed with the material
+  // tags for the same row.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -221,6 +227,12 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     syncUrl(selectedMaterial, next);
   }
 
+  // Focus follows the reveal — tapping the icon and then having to tap again
+  // inside the box that just appeared is a second tap for nothing.
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
   function handleSearchChange(value: string) {
     setSearch(value);
     setPageIndex(0);
@@ -282,19 +294,68 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
   return (
     <div className="screen active">
       <header className="site-header">
+        <MobileMenu />
         <button className="logo" onClick={onHome}>
           The Interior <span>Index</span>
-        </button>
-        <button className="btn-secondary" onClick={onBack} style={{ fontSize: "0.65rem" }}>
-          ← Back
         </button>
       </header>
 
       <div className="products-section" style={{ borderTop: "none" }}>
-        <div className="products-title">Browse Our Edit</div>
+        {/* Title and search share one line (Liz, 2026-08-27) — the icon sits
+            on the page's right margin, level with the heading, instead of
+            below it in the filter row. */}
+        <div className="browse-head">
+          <div className="products-title">Browse Our Edit</div>
+
+          <div className={`browse-search${searchOpen ? " browse-search-open" : ""}`}>
+            <button
+              type="button"
+              className="browse-search-toggle"
+              aria-label={searchOpen ? "Close search" : "Search Browse Our Edit"}
+              aria-expanded={searchOpen}
+              onClick={() => {
+                if (searchOpen && !search) setSearchOpen(false);
+                else if (searchOpen) handleSearchChange("");
+                else setSearchOpen(true);
+              }}
+            >
+              <svg className="browse-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+            </button>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              aria-label="Search Browse Our Edit"
+              aria-hidden={!searchOpen}
+              tabIndex={searchOpen ? 0 : -1}
+              // Collapse again when it is left empty, so an accidental tap
+              // does not leave an open box sitting on the page. A field with
+              // a query in it stays open — closing it would hide the reason
+              // the grid is filtered.
+              onBlur={() => {
+                if (!search.trim()) setSearchOpen(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  handleSearchChange("");
+                  setSearchOpen(false);
+                }
+              }}
+            />
+            {search && (
+              <button className="browse-search-clear" onClick={() => handleSearchChange("")} aria-label="Clear search">
+                ×
+              </button>
+            )}
+          </div>
+        </div>
 
         <div className="browse-toolbar">
-          <div className={`browse-tags ${selectedMaterial ? "browse-tags-primary" : ""}`} style={{ margin: 0 }}>
+          <div className={`browse-tags ${selectedMaterial ? "browse-tags-primary" : ""}`}>
             <button
               className={`browse-tag ${!selectedMaterial && !selectedCategory ? "active" : ""}`}
               onClick={clearFilters}
@@ -312,24 +373,6 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
                 {m}
               </button>
             ))}
-          </div>
-
-          <div className="browse-search">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              aria-label="Search Browse Our Edit"
-            />
-            {search && (
-              <button className="browse-search-clear" onClick={() => handleSearchChange("")} aria-label="Clear search">
-                ×
-              </button>
-            )}
-            <svg className="browse-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="11" cy="11" r="7" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
           </div>
         </div>
 
