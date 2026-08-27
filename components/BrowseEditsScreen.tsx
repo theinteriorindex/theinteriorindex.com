@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getBrowseProducts, type BrowseProduct } from "@/lib/catalogData";
 import BrowseProductCard from "./BrowseProductCard";
@@ -18,6 +18,12 @@ const ALL_MATERIALS = ["Walnut", "Oak", "Stone", "Natural Fibers", "Chrome", "Ce
 // items below what's already shown, same pattern as ResultsScreen's product
 // grid, rather than replacing the current batch.
 const PREVIEW_COUNT = 8;
+// How many batches reveal themselves on scroll before the button comes back.
+// Not unlimited on purpose: the footer carries the affiliate disclosure and
+// privacy links, and a grid that keeps growing as you approach it means a
+// keyboard or screen-reader user can never reach them. Three batches (32
+// items) covers the way most people browse; past that they ask for more.
+const AUTO_REVEAL_PAGES = 3;
 // Fixed display order for category tags — anything not listed falls back to
 // alphabetical, appended after these. Throws is pinned last explicitly
 // (rather than relying on it alphabetizing there) so it always reads as a
@@ -234,6 +240,45 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
     setPageIndex((p) => p + 1);
   }
 
+  // Reveal the next batch as the end of the grid comes into view, instead of
+  // making people click. Everything is already in memory — `filtered` is the
+  // whole catalogue and we only slice it — so this costs no fetch, it just
+  // uncovers rows that were held back.
+  //
+  // Scroll listener + getBoundingClientRect rather than IntersectionObserver,
+  // matching useRevealOnce in HomeScreen: same rAF-throttled shape, one less
+  // API, and it behaves predictably in embedded/automated browsers where IO
+  // silently never delivers. Fires 500px early so the next row is in place
+  // before the current one runs out.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!hasMore || pageIndex >= AUTO_REVEAL_PAGES) return;
+    let ticking = false;
+    function check() {
+      ticking = false;
+      const el = sentinelRef.current;
+      if (!el) return;
+      if (el.getBoundingClientRect().top < window.innerHeight + 500) {
+        setPageIndex((p) => (p < AUTO_REVEAL_PAGES ? p + 1 : p));
+      }
+    }
+    function onScroll() {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(check);
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    // Run once on mount too: a short filter can leave the sentinel already in
+    // view without any scrolling happening.
+    check();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [hasMore, pageIndex, filtered.length]);
+
   return (
     <div className="screen active">
       <header className="site-header">
@@ -341,11 +386,16 @@ export default function BrowseEditsScreen({ onBack, onHome }: Props) {
             </div>
 
             {hasMore && (
-              <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
-                <button className="btn-secondary" onClick={handleDiscoverMore}>
-                  Discover more
-                </button>
-              </div>
+              <>
+                <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
+                {pageIndex >= AUTO_REVEAL_PAGES && (
+                  <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+                    <button className="btn-secondary" onClick={handleDiscoverMore}>
+                      Discover more
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
