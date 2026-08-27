@@ -39,18 +39,27 @@ const css = `
    No seam results: body is --warm-white and .ft is --warm-white, so on a
    window taller than the page the area below the footer is the same colour
    as the footer itself. */
-/* Percentage geometry, not a centred max-width box. Measured off the comp:
-   the content starts at 16.4% of the viewport and runs to 77.2%, so it is
-   60.8% wide and sits LEFT of centre - it is not centred at all. A capped,
-   centred container was making everything ~20% smaller and pushing the left
-   margin out to 24.7% on a wide screen. */
+/* Was percentage geometry (width: 60.8%, margin-left: 16.4%) measured off
+   the comp. The proportions were right, but they made the whole band a fixed
+   FRACTION of the viewport, so everything inside scaled with the window: on a
+   1440px laptop the photo came out 258px wide against the comp's 382, with
+   328px of empty page stranded to its right (Liz, 2026-08-27: "the position
+   of the photo is off on a smaller screen").
+   1344px is that band made constant rather than proportional: minus the 4rem
+   gutters it leaves a 1216px content box, which is exactly what 60.8% gave on
+   the 2000px screen Liz approved the layout on. So the wide view is unchanged
+   — same photo (359px), same text column, same three-line claim — and every
+   width from 1344 down to 1100 now gets that same layout instead of a
+   shrunken copy of it. At 1440 the photo goes from 258px back to 359px.
+   An earlier centred box was rejected for making everything ~20% smaller;
+   that one capped at ~1000px, well under the band the comp draws. */
 /* flex:1 so the section always fills the viewport and the footer sits on the
    bottom edge - without it the page ends short on a tall window and the strip
    below reads as extra footer, since body and .ft are both --warm-white. The
    cost is that on a window taller than the content the surplus lands between
    the photo and the footer, so the comp's 138px is a floor rather than a
    fixed value. */
-.about-main { flex: 1; width: 60.8%; max-width: none; margin: 0 0 0 16.4%; padding: 4.9rem 0 8.6rem; }
+.about-main { flex: 1; width: auto; max-width: 1344px; margin: 0 auto; padding: 4.9rem 4rem 8.6rem; }
 /* Proportions measured off Liz's mockup rather than guessed. In that comp
    the content spans 16.4%–77.2% of the viewport and divides as
    text 541px : gap 372px : photo 382px — i.e. 41.8% / 28.7% / 29.5% of the
@@ -93,8 +102,8 @@ const css = `
 
 /* Stack before the columns get too narrow to hold the claim's three lines. */
 @media (max-width: 1100px) {
-  /* Back to a normal gutter once the percentage geometry stops being useful. */
-  .about-main { width: auto; margin: 0 auto; padding-left: 3rem; padding-right: 3rem; max-width: 1000px; }
+  /* Tighter gutters once the band is narrower than its cap anyway. */
+  .about-main { padding-left: 3rem; padding-right: 3rem; }
 }
 @media (max-width: 900px) {
   .about-grid { grid-template-columns: 1fr; column-gap: 0; gap: 3rem; }
