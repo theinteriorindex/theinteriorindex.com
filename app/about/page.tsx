@@ -45,12 +45,20 @@ const css = `
    1440px laptop the photo came out 258px wide against the comp's 382, with
    328px of empty page stranded to its right (Liz, 2026-08-27: "the position
    of the photo is off on a smaller screen").
-   1344px is that band made constant rather than proportional: minus the 4rem
-   gutters it leaves a 1216px content box, which is exactly what 60.8% gave on
-   the 2000px screen Liz approved the layout on. So the wide view is unchanged
-   — same photo (359px), same text column, same three-line claim — and every
-   width from 1344 down to 1100 now gets that same layout instead of a
-   shrunken copy of it. At 1440 the photo goes from 258px back to 359px.
+   The width is now a floor, not a cap, so the band does both things:
+     max(1216px, 60.8%)  — the content box never falls below 1216px, which is
+                           what 60.8% gave on the 2000px screen the layout was
+                           approved on. Above that width it goes back to
+                           tracking 60.8% of the viewport, so text and photo
+                           scale up together on a large monitor rather than
+                           freezing with big empty margins either side.
+     + 8rem              — the 4rem gutters, which the old rule did not have
+                           (its padding was 4.9rem 0 8.6rem).
+     min(100%, ...)      — below ~1344px the viewport wins and the gutters do
+                           the work instead.
+   Net: identical at 2000px, grows above it, and holds that same layout all
+   the way down to 1100 instead of shrinking with the window — at 1440 the
+   photo goes from 258px back to 358px.
    An earlier centred box was rejected for making everything ~20% smaller;
    that one capped at ~1000px, well under the band the comp draws. */
 /* flex:1 so the section always fills the viewport and the footer sits on the
@@ -59,7 +67,7 @@ const css = `
    cost is that on a window taller than the content the surplus lands between
    the photo and the footer, so the comp's 138px is a floor rather than a
    fixed value. */
-.about-main { flex: 1; width: auto; max-width: 1344px; margin: 0 auto; padding: 4.9rem 4rem 8.6rem; }
+.about-main { flex: 1; width: min(100%, calc(max(1216px, 60.8%) + 8rem)); max-width: none; margin: 0 auto; padding: 4.9rem 4rem 8.6rem; }
 /* Proportions measured off Liz's mockup rather than guessed. In that comp
    the content spans 16.4%–77.2% of the viewport and divides as
    text 541px : gap 372px : photo 382px — i.e. 41.8% / 28.7% / 29.5% of the
