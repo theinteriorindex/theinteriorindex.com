@@ -10,7 +10,7 @@ export type RoomOption = { title: string; desc: string; category: string };
 export const ROOM_TABS: Record<string, string[]> = {
   "Living Room": ["Coffee Tables", "Seating", "Side Tables", "Lamps", "Throws"],
   "Dining Room": ["Dining Tables", "Dining Chairs", "Tabletop"],
-  Bedroom: ["Bedframe", "Bench", "Side Tables", "Lighting"],
+  Bedroom: ["Bedframe", "Bench", "Side Tables", "Storage", "Lighting"],
   "Home Office": ["Desk", "Seating", "Storage", "Lighting"],
 };
 

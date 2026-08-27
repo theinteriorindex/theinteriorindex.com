@@ -118,20 +118,32 @@ function browseTabLabelFor(row: { category: string; name: string }, room: string
   return label === "Bench" ? "Seating" : label;
 }
 
-// When `budget` is "Under $200", drops any row not tagged that tier before
-// grouping — checked via `budget_tier` rather than raw `price` since most of
-// the catalog only has the curated tier, not an exact numeric price on file.
+// Budget answers that name a `budget_tier` value in Supabase 1:1, so they
+// filter by string equality. Verified byte-for-byte against the column: the
+// separator is an em dash with a space either side (U+2014) in both the quiz
+// option titles in lib/quiz.ts and the stored tier strings. A mismatch here
+// fails silently — it returns zero rows rather than erroring — so never
+// "tidy" the punctuation on one side without changing the other.
+const DIRECT_TIER_ANSWERS = new Set(["Under $200", "$200 — $500", "$500 — $1,000", "$1,000+"]);
+
+// Drops any row not matching the budget the visitor picked.
 //
 // Quiet Luxury's quiz (see getBudgetOptions in lib/quiz.ts) splits the
 // coarse "$1,000+" budget_tier into two real options, "$1,000 — $2,500" and
 // "$2,500+" — Supabase has no such tier value, so these two check the real
 // `price` column against the $2,500 line instead. Every $1,000+ product
 // has a real price on file today, so this never silently drops a row for
-// lacking one.
+// lacking one. The corollary: a product must never be tagged with the
+// literal tier "$2,500+", because it would match neither branch and vanish
+// from results entirely.
+//
+// Every other answer is the name of a tier and is matched as one. This must
+// NOT compare `price`: over half the rows in the two middle tiers have a
+// NULL price on file, and a numeric filter would silently drop them.
 function filterByBudget(rows: ViewRow[], budget?: string): ViewRow[] {
-  if (budget === "Under $200") return rows.filter((r) => r.budget_tier === "Under $200");
   if (budget === "$1,000 — $2,500") return rows.filter((r) => r.budget_tier === "$1,000+" && r.price !== null && r.price < 2500);
   if (budget === "$2,500+") return rows.filter((r) => r.budget_tier === "$1,000+" && r.price !== null && r.price >= 2500);
+  if (budget && DIRECT_TIER_ANSWERS.has(budget)) return rows.filter((r) => r.budget_tier === budget);
   return rows;
 }
 

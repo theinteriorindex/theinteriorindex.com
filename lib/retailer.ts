@@ -27,6 +27,14 @@ const RETAILER_HOSTS: Record<string, string> = {
   "quietstonestudio.com": "Quietstone Studio",
   "vetro.dk": "Vetro",
   "virginiasin.com": "SIN",
+  "bertuhome.com": "Bertu Home",
+  "gestaltnewyork.com": "Gestalt New York",
+  "ruevintage74.com": "Rue Vintage 74",
+  "fleurstudios.com.au": "Fleur Studios",
+  "azoteastudio.mx": "Azotea Studio",
+  "spazioleone.com": "Spazio Leone",
+  "incorsostudio.com": "In Corso",
+  "puttenaers.com": "Puttenaers",
 };
 
 export function extractHostname(link: string): string | null {
