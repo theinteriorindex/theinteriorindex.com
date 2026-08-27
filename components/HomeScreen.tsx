@@ -344,6 +344,20 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
               sits centred on the hero right below (and the footer still
               carries a quiz link for every other page). */}
           <div className="lp-nav-links">
+            {/* About sits left of Shop Our Edit. It closes both hover panels
+                on enter — without that, sliding the cursor left off "Shop Our
+                Edit" onto About leaves the edits panel hanging open under a
+                link that has nothing to do with it. */}
+            <Link
+              className="lp-nav-link"
+              href="/about"
+              onMouseEnter={() => {
+                setEditsOpen(false);
+                setJoinOpen(false);
+              }}
+            >
+              About
+            </Link>
             <Link
               className="lp-nav-link"
               href="/browse"
@@ -369,7 +383,7 @@ export default function HomeScreen({ onStart }: { onStart: () => void }) {
               onClick={() => setJoinOpen(true)}
               aria-expanded={joinOpen}
             >
-              Join the Edit
+              Subscribe
             </button>
           </div>
 
