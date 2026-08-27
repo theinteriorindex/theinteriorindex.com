@@ -639,15 +639,19 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
    scene: cream title and body, amber italic pulled from the lit window
    (walnut vanishes on dark foliage — same class of lesson as terracotta
    on pale plaster). Fades in on the hero's load stagger, as before. */
-/* left is the nav's own left padding (4rem) plus the measured width of the
-   .lp-nav-tag ("A material-based design concierge", 254px with the fonts
-   loaded), so the CTA's left edge lines up with the end of "concierge"
-   above it — Liz, 2026-08-27. Both parts are viewport-independent: the tag's
-   font-size is in rem and its letter-spacing in em, so the alignment holds at
-   any desktop width rather than drifting the way the old 8% did. Below 900px
-   the rule further down takes over (left: 7%) and the nav padding drops to
-   1.4rem, so this calc never applies there. */
-.lp-hero-statement { position: absolute; left: calc(4rem + 254px); top: 47%; transform: translateY(-50%); z-index: 2; width: min(780px, 84vw); text-align: left; }
+/* Bottom centre (Liz, 2026-08-27), which also makes desktop and mobile the
+   same placement — the phone has sat bottom-centred since earlier today.
+   Supersedes the left: calc(4rem + 254px) alignment that put the button's
+   left edge under the end of "concierge" in the nav: that was an axis for a
+   block sitting mid-left, and there is no left axis to hold once the block
+   is centred.
+   left/translateX centre the block; text-align centres the button inside it,
+   since .lp-cta is inline-block. Anchored by `bottom` rather than `top` so
+   the button keeps its distance from the foot of the frame on any screen
+   height instead of drifting down as the viewport grows. It clears the
+   italic credit line (bottom: 1.8rem, left-aligned) by roughly 50px at
+   laptop height. */
+.lp-hero-statement { position: absolute; left: 50%; bottom: 12vh; top: auto; transform: translateX(-50%); z-index: 2; width: min(780px, 84vw); text-align: center; }
 /* -- About-manifesto treatment (2026-08-04; refs: TMD / Sample House) -- */
 /* Refinement pass (2026-08-05, "premium, less rough"). The kicker is a
    quiet overline now — it was competing with its own paragraph and
