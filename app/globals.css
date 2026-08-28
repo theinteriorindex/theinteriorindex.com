@@ -67,7 +67,15 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   to { padding: 0.4rem 1rem; }
 }
 .site-header--quiz .btn-secondary { animation: quizBackButtonSettle 1.1s cubic-bezier(0.33, 1, 0.68, 1) both; }
-.logo { font-family: var(--font-cormorant), serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); background: none; border: none; padding: 0; cursor: pointer; }
+/* Same size as the landing bar's lockup (.lp-nav-logo), which was
+   clamp(1.05rem, 1.5vw, 1.35rem) against a flat 1.1rem here — 21.6px vs
+   17.6px on a 1440 screen, so the mark visibly shrank when you moved from
+   the landing page to About or Shop Our Edit (Liz, 2026-08-27). Everything
+   else about the two already matched: Cormorant, 400, 0.2em, uppercase.
+   Keeping the clamp rather than a fixed value means the mark scales with the
+   viewport on both, so they stay identical at every width instead of only
+   agreeing at one. */
+.logo { font-family: var(--font-cormorant), serif; font-size: clamp(1.05rem, 1.5vw, 1.35rem); font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bark); background: none; border: none; padding: 0; cursor: pointer; }
 .logo span { font-style: italic; color: var(--terracotta); }
 .nav-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); font-weight: 300; }
 /* Desktop keeps the quiz header's real Back button; this tagline only
@@ -421,6 +429,9 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
      single centred row. The quiz keeps the column — its mobile tagline still
      sits under the lockup. */
   .site-header { padding: 1.5rem; text-align: center; }
+  /* Matches .lp-nav-logo's mobile size so the lockup is the same on every
+     page at phone width too. */
+  .logo { font-size: 1.05rem; }
   .site-header--quiz { flex-direction: column; align-items: center; gap: 0.35rem; }
   .nav-tag { font-size: 0.55rem; letter-spacing: 0.1em; }
   .quiz-back-btn { display: none; }
@@ -978,7 +989,7 @@ html:has(.lp), body:has(.lp) { background: #0B140D; }
   /* The lockup is nowrap; at 1.05rem it measures ~225px, comfortable even
      on a 320px phone. Guard the floor anyway so a very narrow viewport
      never lets it kiss the edges. */
-  .lp-nav-logo { font-size: clamp(0.9rem, 4.2vw, 1.05rem); }
+  .lp-nav-logo, .logo { font-size: clamp(0.9rem, 4.2vw, 1.05rem); }
   /* "Your space, curated" is the long line; let the title track the
      viewport below the clamp floor so it never kisses the edges of a
      narrow phone. */
