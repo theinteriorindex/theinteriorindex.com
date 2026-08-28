@@ -61,7 +61,14 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
   if (room === "Bedroom") {
     const cat = row.category.trim().toLowerCase();
     if (cat === "bedframe") return "Bedframe";
-    if (cat === "bench") return "Bench";
+    // Headboards ride with the bedframes (Liz, 2026-08-27) rather than taking
+    // a tab of their own — one product does not warrant a sixth tab, and a
+    // headboard is the same decision as a bed for anyone shopping the room.
+    // Note ROOM_TABS has no "Headboard" entry, so before this the Cabecero
+    // grouped under a key no tab ever rendered and the product was invisible.
+    if (cat === "headboard") return "Bedframe";
+    // Benches and chairs share one tab, labelled Seating (see ROOM_TABS).
+    if (cat === "bench" || cat === "seating") return "Seating";
     if (cat.startsWith("side table")) return "Side Tables";
     if (cat === "lighting") return "Lighting";
     return row.category;
@@ -115,7 +122,7 @@ function tabLabelFor(row: { category: string; name: string }, room: string): str
 // Bedroom results page that depends on it) is untouched.
 function browseTabLabelFor(row: { category: string; name: string }, room: string): string {
   const label = tabLabelFor(row, room);
-  return label === "Bench" ? "Seating" : label;
+  return label === "Bench" ? "Seating" : label;  // no-op for Bedroom now
 }
 
 // Budget answers that name a `budget_tier` value in Supabase 1:1, so they
@@ -198,11 +205,14 @@ function canonicalMaterial(m: string): string {
 // catalog fetch had been updated but getAvailablePriorityTitles' own separate
 // query had not, so the priority list collapsed to just its always-available
 // entries with no error anywhere.
-function materialValues(materialKey: string): string[] {
+// Accepts an array as well as a single key, for the rooms that draw on more
+// than one material in one query (Bedroom — see getEditCatalogFromDB).
+function materialValues(materialKey: string | string[]): string[] {
+  if (Array.isArray(materialKey)) return materialKey.flatMap((m) => MATERIAL_QUERY_ALIASES[m] ?? [m]);
   return MATERIAL_QUERY_ALIASES[materialKey] ?? [materialKey];
 }
 
-async function fetchRoomMaterialRows(room: string, materialKey: string): Promise<ViewRow[]> {
+async function fetchRoomMaterialRows(room: string, materialKey: string | string[]): Promise<ViewRow[]> {
   const { data: products, error } = await supabase
     .from("products")
     .select("id, name, category, sub_category, price, budget_tier, description, affiliate_url, sort_order, is_active")
@@ -556,11 +566,35 @@ export async function getEditCatalogFromDB(
   }
 
   if (isBedroom) {
-    const [bedroomRows, lightRows] = await Promise.all([
-      fetchRoomMaterialRows("Bedroom", isWalnut ? "Walnut" : "Oak"),
+    // Bedroom draws on the WHOLE room, led by the chosen material, rather
+    // than only the Walnut or Oak spine it used to fetch (Liz, 2026-08-27:
+    // the Chrome "Corewood Side Table" never appeared in the quiz).
+    //
+    // Two things kept it hidden. Question 03 collapses Stone and Chrome to
+    // Walnut for this room, so Chrome is never offered; and this fetch then
+    // asked for Walnut-or-Oak only, so a Chrome row could not come back
+    // whichever way that question was answered. Both were written when the
+    // Bedroom genuinely had no Chrome or Natural Fibers inventory.
+    //
+    // Rather than start offering Chrome as a Bedroom material — one side
+    // table cannot carry a five-tab edit, and Bedframe/Bench/Storage would
+    // come back empty — the room now pulls every material and leads each tab
+    // with the one that was chosen. Same shape as the Living Room, where
+    // Walnut's Side Tables come wholesale from the Oak view and the Throws
+    // from Natural Fibers: the hero category honours the answer, the
+    // supporting tabs take the best the room has.
+    //
+    // Order is load-bearing: groupByTab dedupes by name and keeps first-seen
+    // order, so passing the spine rows first makes the chosen material lead
+    // every tab, with the rest of the room behind it.
+    const spine = isWalnut ? "Walnut" : "Oak";
+    const rest = ["Walnut", "Oak", "Chrome", "Natural Fibers", "Stone"].filter((m) => m !== spine);
+    const [spineRows, restRows, lightRows] = await Promise.all([
+      fetchRoomMaterialRows("Bedroom", spine),
+      fetchRoomMaterialRows("Bedroom", rest),
       fetchView("the_light_edit"),
     ]);
-    const grouped = groupByTab(bedroomRows, "Bedroom", budget);
+    const grouped = groupByTab([...spineRows, ...restRows], "Bedroom", budget);
     // No Bedroom-tagged Lighting product exists yet, so the Lighting tab
     // would otherwise always be empty. Fall back to the universal Light
     // Edit for that tab specifically — real Bedroom lighting products, if

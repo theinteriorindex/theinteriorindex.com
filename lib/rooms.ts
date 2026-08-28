@@ -10,7 +10,13 @@ export type RoomOption = { title: string; desc: string; category: string };
 export const ROOM_TABS: Record<string, string[]> = {
   "Living Room": ["Coffee Tables", "Seating", "Side Tables", "Lamps", "Throws"],
   "Dining Room": ["Dining Tables", "Dining Chairs", "Tabletop"],
-  Bedroom: ["Bedframe", "Bench", "Side Tables", "Storage", "Lighting"],
+  // "Seating" rather than "Bench" (Liz, 2026-08-27): the tab holds the
+  // end-of-bed benches AND bedroom chairs (the Egg Pod), and Browse Our Edit
+  // already folds this tab into Seating for the same reason — see
+  // browseTabLabelFor. The quiz answer below still reads "A bench", which is
+  // what a bedroom shopper is most likely to be after; the tab it leads to
+  // simply carries chairs too.
+  Bedroom: ["Bedframe", "Seating", "Side Tables", "Storage", "Lighting"],
   "Home Office": ["Desk", "Seating", "Storage", "Lighting"],
 };
 
@@ -39,7 +45,7 @@ export const PRIORITY_OPTIONS: Record<string, RoomOption[]> = {
     {
       title: "A bench",
       desc: "End-of-bed seating, layering space for throws, and quiet storage — the finishing piece",
-      category: "Bench",
+      category: "Seating",
     },
     {
       title: "Side tables",
