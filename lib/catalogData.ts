@@ -606,11 +606,25 @@ export async function getEditCatalogFromDB(
   }
 
   if (room === "Home Office") {
-    const [officeRows, lightRows] = await Promise.all([
-      fetchRoomMaterialRows("Home Office", isWalnut ? "Walnut" : "Oak"),
+    // Home Office draws on the whole room, led by the chosen material, for
+    // the same reason the Bedroom does above (Liz, 2026-08-28). The room only
+    // ever fetched its Walnut or Oak spine, so a desk in any other material
+    // could not come back however the quiz was answered — the two 1stDibs
+    // desks that close the $500 - $1,000 band are burnished metal and beech,
+    // and neither is a spine material. Question 03 offers this room no way to
+    // ask for Chrome either, so the row would have stayed dead on both ends.
+    //
+    // Same ordering contract as the Bedroom: groupByTab dedupes by name and
+    // keeps first-seen order, so the spine rows go in first and lead every
+    // tab, with the rest of the room behind them.
+    const spine = isWalnut ? "Walnut" : "Oak";
+    const rest = ["Walnut", "Oak", "Chrome", "Natural Fibers", "Stone"].filter((m) => m !== spine);
+    const [spineRows, restRows, lightRows] = await Promise.all([
+      fetchRoomMaterialRows("Home Office", spine),
+      fetchRoomMaterialRows("Home Office", rest),
       fetchView("the_light_edit"),
     ]);
-    const grouped = groupByTab(officeRows, "Home Office", budget);
+    const grouped = groupByTab([...spineRows, ...restRows], "Home Office", budget);
     // Same fallback as Bedroom above: no Home Office-tagged Lighting product
     // exists, so this tab would otherwise always be empty. This now covers
     // the Lighting priority too — that branch used to intercept it, and no
